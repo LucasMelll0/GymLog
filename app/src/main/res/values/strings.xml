@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">GymLog</string>
+    <string name="exercise_repetions_place_holder">%dX%d</string>
+
+</resources>
