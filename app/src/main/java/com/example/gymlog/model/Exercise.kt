@@ -7,11 +7,15 @@ import java.util.UUID
 
 class Exercise(
     val id: String = UUID.randomUUID().toString(),
-    val name: String,
+    val title: String,
     val repetitions: Int,
     val series: Int,
     initialChecked: Boolean = false,
 
-) {
+    ) {
     var isChecked: Boolean by mutableStateOf(initialChecked)
+
+    override fun toString(): String {
+        return "nome: $title \n $repetitions X $series"
+    }
 }

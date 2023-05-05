@@ -3,9 +3,24 @@
     <string name="exercise_repetions_place_holder">%d séries de\n%d repetições</string>
     <string name="exercise_name_label">Nome do Exercicio</string>
     <string name="exercise_series_label">Séries</string>
-    <string name="exercise_repetitions_label">Repetitions</string>
+    <string name="exercise_repetitions_label">Repetições</string>
+    <string name="training_name_label">Nome do Treino</string>
     <string name="common_cancel">Cancelar</string>
     <string name="common_confirm">Confirmar</string>
     <string name="exercise_form_title">Novo Exercicio</string>
+    <string name="default_text_field_char_limit_place_holder">Limite: %d/%d</string>
+    <string name="repetitions_text_field_error_message">Repetições deve ser maior que 0!</string>
+    <string name="series_text_field_error_message">Séries deve ser maior que 0!</string>
+    <string name="default_text_field_error_message">Este Campo não pode ser vazio!</string>
+    <string name="delete_exercise_content_description">Excluir Exercício</string>
+    <string name="common_chest">peito</string>
+    <string name="common_back">costas</string>
+    <string name="common_biceps">biceps</string>
+    <string name="common_triceps">triceps</string>
+    <string name="common_legs">pernas</string>
+    <string name="common_abdomen">abdômen</string>
+    <string name="common_shoulder">ombro</string>
+    <string name="common_calf">pantûrrilha</string>
+    <string name="common_arm">braços</string>
 
 </resources>

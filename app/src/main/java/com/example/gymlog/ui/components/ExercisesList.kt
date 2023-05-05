@@ -43,7 +43,7 @@ fun ExerciseItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = exercise.name,
+                text = exercise.title,
                 modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
                 style = MaterialTheme.typography.titleMedium
             )
@@ -88,7 +88,7 @@ fun ExerciseList(
 @Composable
 private fun ExerciseListPreview() {
     val list =
-        List(20) { Exercise(name = "Test $it", repetitions = 10, series = 5) }.toMutableStateList()
+        List(20) { Exercise(title = "Test $it", repetitions = 10, series = 5) }.toMutableStateList()
     GymLogTheme {
         ExerciseList(
             exercises = list,
@@ -103,7 +103,7 @@ private fun ExerciseListPreview() {
 @Preview()
 @Composable
 private fun ExerciseItemPreview() {
-    val exercise = Exercise(name = "Flexão de braço", repetitions = 20, series = 5)
+    val exercise = Exercise(title = "Flexão de braço", repetitions = 20, series = 5)
     var isChecked by rememberSaveable {
         mutableStateOf(false)
     }
