@@ -15,6 +15,9 @@ class TrainingFormViewModel : ViewModel() {
     private val _exercises = mutableStateListOf<Exercise>()
     val exercises: List<Exercise> get() = _exercises
 
+    private val _filters = mutableStateListOf<String>()
+    val filters: List<String> get() = _filters
+
     fun setTrainingTitle(title: String) {
         _trainingTitle = title
     }
@@ -25,5 +28,13 @@ class TrainingFormViewModel : ViewModel() {
 
     fun removeExercise(exercise: Exercise) {
         _exercises.remove(exercise)
+    }
+
+    fun addFilter(filter: String) {
+        _filters.add(filter)
+    }
+
+    fun removeFilter(filter: String) {
+        _filters.remove(filter)
     }
 }

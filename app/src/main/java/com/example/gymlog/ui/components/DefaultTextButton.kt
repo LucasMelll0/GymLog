@@ -12,8 +12,10 @@ import com.example.gymlog.ui.theme.GymLogTheme
 
 @Composable
 fun DefaultTextButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-    contentColor = MaterialTheme.colorScheme.primary) {
+    Surface(
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+        contentColor = MaterialTheme.colorScheme.primary
+    ) {
         TextButton(onClick = onClick, modifier = modifier.fillMaxWidth()) {
             Text(text = text)
         }

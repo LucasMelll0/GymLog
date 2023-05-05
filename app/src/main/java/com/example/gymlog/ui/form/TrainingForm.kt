@@ -35,8 +35,10 @@ import com.example.gymlog.R
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.ui.components.DefaultTextButton
 import com.example.gymlog.ui.components.DefaultTextField
+import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
+import com.example.gymlog.utils.TrainingTypes
 
 
 @Composable
@@ -47,6 +49,7 @@ fun TrainingFormScreen(
     var showExerciseDialog: Boolean by rememberSaveable {
         mutableStateOf(false)
     }
+    val filters = TrainingTypes.values().map { stringResource(id = it.stringRes()) }
     if (showExerciseDialog) {
         ExerciseForm(
             onDismiss = { showExerciseDialog = false },
@@ -57,9 +60,11 @@ fun TrainingFormScreen(
             }
         )
     }
-    Surface(modifier = modifier
-        .fillMaxWidth()
-        .fillMaxHeight()) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             DefaultTextField(
                 value = trainingFormViewModel.trainingTitle,
@@ -76,8 +81,25 @@ fun TrainingFormScreen(
                 exercises = trainingFormViewModel.exercises,
                 onClickRemove = { trainingFormViewModel.removeExercise(it) }
             )
-            DefaultTextButton(text = "Adicionar Exercício", onClick = { showExerciseDialog = true })
+            DefaultTextButton(
+                text = stringResource(id = R.string.training_form_button_add_exercise_text),
+                onClick = { showExerciseDialog = true })
+            FilterChipSelectionList(
+                title = stringResource(id = R.string.training_form_training_type_filter_title),
+                selectedList = trainingFormViewModel.filters,
+                filterList = filters,
+                onClick = {
+                    if (!trainingFormViewModel.filters.contains(it)) {
+                        trainingFormViewModel.addFilter(it)
+                    } else {
+                        trainingFormViewModel.removeFilter(it)
+                    }
 
+                },
+                modifier = Modifier
+                    .padding(dimensionResource(id = R.dimen.default_padding))
+                    .fillMaxWidth()
+            )
         }
     }
 }
