@@ -40,7 +40,8 @@ fun FilterChipSelectionList(
     filterList: List<String>,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    title: String? = null
+    title: String? = null,
+    description: String? = null
 ) {
     OutlinedCard(
         shape = MaterialTheme.shapes.medium,
@@ -62,6 +63,14 @@ fun FilterChipSelectionList(
                         )
                     ),
                     textAlign = TextAlign.Center
+                )
+            }
+            description?.let {
+                Text(
+                    text = description,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
                 )
             }
             LazyVerticalStaggeredGrid(
@@ -122,7 +131,8 @@ private fun FilterChipSelectionListPreview() {
                 }
             },
             modifier = Modifier.padding(8.dp),
-            title = "Filtros"
+            title = "Filtros",
+            description = "Marque quantos o treino se enquadrar"
         )
     }
 }

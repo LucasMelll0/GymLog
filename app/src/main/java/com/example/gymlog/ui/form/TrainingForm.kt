@@ -70,7 +70,7 @@ fun TrainingFormScreen(
             FloatingActionButton(onClick = { }) {
                 Icon(
                     imageVector = Icons.Rounded.Check,
-                    contentDescription = stringResource(id = R.string.common_save_training)
+                    contentDescription = stringResource(id = R.string.training_form_save_training)
                 )
             }
         }) { paddingValues ->
@@ -108,7 +108,7 @@ fun TrainingFormScreen(
                     label = {
                         Text(text = stringResource(id = R.string.training_name_label))
                     },
-                    charLimit = 30,
+                    charLimit = 50,
                     modifier = Modifier
                         .padding(dimensionResource(id = R.dimen.default_padding))
                         .fillMaxWidth()
@@ -136,7 +136,8 @@ fun TrainingFormScreen(
                     modifier = Modifier
                         .padding(dimensionResource(id = R.dimen.default_padding))
                         .fillMaxWidth(),
-                    title = stringResource(id = R.string.training_form_training_type_filter_title)
+                    title = stringResource(id = R.string.training_form_training_type_filter_title),
+                    description = stringResource(id = R.string.training_form_filter_list_description)
                 )
             }
         }
@@ -248,7 +249,7 @@ private fun TrainingFormTopAppBar(onNavIconClick: () -> Unit, modifier: Modifier
 @Preview
 @Composable
 private fun DismissTrainingDialogPreview() {
-    DismissTrainingDialog(onDismissRequest = {  }) {
+    DismissTrainingDialog(onDismissRequest = { }) {
 
     }
 }
