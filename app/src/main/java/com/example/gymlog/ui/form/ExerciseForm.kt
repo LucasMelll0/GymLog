@@ -8,13 +8,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,8 +46,8 @@ fun ExerciseForm(
     modifier: Modifier = Modifier
 ) {
     var title by rememberSaveable { mutableStateOf("") }
-    var series by rememberSaveable { mutableStateOf(0) }
-    var repetitions by rememberSaveable { mutableStateOf(0) }
+    var series: Int? by rememberSaveable { mutableStateOf(null) }
+    var repetitions: Int? by rememberSaveable { mutableStateOf(null) }
     var titleHasError by remember { mutableStateOf(false) }
     var seriesHasError by remember { mutableStateOf(false) }
     var repetitionsHasError by remember { mutableStateOf(false) }
@@ -57,10 +57,10 @@ fun ExerciseForm(
     ) {
         Card(
             shape = RoundedCornerShape(10.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
             modifier = modifier
                 .fillMaxWidth()
+                .wrapContentHeight()
                 .padding(dimensionResource(id = R.dimen.default_padding))
         ) {
             Column(
@@ -91,7 +91,7 @@ fun ExerciseForm(
                 ) {
 
                     DefaultTextField(
-                        series.toString(),
+                        value = series?.let{ series.toString() } ?: "",
                         onValueChange = {
                             if (it.isDigitsOnly() && it.isNotEmpty()) {
                                 series = it.toInt()
@@ -111,7 +111,7 @@ fun ExerciseForm(
                         )
 
                     DefaultTextField(
-                        repetitions.toString(),
+                        value = repetitions?.let { repetitions.toString() } ?: "",
                         onValueChange = {
                             if (it.isDigitsOnly() && it.isNotEmpty()) {
                                 repetitions = it.toInt()
@@ -147,16 +147,17 @@ fun ExerciseForm(
                     Button(
                         onClick = {
                             titleHasError = title.isEmpty()
-                            seriesHasError = series == 0
-                            repetitionsHasError = repetitions == 0
+                            seriesHasError = series == 0 || series == null
+                            repetitionsHasError = repetitions == 0 || repetitions == null
                             if (!titleHasError &&
                                 !seriesHasError &&
-                                !repetitionsHasError) {
+                                !repetitionsHasError
+                            ) {
                                 val exercise =
                                     Exercise(
                                         title = title,
-                                        series = series,
-                                        repetitions = repetitions
+                                        series = series!!,
+                                        repetitions = repetitions!!
                                     )
                                 onConfirm(exercise)
                             }

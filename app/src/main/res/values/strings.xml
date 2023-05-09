@@ -24,5 +24,10 @@
     <string name="common_arm">braços</string>
     <string name="training_form_training_type_filter_title">Tipo de Treino</string>
     <string name="training_form_button_add_exercise_text">Adicionar Exercício</string>
+    <string name="common_save_training">Salvar Treino</string>
+    <string name="training_form_top_bar_title">Novo Treino</string>
+    <string name="common_go_to_back">Voltar</string>
+    <string name="training_form_dismiss_dialog_title">Apagar novo treino?</string>
+    <string name="training_form_dismiss_dialog_text">Ao fazer isso você irá perder o novo treino.</string>
 
 </resources>

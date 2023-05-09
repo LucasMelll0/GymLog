@@ -1,15 +1,16 @@
 package com.example.gymlog.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,22 +33,24 @@ import com.example.gymlog.R
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.TrainingTypes
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun FilterChipSelectionList(
     selectedList: List<String>,
     filterList: List<String>,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    title: String? = null,
-    countOfRows: Int = 3
+    title: String? = null
 ) {
     OutlinedCard(
         shape = MaterialTheme.shapes.medium,
-        modifier = modifier,
+        modifier = modifier.wrapContentHeight(),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.wrapContentHeight()
+        ) {
             title?.let {
                 Text(
                     text = title,
@@ -61,9 +64,9 @@ fun FilterChipSelectionList(
                     textAlign = TextAlign.Center
                 )
             }
-            LazyHorizontalGrid(
-                rows = GridCells.Fixed(countOfRows),
-                modifier = modifier.heightIn(max = 120.dp),
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(3),
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
                 contentPadding = PaddingValues(horizontal = dimensionResource(id = R.dimen.default_padding)),
                 horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
                 verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
@@ -109,9 +112,8 @@ private fun FilterChipSelectionListPreview() {
 
     GymLogTheme {
         FilterChipSelectionList(
-            title = "Filtros",
-            filterList = filters,
             selectedList = selectedList,
+            filterList = filters,
             onClick = {
                 if (!selectedList.contains(it)) {
                     selectedList.add(it)
@@ -119,7 +121,8 @@ private fun FilterChipSelectionListPreview() {
                     selectedList.remove(it)
                 }
             },
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(8.dp),
+            title = "Filtros"
         )
     }
 }
