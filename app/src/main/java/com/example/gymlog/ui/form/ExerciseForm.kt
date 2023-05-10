@@ -34,6 +34,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.text.isDigitsOnly
 import com.example.gymlog.R
+import com.example.gymlog.extensions.isZeroOrEmpty
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.ui.components.DefaultTextField
 import com.example.gymlog.ui.theme.GymLogTheme
@@ -46,8 +47,8 @@ fun ExerciseForm(
     modifier: Modifier = Modifier
 ) {
     var title by rememberSaveable { mutableStateOf("") }
-    var series: Int? by rememberSaveable { mutableStateOf(null) }
-    var repetitions: Int? by rememberSaveable { mutableStateOf(null) }
+    var series: String by rememberSaveable { mutableStateOf("") }
+    var repetitions: String by rememberSaveable { mutableStateOf("") }
     var titleHasError by remember { mutableStateOf(false) }
     var seriesHasError by remember { mutableStateOf(false) }
     var repetitionsHasError by remember { mutableStateOf(false) }
@@ -91,10 +92,10 @@ fun ExerciseForm(
                 ) {
 
                     DefaultTextField(
-                        value = series?.let{ series.toString() } ?: "",
+                        value = series,
                         onValueChange = {
-                            if (it.isDigitsOnly() && it.isNotEmpty()) {
-                                series = it.toInt()
+                            if (it.isDigitsOnly()) {
+                                series = it
                             }
                         },
                         isError = seriesHasError,
@@ -111,10 +112,10 @@ fun ExerciseForm(
                         )
 
                     DefaultTextField(
-                        value = repetitions?.let { repetitions.toString() } ?: "",
+                        value = repetitions,
                         onValueChange = {
-                            if (it.isDigitsOnly() && it.isNotEmpty()) {
-                                repetitions = it.toInt()
+                            if (it.isDigitsOnly()) {
+                                repetitions = it
                             }
                         },
                         isError = repetitionsHasError,
@@ -147,8 +148,8 @@ fun ExerciseForm(
                     Button(
                         onClick = {
                             titleHasError = title.isEmpty()
-                            seriesHasError = series == 0 || series == null
-                            repetitionsHasError = repetitions == 0 || repetitions == null
+                            seriesHasError = series.isZeroOrEmpty()
+                            repetitionsHasError = repetitions.isZeroOrEmpty()
                             if (!titleHasError &&
                                 !seriesHasError &&
                                 !repetitionsHasError
@@ -156,8 +157,8 @@ fun ExerciseForm(
                                 val exercise =
                                     Exercise(
                                         title = title,
-                                        series = series!!,
-                                        repetitions = repetitions!!
+                                        series = series.toInt(),
+                                        repetitions = repetitions.toInt()
                                     )
                                 onConfirm(exercise)
                             }
