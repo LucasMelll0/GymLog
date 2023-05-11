@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -41,7 +42,7 @@ private val LightColorScheme = lightColorScheme(
 fun GymLogTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -50,8 +51,8 @@ fun GymLogTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> DarkColors
+        else -> LightColors
     }
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -68,3 +69,31 @@ fun GymLogTheme(
         content = content
     )
 }
+
+private val LightColors = lightColorScheme(
+    primary = Blue700,
+    onPrimary = Color.White,
+    secondary = Blue700,
+    onSecondary = Color.White,
+    primaryContainer = Blue700,
+    secondaryContainer = Blue700,
+    onSecondaryContainer = Color.White,
+    surface = Color.White,
+    surfaceVariant = Blue50,
+    outline = Blue900,
+    outlineVariant = Blue800
+)
+
+private val DarkColors = darkColorScheme(
+    primary = Blue300,
+    onPrimary = Color.Black,
+    secondary = Blue300,
+    onSecondary = Color.Black,
+    primaryContainer = Blue300,
+    secondaryContainer = Blue200,
+    onSecondaryContainer = Color.Black,
+    surface = Color.Black,
+    surfaceVariant = Blue1200,
+    outline = Blue50,
+    outlineVariant = Color.White
+)

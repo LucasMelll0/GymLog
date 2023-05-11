@@ -84,7 +84,7 @@ fun ExerciseForm(
                         )
                     },
                     isError = titleHasError,
-                    errorMessage = stringResource(id = R.string.default_text_field_error_message),
+                    errorMessage = stringResource(id = R.string.common_text_field_error_message),
                     charLimit = 50
                 )
                 Row(

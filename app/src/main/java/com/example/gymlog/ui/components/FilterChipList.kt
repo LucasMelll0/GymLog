@@ -1,6 +1,5 @@
 package com.example.gymlog.ui.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,7 +16,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
@@ -43,69 +41,63 @@ fun FilterChipSelectionList(
     title: String? = null,
     description: String? = null
 ) {
-    OutlinedCard(
-        shape = MaterialTheme.shapes.medium,
-        modifier = modifier.wrapContentHeight(),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.wrapContentHeight()
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.wrapContentHeight()
-        ) {
-            title?.let {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(
-                        vertical = dimensionResource(
-                            id = R.dimen.default_padding
-                        )
-                    ),
-                    textAlign = TextAlign.Center
-                )
-            }
-            description?.let {
-                Text(
-                    text = description,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
-                )
-            }
-            LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Fixed(3),
-                modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
-                contentPadding = PaddingValues(horizontal = dimensionResource(id = R.dimen.default_padding)),
-                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
-                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
-
-            ) {
-                items(filterList) { filter ->
-                    val isSelected = selectedList.contains(filter)
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = { onClick(filter) },
-                        label = {
-                            Text(
-                                text = filter
-                            )
-                        },
-                        leadingIcon = if (isSelected) {
-                            {
-                                Icon(
-                                    imageVector = Icons.Rounded.Check,
-                                    contentDescription = null,
-                                    Modifier.size(
-                                        dimensionResource(id = R.dimen.default_chip_icon_size)
-                                    )
-                                )
-                            }
-                        } else {
-                            null
-                        }
+        title?.let {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(
+                    vertical = dimensionResource(
+                        id = R.dimen.default_padding
                     )
-                }
+                ),
+                textAlign = TextAlign.Center
+            )
+        }
+        description?.let {
+            Text(
+                text = description,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
+            )
+        }
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(3),
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
+            contentPadding = PaddingValues(horizontal = dimensionResource(id = R.dimen.default_padding)),
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
+
+        ) {
+            items(filterList) { filter ->
+                val isSelected = selectedList.contains(filter)
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { onClick(filter) },
+                    label = {
+                        Text(
+                            text = filter
+                        )
+                    },
+                    leadingIcon = if (isSelected) {
+                        {
+                            Icon(
+                                imageVector = Icons.Rounded.Check,
+                                contentDescription = null,
+                                Modifier.size(
+                                    dimensionResource(id = R.dimen.default_chip_icon_size)
+                                )
+                            )
+                        }
+                    } else {
+                        null
+                    }
+                )
             }
         }
     }

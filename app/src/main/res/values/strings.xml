@@ -13,12 +13,12 @@
     <string name="default_text_field_char_limit_place_holder">Limite: %d/%d</string>
     <string name="repetitions_text_field_error_message">Repetições deve ser maior que 0!</string>
     <string name="series_text_field_error_message">Séries deve ser maior que 0!</string>
-    <string name="default_text_field_error_message">Este Campo não pode ser vazio!</string>
     <string name="delete_exercise_content_description">Excluir Exercício</string>
 
 
 
     <!-- Common -->
+    <string name="common_text_field_error_message">Este Campo não pode ser vazio!</string>
     <string name="common_go_to_back">Voltar</string>
     <string name="common_chest">peito</string>
     <string name="common_back">costas</string>
@@ -39,6 +39,6 @@
     <string name="training_form_dismiss_dialog_text">Ao fazer isso você irá perder o novo treino.</string>
     <string name="training_form_training_type_filter_title">Tipo de Treino</string>
     <string name="training_form_button_add_exercise_text">Adicionar Exercício</string>
-    <string name="training_form_filter_list_description">Marque quantos tipos o treino se enquadrar.</string>
+    <string name="training_form_filter_list_description">Marque os músculos que esse treino abrange.</string>
 
 </resources>

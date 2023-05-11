@@ -10,19 +10,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,6 +35,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
@@ -49,25 +56,37 @@ import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.TrainingTypes
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrainingFormScreen(
     modifier: Modifier = Modifier,
-    trainingFormViewModel: TrainingFormViewModel = viewModel()
+    viewModel: TrainingFormViewModel = viewModel()
 ) {
     var showDismissDialog: Boolean by rememberSaveable {
         mutableStateOf(false)
     }
+    var nameHasError by remember { mutableStateOf(false) }
+    val snackBarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         topBar = {
             TrainingFormTopAppBar(onNavIconClick = {
                 showDismissDialog = true
             })
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { }) {
+            FloatingActionButton(onClick = {
+                nameHasError = viewModel.trainingTitle.isEmpty()
+                if (!nameHasError) {
+                    scope.launch {
+                        snackBarHostState.showSnackbar("Tudo Tranquilo")
+                    }
+                }
+            }) {
                 Icon(
                     imageVector = Icons.Rounded.Check,
                     contentDescription = stringResource(id = R.string.training_form_save_training)
@@ -90,7 +109,7 @@ fun TrainingFormScreen(
                 onDismiss = { showExerciseDialog = false },
                 onExit = { showExerciseDialog = false },
                 onConfirm = {
-                    trainingFormViewModel.addExercise(it)
+                    viewModel.addExercise(it)
                     showExerciseDialog = false
                 }
             )
@@ -103,42 +122,49 @@ fun TrainingFormScreen(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 DefaultTextField(
-                    value = trainingFormViewModel.trainingTitle,
-                    onValueChange = { trainingFormViewModel.setTrainingTitle(it) },
+                    value = viewModel.trainingTitle,
+                    onValueChange = { viewModel.setTrainingTitle(it) },
                     label = {
                         Text(text = stringResource(id = R.string.training_name_label))
                     },
                     charLimit = 50,
                     modifier = Modifier
                         .padding(dimensionResource(id = R.dimen.default_padding))
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    isError = nameHasError,
+                    errorMessage = stringResource(id = R.string.common_text_field_error_message)
                 )
                 Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
                 ExerciseListForm(
-                    exercises = trainingFormViewModel.exercises,
-                    onClickRemove = { trainingFormViewModel.removeExercise(it) }
+                    exercises = viewModel.exercises,
+                    onClickRemove = { viewModel.removeExercise(it) },
+                    modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))
                 )
                 DefaultTextButton(
                     text = stringResource(id = R.string.training_form_button_add_exercise_text),
                     onClick = { showExerciseDialog = true })
                 Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
-                FilterChipSelectionList(
-                    selectedList = trainingFormViewModel.filters,
-                    filterList = filters,
-                    onClick = {
-                        if (!trainingFormViewModel.filters.contains(it)) {
-                            trainingFormViewModel.addFilter(it)
-                        } else {
-                            trainingFormViewModel.removeFilter(it)
-                        }
-
-                    },
+                Card(
                     modifier = Modifier
                         .padding(dimensionResource(id = R.dimen.default_padding))
                         .fillMaxWidth(),
-                    title = stringResource(id = R.string.training_form_training_type_filter_title),
-                    description = stringResource(id = R.string.training_form_filter_list_description)
-                )
+                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    FilterChipSelectionList(
+                        selectedList = viewModel.filters,
+                        filterList = filters,
+                        onClick = {
+                            if (!viewModel.filters.contains(it)) {
+                                viewModel.addFilter(it)
+                            } else {
+                                viewModel.removeFilter(it)
+                            }
+
+                        },
+                        title = stringResource(id = R.string.training_form_training_type_filter_title),
+                        description = stringResource(id = R.string.training_form_filter_list_description)
+                    )
+                }
             }
         }
     }
@@ -156,10 +182,14 @@ fun ExerciseListForm(
             items = exercises,
             key = { exercise -> exercise.id }
         ) { exercise ->
-            ExerciseItemForm(exercise = exercise, onClickRemove = onClickRemove)
-            if (exercises.indexOf(exercise) != exercises.lastIndex) {
-                Divider()
-            }
+            val firstItem = exercises.indexOf(exercise) == 0
+            val lastItem = exercises.indexOf(exercise) == exercises.lastIndex
+            ExerciseItemForm(
+                exercise = exercise,
+                onClickRemove = onClickRemove,
+                roundedTopRadius = firstItem,
+                roundedBottomRadius = lastItem
+            )
         }
     }
 }
@@ -167,13 +197,29 @@ fun ExerciseListForm(
 
 @Composable
 fun ExerciseItemForm(
+    modifier: Modifier = Modifier,
     exercise: Exercise,
     onClickRemove: (Exercise) -> Unit,
-    modifier: Modifier = Modifier
+    roundedTopRadius: Boolean = false,
+    roundedBottomRadius: Boolean = false
 ) {
-    Surface(modifier = modifier.fillMaxWidth()) {
+    val topRadius =
+        if (roundedTopRadius) dimensionResource(id = R.dimen.default_corner_size) else 0.dp
+    val bottomRadius =
+        if (roundedBottomRadius) dimensionResource(id = R.dimen.default_corner_size) else 0.dp
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(
+            topStart = CornerSize(topRadius),
+            topEnd = CornerSize(topRadius),
+            bottomStart = CornerSize(bottomRadius),
+            bottomEnd = CornerSize(bottomRadius)
+        )
+    ) {
         Row(
-            Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
+            Modifier
+                .padding(dimensionResource(id = R.dimen.default_padding))
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
