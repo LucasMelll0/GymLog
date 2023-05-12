@@ -1,10 +1,15 @@
 package com.example.gymlog.ui.home
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -12,44 +17,126 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
+import com.example.gymlog.data.Mock
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
+import com.example.gymlog.ui.home.viewmodel.HomeViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
-import com.example.gymlog.utils.TrainingTypes
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = viewModel()
+) {
+    Scaffold(bottomBar = {
+        HomeBottomBar(
+            onButtonSearchClick = {},
+            onButtonFiltersClick = {},
+            onFabClick = {})
+    }) { paddingValues ->
+        Surface(
+            modifier = modifier
+                .padding(paddingValues)
+                .fillMaxWidth()
+        ) {
+            TrainingList(trainings = viewModel.trainings)
+        }
+
+    }
+}
+
+@Composable
+fun HomeBottomBar(
+    onButtonSearchClick: () -> Unit,
+    onButtonFiltersClick: () -> Unit,
+    onFabClick: () -> Unit
+) {
+    BottomAppBar(actions = {
+        IconButton(onClick = onButtonSearchClick) {
+            Icon(
+                imageVector = Icons.Rounded.Search,
+                contentDescription = stringResource(id = R.string.home_button_search_content_description)
+            )
+        }
+        IconButton(onClick = onButtonFiltersClick) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_preferences),
+                contentDescription = stringResource(id = R.string.home_button_filter_content_description)
+            )
+        }
+
+    }, floatingActionButton = {
+        FloatingActionButton(onClick = onFabClick) {
+            Icon(
+                imageVector = Icons.Rounded.Add,
+                contentDescription = stringResource(id = R.string.home_button_add_content_description)
+            )
+        }
+    })
+}
+
+@Composable
+fun TrainingList(trainings: List<Training>, modifier: Modifier = Modifier) {
+    LazyColumn(
+        modifier = modifier.padding(horizontal = dimensionResource(id = R.dimen.small_padding)),
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
+    ) {
+        items(
+            trainings,
+            key = { training -> training.id }
+        ) { training ->
+            TrainingItem(
+                training = training,
+                Modifier.padding(dimensionResource(id = R.dimen.small_padding))
+            )
+        }
+    }
+}
 
 @Composable
 fun TrainingItem(training: Training, modifier: Modifier = Modifier) {
-    var isExpanded by remember { mutableStateOf(false) }
+    var isExpanded by rememberSaveable { mutableStateOf(false) }
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .animateContentSize(),
+            .animateContentSize(animationSpec = spring(Spring.DampingRatioLowBouncy)),
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
     ) {
-        Card() {
+        Card(colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
             Column(modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.default_padding))) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -65,8 +152,13 @@ fun TrainingItem(training: Training, modifier: Modifier = Modifier) {
                             )
                         )
                     )
+                    val angle: Float by animateFloatAsState(if (isExpanded) 180f else 0f)
                     IconButton(onClick = { isExpanded = !isExpanded }) {
-                        Icon(imageVector = Icons.Rounded.ArrowDropDown, contentDescription = null)
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowDropDown,
+                            contentDescription = null,
+                            modifier = Modifier.rotate(angle)
+                        )
                     }
                 }
                 FilterListTrainingItem(
@@ -89,34 +181,6 @@ fun TrainingItem(training: Training, modifier: Modifier = Modifier) {
     }
 }
 
-
-@Preview(showBackground = true, backgroundColor = 0)
-@Composable
-private fun TrainingItemPreview() {
-    val filters = listOf(
-        TrainingTypes.ABDOMEN,
-        TrainingTypes.BICEPS,
-        TrainingTypes.BACK,
-        TrainingTypes.ABDOMEN,
-        TrainingTypes.CALF
-    ).map {
-        stringResource(
-            id = it.stringRes()
-        )
-    }
-    val exercises =
-        List(5) { i -> Exercise(title = "Exercise $i", repetitions = i + i, series = i + i) }
-
-    val training = Training(title = "Training Test", exercises = exercises, filters = filters)
-    GymLogTheme {
-        TrainingItem(
-            training = training, modifier = Modifier.padding(
-                dimensionResource(id = R.dimen.default_padding)
-            )
-        )
-    }
-}
-
 @Composable
 private fun FilterListTrainingItem(filters: List<String>, modifier: Modifier = Modifier) {
     Surface(
@@ -126,7 +190,9 @@ private fun FilterListTrainingItem(filters: List<String>, modifier: Modifier = M
     ) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(70.dp),
-            modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
+            modifier = Modifier
+                .padding(dimensionResource(id = R.dimen.default_padding))
+                .heightIn(max = 100.dp),
             horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.small_padding)),
             verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.small_padding))
         ) {
@@ -155,7 +221,7 @@ private fun FilterTrainingItem(filter: String, modifier: Modifier = Modifier) {
 
 @Composable
 private fun ExerciseListTrainingItem(exercises: List<Exercise>, modifier: Modifier = Modifier) {
-    LazyColumn(modifier = modifier) {
+    LazyColumn(modifier = modifier.heightIn(max = 200.dp)) {
         items(exercises) { exercise ->
             ExerciseTrainingItem(
                 exercise = exercise, modifier = Modifier.padding(
@@ -169,7 +235,6 @@ private fun ExerciseListTrainingItem(exercises: List<Exercise>, modifier: Modifi
 @Composable
 private fun ExerciseTrainingItem(exercise: Exercise, modifier: Modifier = Modifier) {
     Row(
-
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
@@ -188,5 +253,44 @@ private fun ExerciseTrainingItem(exercise: Exercise, modifier: Modifier = Modifi
             text = "${exercise.repetitions}X${exercise.series}",
             style = MaterialTheme.typography.bodySmall
         )
+    }
+}
+
+@Preview(uiMode = UI_MODE_NIGHT_YES)
+@Preview
+@Composable
+private fun HomeScreenPreview() {
+    GymLogTheme {
+        val viewModel: HomeViewModel = viewModel()
+        viewModel.addAllTrainings(Mock.getTrainings(size = 5))
+        HomeScreen()
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFFF)
+@Composable
+private fun TrainingItemPreview() {
+    val filters = Mock.getFilters().map {
+        stringResource(
+            id = it.stringRes()
+        )
+    }
+    val exercises = Mock.getExercises()
+    val training = Training(title = "Training Test", exercises = exercises, filters = filters)
+    GymLogTheme {
+        TrainingItem(
+            training = training, modifier = Modifier.padding(
+                dimensionResource(id = R.dimen.default_padding)
+            )
+        )
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun TrainingListPreview() {
+    val trainings = Mock.getTrainings(size = 20)
+    GymLogTheme {
+        TrainingList(trainings = trainings)
     }
 }

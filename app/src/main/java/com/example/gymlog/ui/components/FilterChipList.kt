@@ -81,7 +81,8 @@ fun FilterChipSelectionList(
                     onClick = { onClick(filter) },
                     label = {
                         Text(
-                            text = filter
+                            text = filter,
+                            textAlign = TextAlign.Center
                         )
                     },
                     leadingIcon = if (isSelected) {

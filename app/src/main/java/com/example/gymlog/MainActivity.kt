@@ -7,7 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.gymlog.ui.form.TrainingFormScreen
+import com.example.gymlog.data.Mock
+import com.example.gymlog.ui.home.TrainingList
 import com.example.gymlog.ui.theme.GymLogTheme
 
 class MainActivity : ComponentActivity() {
@@ -16,7 +17,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             GymLogTheme {
                 // A surface container using the 'background' color from the theme
-                TrainingFormScreen()
+                TrainingList(trainings = Mock.getTrainings(size = 20))
             }
         }
     }
