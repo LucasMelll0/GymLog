@@ -4,10 +4,11 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
@@ -66,17 +67,19 @@ fun FilterChipSelectionList(
                 color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
             )
         }
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(3),
-            modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
+        LazyHorizontalStaggeredGrid(
+            rows = StaggeredGridCells.Fixed(2),
+            modifier = Modifier
+                .padding(dimensionResource(id = R.dimen.default_padding))
+                .heightIn(max = 80.dp),
             contentPadding = PaddingValues(horizontal = dimensionResource(id = R.dimen.default_padding)),
-            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
             verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
 
         ) {
             items(filterList) { filter ->
                 val isSelected = selectedList.contains(filter)
                 FilterChip(
+                    modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.small_padding)),
                     selected = isSelected,
                     onClick = { onClick(filter) },
                     label = {

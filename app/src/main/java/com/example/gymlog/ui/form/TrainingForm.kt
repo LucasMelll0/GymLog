@@ -59,7 +59,6 @@ import com.example.gymlog.utils.TrainingTypes
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrainingFormScreen(
     modifier: Modifier = Modifier,

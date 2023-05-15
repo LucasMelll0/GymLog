@@ -34,4 +34,6 @@ enum class TrainingTypes {
 
     @StringRes
     abstract fun stringRes(): Int
+
+
 }
