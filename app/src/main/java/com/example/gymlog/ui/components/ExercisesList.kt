@@ -27,12 +27,12 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gymlog.R
-import com.example.gymlog.model.Exercise
+import com.example.gymlog.model.ExerciseMutableState
 import com.example.gymlog.ui.theme.GymLogTheme
 
 @Composable
 fun ExerciseItem(
-    exercise: Exercise,
+    exercise: ExerciseMutableState,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -64,8 +64,8 @@ fun ExerciseItem(
 
 @Composable
 fun ExerciseList(
-    exercises: List<Exercise>,
-    onCheckedChange: (exercise: Exercise, isChecked: Boolean) -> Unit,
+    exercises: List<ExerciseMutableState>,
+    onCheckedChange: (exercise: ExerciseMutableState, isChecked: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(modifier = modifier) {
@@ -88,7 +88,7 @@ fun ExerciseList(
 @Composable
 private fun ExerciseListPreview() {
     val list =
-        List(20) { Exercise(title = "Test $it", repetitions = 10, series = 5) }.toMutableStateList()
+        List(20) { ExerciseMutableState(title = "Test $it", repetitions = 10, series = 5) }.toMutableStateList()
     GymLogTheme {
         ExerciseList(
             exercises = list,
@@ -103,7 +103,7 @@ private fun ExerciseListPreview() {
 @Preview()
 @Composable
 private fun ExerciseItemPreview() {
-    val exercise = Exercise(title = "Flexão de braço", repetitions = 20, series = 5)
+    val exercise = ExerciseMutableState(title = "Flexão de braço", repetitions = 20, series = 5)
     var isChecked by rememberSaveable {
         mutableStateOf(false)
     }
