@@ -47,9 +47,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
 import com.example.gymlog.model.Exercise
+import com.example.gymlog.model.Training
 import com.example.gymlog.ui.components.DefaultTextButton
 import com.example.gymlog.ui.components.DefaultTextField
 import com.example.gymlog.ui.components.FilterChipSelectionList
@@ -57,12 +57,15 @@ import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.TrainingTypes
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
 fun TrainingFormScreen(
+    onSaveTraining: () -> Unit,
+    onDismissClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: TrainingFormViewModel = viewModel()
+    viewModel: TrainingFormViewModel = koinViewModel()
 ) {
     var showDismissDialog: Boolean by rememberSaveable {
         mutableStateOf(false)
@@ -82,7 +85,13 @@ fun TrainingFormScreen(
                 nameHasError = viewModel.trainingTitle.isEmpty()
                 if (!nameHasError) {
                     scope.launch {
-                        snackBarHostState.showSnackbar("Tudo Tranquilo")
+                        val training = Training(
+                            title = viewModel.trainingTitle,
+                            filters = viewModel.filters,
+                            exercises = viewModel.exercises
+                        )
+                        viewModel.saveTraining(training)
+                        onSaveTraining()
                     }
                 }
             }) {
@@ -99,9 +108,8 @@ fun TrainingFormScreen(
         if (showDismissDialog) {
             DismissTrainingDialog(
                 onDismissRequest = { showDismissDialog = false },
-            ) {
-
-            }
+                onConfirm = onDismissClick
+            )
         }
         if (showExerciseDialog) {
             ExerciseForm(
@@ -179,7 +187,7 @@ fun ExerciseListForm(
     LazyColumn(modifier = modifier) {
         items(
             items = exercises,
-            key = { exercise -> exercise.id }
+            key = { exercise -> exercise.exerciseId }
         ) { exercise ->
             val firstItem = exercises.indexOf(exercise) == 0
             val lastItem = exercises.indexOf(exercise) == exercises.lastIndex
@@ -303,7 +311,7 @@ private fun DismissTrainingDialogPreview() {
 @Composable
 private fun TrainingFormScreenPreview() {
     GymLogTheme {
-        TrainingFormScreen()
+        TrainingFormScreen(onDismissClick = {}, onSaveTraining = {})
     }
 }
 

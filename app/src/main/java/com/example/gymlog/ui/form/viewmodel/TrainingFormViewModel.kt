@@ -6,8 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.gymlog.model.Exercise
+import com.example.gymlog.model.Training
+import com.example.gymlog.repository.TrainingRepository
 
-class TrainingFormViewModel : ViewModel() {
+class TrainingFormViewModel(private val repository: TrainingRepository) : ViewModel() {
 
     private var _trainingTitle by mutableStateOf("")
     val trainingTitle get() = _trainingTitle
@@ -37,4 +39,6 @@ class TrainingFormViewModel : ViewModel() {
     fun removeFilter(filter: String) {
         _filters.remove(filter)
     }
+
+    suspend fun saveTraining(training: Training) = repository.save(training)
 }

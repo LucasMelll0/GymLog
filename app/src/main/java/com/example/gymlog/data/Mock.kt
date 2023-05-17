@@ -2,7 +2,7 @@ package com.example.gymlog.data
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import com.example.gymlog.model.ExerciseMutableState
+import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
 import com.example.gymlog.utils.TrainingTypes
 import kotlin.random.Random
@@ -24,7 +24,7 @@ class Mock {
             return filters
         }
 
-        fun getExercises(): List<ExerciseMutableState> {
+        fun getExercises(): List<Exercise> {
             val exercisesStrings = listOf(
                 "Corrida",
                 "Flexões",
@@ -47,12 +47,12 @@ class Mock {
                 "Boxe",
                 "Aeróbica"
             )
-            val exercises = mutableListOf<ExerciseMutableState>()
+            val exercises = mutableListOf<Exercise>()
             val listSize = Random.nextInt(4, 10)
             while (exercises.size < listSize) {
                 val title = exercisesStrings.random()
                 exercises.find { it.title == title } ?: run {
-                    val exercise = ExerciseMutableState(
+                    val exercise = Exercise(
                         title = title,
                         repetitions = Random.nextInt(5, 20),
                         series = Random.nextInt(3, 8)

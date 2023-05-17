@@ -36,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,9 +52,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
-import com.example.gymlog.data.Mock
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
 import com.example.gymlog.ui.components.DefaultSearchBar
@@ -61,21 +60,25 @@ import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.home.viewmodel.HomeViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.TrainingTypes
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
 fun HomeScreen(
+    onButtonAddClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = viewModel()
+    viewModel: HomeViewModel = koinViewModel()
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
+    val training by viewModel.trainings.collectAsState(emptyList())
     Scaffold(bottomBar = {
         HomeBottomBar(
             onButtonSearchClick = { showSearchBar = !showSearchBar },
             onButtonFiltersClick = { showBottomSheet = !showBottomSheet },
-            onFabClick = {})
+            onFabClick = onButtonAddClick
+        )
     }) { paddingValues ->
 
         Surface(
@@ -103,7 +106,7 @@ fun HomeScreen(
 
                 }
                 TrainingList(
-                    trainings = viewModel.trainings.filter {
+                    trainingWithExercises = training.filter {
                         if (query.isNotEmpty()) {
                             it.title.contains(query, true)
                         } else {
@@ -137,15 +140,20 @@ fun FiltersBottomSheet(
     selectedList: List<String>,
     filterList: List<String>,
     onFilterClick: (String) -> Unit,
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismissRequest
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier.fillMaxWidth()
+        ) {
             Text(text = "Filtrar por tipo de treino", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
             FilterChipSelectionList(
+                modifier = Modifier.fillMaxWidth(),
                 selectedList = selectedList,
                 filterList = filterList,
                 onClick = onFilterClick
@@ -186,14 +194,17 @@ fun HomeBottomBar(
 }
 
 @Composable
-fun TrainingList(trainings: List<Training>, modifier: Modifier = Modifier) {
+fun TrainingList(
+    trainingWithExercises: List<Training>,
+    modifier: Modifier = Modifier
+) {
     LazyColumn(
         modifier = modifier.padding(horizontal = dimensionResource(id = R.dimen.small_padding)),
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
     ) {
         items(
-            trainings,
-            key = { training -> training.id }
+            trainingWithExercises,
+            key = { training -> training.trainingId }
         ) { training ->
             TrainingItem(
                 training = training,
@@ -339,36 +350,6 @@ private fun ExerciseTrainingItem(exercise: Exercise, modifier: Modifier = Modifi
 @Composable
 private fun HomeScreenPreview() {
     GymLogTheme {
-        val viewModel: HomeViewModel = viewModel()
-        viewModel.addAllTrainings(Mock.getTrainings(size = 5))
-        HomeScreen()
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFFFFFF)
-@Composable
-private fun TrainingItemPreview() {
-    val filters = Mock.getFilters().map {
-        stringResource(
-            id = it.stringRes()
-        )
-    }
-    val exercises = Mock.getExercises()
-    val training = Training(title = "Training Test", exercises = exercises, filters = filters)
-    GymLogTheme {
-        TrainingItem(
-            training = training, modifier = Modifier.padding(
-                dimensionResource(id = R.dimen.default_padding)
-            )
-        )
-    }
-}
-
-@Preview(showSystemUi = true)
-@Composable
-private fun TrainingListPreview() {
-    val trainings = Mock.getTrainings(size = 20)
-    GymLogTheme {
-        TrainingList(trainings = trainings)
+        HomeScreen({})
     }
 }

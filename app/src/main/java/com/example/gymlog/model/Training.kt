@@ -7,8 +7,8 @@ import java.util.UUID
 @Entity
 data class Training(
     @PrimaryKey
-    val id: String = UUID.randomUUID().toString(),
-    val title: String,
-    val exercises: List<ExerciseMutableState> = emptyList(),
-    val filters: List<String> = emptyList()
+    val trainingId: String = UUID.randomUUID().toString(),
+    val title: String = "",
+    val filters: List<String> = emptyList(),
+    val exercises: List<Exercise> = emptyList()
 )

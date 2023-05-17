@@ -7,7 +7,7 @@ import java.util.UUID
 @Entity
 data class Exercise(
     @PrimaryKey
-    val id: String = UUID.randomUUID().toString(),
+    val exerciseId: String = UUID.randomUUID().toString(),
     val title: String,
     val repetitions: Int,
     val series: Int,

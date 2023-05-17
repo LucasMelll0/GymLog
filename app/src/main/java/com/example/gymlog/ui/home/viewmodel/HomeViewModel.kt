@@ -3,18 +3,16 @@ package com.example.gymlog.ui.home.viewmodel
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import com.example.gymlog.model.Training
+import com.example.gymlog.repository.TrainingRepository
+import kotlinx.coroutines.flow.Flow
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(repository: TrainingRepository) : ViewModel() {
 
-    private val _trainings = mutableStateListOf<Training>()
-    internal val trainings: List<Training> get() = _trainings
+    internal val trainings: Flow<List<Training>> = repository.getAll()
 
     private val _filters = mutableStateListOf<String>()
     internal val filters: List<String> get() = _filters
 
-    fun addAllTrainings(trainings: List<Training>) {
-        _trainings.addAll(trainings)
-    }
 
     fun manageFilters(filter: String) {
         if (!filters.contains(filter)) _filters.add(filter) else _filters.remove(filter)

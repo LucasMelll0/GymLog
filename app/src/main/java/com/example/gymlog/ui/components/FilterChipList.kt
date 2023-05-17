@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,6 +40,7 @@ fun FilterChipSelectionList(
     filterList: List<String>,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier,
+    rows: Int = 2,
     title: String? = null,
     description: String? = null
 ) {
@@ -68,9 +70,10 @@ fun FilterChipSelectionList(
             )
         }
         LazyHorizontalStaggeredGrid(
-            rows = StaggeredGridCells.Fixed(2),
+            rows = StaggeredGridCells.Fixed(rows),
             modifier = Modifier
                 .padding(dimensionResource(id = R.dimen.default_padding))
+                .fillMaxWidth()
                 .heightIn(max = 80.dp),
             contentPadding = PaddingValues(horizontal = dimensionResource(id = R.dimen.default_padding)),
             verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
