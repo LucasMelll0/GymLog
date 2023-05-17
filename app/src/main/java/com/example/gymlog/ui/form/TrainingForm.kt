@@ -1,6 +1,8 @@
 package com.example.gymlog.ui.form
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -181,6 +183,7 @@ fun TrainingFormScreen(
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ExerciseListForm(
     exercises: List<Exercise>,
@@ -199,12 +202,14 @@ fun ExerciseListForm(
                 style = MaterialTheme.typography.titleMedium
             )
         }
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+        LazyColumn(modifier = Modifier.fillMaxWidth().animateContentSize()) {
             items(
                 items = exercises,
                 key = { exercise -> exercise.exerciseId }
             ) { exercise ->
                 ExerciseItemForm(
+                    modifier = Modifier
+                        .animateItemPlacement(),
                     exercise = exercise,
                     onClickRemove = onClickRemove,
                 )

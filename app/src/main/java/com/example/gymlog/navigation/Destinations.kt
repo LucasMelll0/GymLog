@@ -36,8 +36,8 @@ fun AppNavHost(
         }
         composable(route = Form.route) {
             TrainingFormScreen(
-                onSaveTraining = { navController.navigateSingleTopTo(Home.route) },
-                onDismissClick = { navController.navigateSingleTopTo(Home.route) })
+                onSaveTraining = { navController.popBackStack() },
+                onDismissClick = { navController.popBackStack() })
         }
     }
 }
