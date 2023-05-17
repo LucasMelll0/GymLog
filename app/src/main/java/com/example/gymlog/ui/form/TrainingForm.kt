@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
@@ -20,6 +18,8 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -45,11 +45,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
+import com.example.gymlog.database.AppDataBase_Impl
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
+import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.ui.components.DefaultTextButton
 import com.example.gymlog.ui.components.DefaultTextField
 import com.example.gymlog.ui.components.FilterChipSelectionList
@@ -144,12 +149,10 @@ fun TrainingFormScreen(
                 Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
                 ExerciseListForm(
                     exercises = viewModel.exercises,
+                    onClickAdd = { showExerciseDialog = true },
                     onClickRemove = { viewModel.removeExercise(it) },
                     modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))
                 )
-                DefaultTextButton(
-                    text = stringResource(id = R.string.training_form_button_add_exercise_text),
-                    onClick = { showExerciseDialog = true })
                 Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
                 Card(
                     modifier = Modifier
@@ -181,23 +184,39 @@ fun TrainingFormScreen(
 @Composable
 fun ExerciseListForm(
     exercises: List<Exercise>,
+    onClickAdd: () -> Unit,
     onClickRemove: (Exercise) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = modifier) {
-        items(
-            items = exercises,
-            key = { exercise -> exercise.exerciseId }
-        ) { exercise ->
-            val firstItem = exercises.indexOf(exercise) == 0
-            val lastItem = exercises.indexOf(exercise) == exercises.lastIndex
-            ExerciseItemForm(
-                exercise = exercise,
-                onClickRemove = onClickRemove,
-                roundedTopRadius = firstItem,
-                roundedBottomRadius = lastItem
+    Card(modifier = modifier) {
+        if (exercises.isNotEmpty()) {
+            Text(
+                text = "Exercícios",
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = dimensionResource(id = R.dimen.default_padding)),
+                style = MaterialTheme.typography.titleMedium
             )
         }
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            items(
+                items = exercises,
+                key = { exercise -> exercise.exerciseId }
+            ) { exercise ->
+                ExerciseItemForm(
+                    exercise = exercise,
+                    onClickRemove = onClickRemove,
+                )
+            }
+        }
+        if (exercises.isNotEmpty()) {
+            Divider(color = DividerDefaults.color.copy(alpha = 0.3f))
+        }
+        DefaultTextButton(
+            text = stringResource(id = R.string.training_form_button_add_exercise_text),
+            onClick = onClickAdd
+        )
     }
 }
 
@@ -207,50 +226,36 @@ fun ExerciseItemForm(
     modifier: Modifier = Modifier,
     exercise: Exercise,
     onClickRemove: (Exercise) -> Unit,
-    roundedTopRadius: Boolean = false,
-    roundedBottomRadius: Boolean = false
-) {
-    val topRadius =
-        if (roundedTopRadius) dimensionResource(id = R.dimen.default_corner_size) else 0.dp
-    val bottomRadius =
-        if (roundedBottomRadius) dimensionResource(id = R.dimen.default_corner_size) else 0.dp
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(
-            topStart = CornerSize(topRadius),
-            topEnd = CornerSize(topRadius),
-            bottomStart = CornerSize(bottomRadius),
-            bottomEnd = CornerSize(bottomRadius)
-        )
+
     ) {
-        Row(
-            Modifier
-                .padding(dimensionResource(id = R.dimen.default_padding))
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+
+    Row(
+        modifier
+            .padding(dimensionResource(id = R.dimen.default_padding))
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = exercise.title,
+            modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
+            style = MaterialTheme.typography.titleMedium
+        )
+        Column() {
             Text(
-                text = exercise.title,
-                modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
-                style = MaterialTheme.typography.titleMedium
+                text = stringResource(
+                    R.string.exercise_repetions_place_holder,
+                    exercise.series,
+                    exercise.repetitions
+                ),
+                style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
             )
-            Column() {
-                Text(
-                    text = stringResource(
-                        R.string.exercise_repetions_place_holder,
-                        exercise.series,
-                        exercise.repetitions
-                    ),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
-                )
-            }
-            IconButton(onClick = { onClickRemove(exercise) }) {
-                Icon(
-                    Icons.Rounded.Close,
-                    contentDescription = stringResource(id = R.string.delete_exercise_content_description)
-                )
-            }
+        }
+        IconButton(onClick = { onClickRemove(exercise) }) {
+            Icon(
+                Icons.Rounded.Close,
+                contentDescription = stringResource(id = R.string.delete_exercise_content_description)
+            )
         }
     }
 }
@@ -311,27 +316,28 @@ private fun DismissTrainingDialogPreview() {
 @Composable
 private fun TrainingFormScreenPreview() {
     GymLogTheme {
-        TrainingFormScreen(onDismissClick = {}, onSaveTraining = {})
+        val viewModelFactory = object : ViewModelProvider.NewInstanceFactory() {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val repositoryImpl = TrainingRepositoryImpl(AppDataBase_Impl().trainingDao())
+                return TrainingFormViewModel(repositoryImpl) as T
+            }
+        }
+        val viewModel: TrainingFormViewModel = viewModel(factory = viewModelFactory)
+        TrainingFormScreen(
+            onDismissClick = {},
+            onSaveTraining = {},
+            viewModel = viewModel
+        )
     }
 }
 
 @Preview(uiMode = UI_MODE_NIGHT_YES)
-@Preview
-@Composable
-private fun ExerciseItemFormPreview() {
-    val exercise = Exercise(title = "Flexão de Braço", repetitions = 20, series = 5)
-    GymLogTheme {
-        ExerciseItemForm(exercise = exercise, onClickRemove = {}, modifier = Modifier.padding(8.dp))
-    }
-}
-
-@Preview(uiMode = UI_MODE_NIGHT_YES, showSystemUi = true)
-@Preview(showSystemUi = true)
+@Preview()
 @Composable
 private fun ExerciseListFormPreview() {
     val list =
-        List(20) { Exercise(title = "Test $it", repetitions = 10, series = 5) }.toMutableStateList()
+        List(2) { Exercise(title = "Test $it", repetitions = 10, series = 5) }.toMutableStateList()
     GymLogTheme {
-        ExerciseListForm(exercises = list, onClickRemove = { list.remove(it) })
+        ExerciseListForm(exercises = list, onClickAdd = {}, onClickRemove = { list.remove(it) })
     }
 }

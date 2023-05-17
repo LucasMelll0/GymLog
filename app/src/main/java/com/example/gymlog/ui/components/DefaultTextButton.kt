@@ -11,12 +11,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.gymlog.ui.theme.GymLogTheme
 
 @Composable
-fun DefaultTextButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun DefaultTextButton(
+    text: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant,
         contentColor = MaterialTheme.colorScheme.primary,
+        modifier = modifier
     ) {
-        TextButton(onClick = onClick, modifier = modifier.fillMaxWidth()) {
+        TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
             Text(text = text)
         }
     }
@@ -26,6 +31,8 @@ fun DefaultTextButton(text: String, onClick: () -> Unit, modifier: Modifier = Mo
 @Composable
 private fun DefaultTextButtonPreview() {
     GymLogTheme {
-        DefaultTextButton(text = "teste", onClick = {})
+        DefaultTextButton(
+            text = "teste"
+        ) {}
     }
 }
