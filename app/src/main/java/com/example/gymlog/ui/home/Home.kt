@@ -226,38 +226,52 @@ fun TrainingItem(training: Training, modifier: Modifier = Modifier) {
         ),
     ) {
         Card(colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-            Column(modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.default_padding))) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = dimensionResource(id = R.dimen.default_padding))
+
+            ) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(
+                            min = dimensionResource(
+                                id = R.dimen.minimum_training_item_height
+                            )
+                        ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = training.title,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(
                             start = dimensionResource(
                                 id = R.dimen.default_padding
                             )
                         )
                     )
-                    val angle: Float by animateFloatAsState(if (isExpanded) 180f else 0f)
-                    IconButton(onClick = { isExpanded = !isExpanded }) {
-                        Icon(
-                            imageVector = Icons.Rounded.ArrowDropDown,
-                            contentDescription = null,
-                            modifier = Modifier.rotate(angle)
-                        )
+                    if (training.exercises.isNotEmpty()) {
+                        val angle: Float by animateFloatAsState(if (isExpanded) 180f else 0f)
+                        IconButton(onClick = { isExpanded = !isExpanded }) {
+                            Icon(
+                                imageVector = Icons.Rounded.ArrowDropDown,
+                                contentDescription = null,
+                                modifier = Modifier.rotate(angle)
+                            )
+                        }
                     }
                 }
-                FilterListTrainingItem(
-                    filters = training.filters,
-                    modifier = Modifier.padding(
-                        vertical = dimensionResource(
-                            id = R.dimen.default_padding
+                if (training.filters.isNotEmpty()) {
+                    FilterListTrainingItem(
+                        filters = training.filters,
+                        modifier = Modifier.padding(
+                            vertical = dimensionResource(
+                                id = R.dimen.default_padding
+                            )
                         )
                     )
-                )
+                }
 
             }
         }
