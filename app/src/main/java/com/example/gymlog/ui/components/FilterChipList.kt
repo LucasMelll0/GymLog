@@ -1,5 +1,6 @@
 package com.example.gymlog.ui.components
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -82,6 +84,12 @@ fun FilterChipSelectionList(
             items(filterList) { filter ->
                 val isSelected = selectedList.contains(filter)
                 FilterChip(enabled = isEnabled,
+                    colors = FilterChipDefaults.filterChipColors(
+                        disabledContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(
+                            0.5f
+                        ),
+                        disabledLabelColor = MaterialTheme.colorScheme.onPrimary
+                    ),
                     modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.small_padding)),
                     selected = isSelected,
                     onClick = { onClick(filter) },
@@ -108,6 +116,7 @@ fun FilterChipSelectionList(
     }
 }
 
+@Preview(uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true)
 @Composable
 private fun FilterChipSelectionListPreview() {

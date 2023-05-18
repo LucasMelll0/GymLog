@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
@@ -50,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -127,7 +131,10 @@ fun TrainingFormScreen(
                 .fillMaxHeight()
                 .padding(paddingValues)
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 DefaultTextField(
                     value = viewModel.trainingTitle,
                     onValueChange = { viewModel.setTrainingTitle(it) },
@@ -198,6 +205,7 @@ fun ExerciseListForm(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(max = 200.dp)
                 .animateContentSize()
         ) {
             items(
@@ -282,7 +290,7 @@ private fun DismissTrainingDialog(
             }
         },
         icon = { Icon(imageVector = Icons.Rounded.Delete, contentDescription = null) },
-        title = { Text(text = stringResource(id = R.string.training_form_dismiss_dialog_title)) },
+        title = { Text(text = stringResource(id = R.string.common_dialog_title)) },
         text = { Text(text = stringResource(id = R.string.training_form_dismiss_dialog_text)) }
     )
 }
