@@ -53,9 +53,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
+import com.example.gymlog.database.AppDataBase_Impl
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
+import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.ui.components.DefaultSearchBar
 import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.home.viewmodel.HomeViewModel
@@ -361,11 +366,19 @@ private fun ExerciseTrainingItem(exercise: Exercise, modifier: Modifier = Modifi
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 @Preview(uiMode = UI_MODE_NIGHT_YES)
 @Preview
 @Composable
 private fun HomeScreenPreview() {
     GymLogTheme {
-        HomeScreen({})
+        val viewModelFactory = object : ViewModelProvider.NewInstanceFactory() {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                val repositoryImpl = TrainingRepositoryImpl(AppDataBase_Impl().trainingDao())
+                return HomeViewModel(repositoryImpl) as T
+            }
+        }
+        val viewModel: HomeViewModel = viewModel(factory = viewModelFactory)
+        HomeScreen({}, viewModel = viewModel)
     }
 }
