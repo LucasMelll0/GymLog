@@ -98,6 +98,7 @@ fun ExerciseForm(
                                 series = it
                             }
                         },
+                        charLimit = 3,
                         isError = seriesHasError,
                         errorMessage = stringResource(id = R.string.series_text_field_error_message),
                         label = {
@@ -118,6 +119,7 @@ fun ExerciseForm(
                                 repetitions = it
                             }
                         },
+                        charLimit = 3,
                         isError = repetitionsHasError,
                         errorMessage = stringResource(id = R.string.repetitions_text_field_error_message),
                         label = {
