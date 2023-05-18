@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.example.gymlog.ui.form
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -18,11 +20,11 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,7 +35,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -82,31 +83,23 @@ fun TrainingFormScreen(
     val scope = rememberCoroutineScope()
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        topBar = {
-            TrainingFormTopAppBar(onNavIconClick = {
-                showDismissDialog = true
-            })
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = {
-                nameHasError = viewModel.trainingTitle.isEmpty()
-                if (!nameHasError) {
-                    scope.launch {
-                        val training = Training(
-                            title = viewModel.trainingTitle,
-                            filters = viewModel.filters,
-                            exercises = viewModel.exercises
-                        )
-                        viewModel.saveTraining(training)
-                        onSaveTraining()
+        bottomBar = {
+            TrainingFormBottomBar(
+                onConfirm = {
+                    nameHasError = viewModel.trainingTitle.isEmpty()
+                    if (!nameHasError) {
+                        scope.launch {
+                            val training = Training(
+                                title = viewModel.trainingTitle,
+                                filters = viewModel.filters,
+                                exercises = viewModel.exercises
+                            )
+                            viewModel.saveTraining(training)
+                            onSaveTraining()
+                        }
                     }
-                }
-            }) {
-                Icon(
-                    imageVector = Icons.Rounded.Check,
-                    contentDescription = stringResource(id = R.string.training_form_save_training)
-                )
-            }
+                },
+                onNavIconClick = { showDismissDialog = true })
         }) { paddingValues ->
         var showExerciseDialog: Boolean by rememberSaveable {
             mutableStateOf(false)
@@ -202,7 +195,11 @@ fun ExerciseListForm(
                 style = MaterialTheme.typography.titleMedium
             )
         }
-        LazyColumn(modifier = Modifier.fillMaxWidth().animateContentSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize()
+        ) {
             items(
                 items = exercises,
                 key = { exercise -> exercise.exerciseId }
@@ -290,23 +287,39 @@ private fun DismissTrainingDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-private fun TrainingFormTopAppBar(onNavIconClick: () -> Unit, modifier: Modifier = Modifier) {
-    TopAppBar(title = {
-        Text(
-            text = stringResource(id = R.string.training_form_top_bar_title),
-            modifier = modifier
-        )
-    },
-        navigationIcon = {
+private fun TrainingFormBottomBar(
+    onConfirm: () -> Unit,
+    onNavIconClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    BottomAppBar(
+        modifier = modifier,
+        actions = {
             IconButton(onClick = onNavIconClick) {
                 Icon(
-                    imageVector = Icons.Rounded.ArrowBack,
-                    contentDescription = stringResource(id = R.string.common_go_to_back)
+                    imageVector = Icons.Rounded.ArrowBack, contentDescription = stringResource(
+                        id = R.string.common_go_to_back
+                    )
+                )
+            }
+        }, floatingActionButton = {
+            FloatingActionButton(onClick = onConfirm) {
+                Icon(
+                    imageVector = Icons.Rounded.Check,
+                    contentDescription = stringResource(id = R.string.common_confirm)
                 )
             }
         })
+}
+
+@Preview
+@Composable
+private fun TrainingFormBottomBarPreview() {
+    GymLogTheme {
+        TrainingFormBottomBar(onConfirm = {}, onNavIconClick = {})
+    }
 }
 
 @Preview
