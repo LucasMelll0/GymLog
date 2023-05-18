@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -50,7 +47,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -215,7 +211,9 @@ fun TrainingList(
         ) { training ->
             TrainingItem(
                 training = training,
-                Modifier.padding(dimensionResource(id = R.dimen.small_padding)).animateItemPlacement()
+                Modifier
+                    .padding(dimensionResource(id = R.dimen.small_padding))
+                    .animateItemPlacement()
             )
         }
     }
@@ -291,40 +289,24 @@ fun TrainingItem(training: Training, modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun FilterListTrainingItem(filters: List<String>, modifier: Modifier = Modifier) {
+    val maxHeight = if (filters.size < 8) 40.dp else 80.dp
     Surface(
-        modifier = modifier,
+        modifier = modifier
+            .heightIn(max = maxHeight)
+            .fillMaxWidth(),
         shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.primaryContainer.copy(0.1f)
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(70.dp),
-            modifier = Modifier
-                .padding(dimensionResource(id = R.dimen.default_padding))
-                .heightIn(max = 100.dp),
-            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.small_padding)),
-            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.small_padding))
-        ) {
-            items(filters) { filter ->
-                FilterTrainingItem(filter = filter)
-            }
-        }
-    }
-}
-
-@Composable
-private fun FilterTrainingItem(filter: String, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.primaryContainer
-    ) {
-        Text(
-            text = filter,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(dimensionResource(id = R.dimen.small_padding))
+        val rows = if (filters.size < 8) 1 else 2
+        FilterChipSelectionList(
+            rows = rows,
+            selectedList = emptyList(),
+            filterList = filters,
+            onClick = {},
+            isEnabled = false
         )
     }
 }

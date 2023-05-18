@@ -42,11 +42,11 @@ fun FilterChipSelectionList(
     modifier: Modifier = Modifier,
     rows: Int = 2,
     title: String? = null,
-    description: String? = null
+    description: String? = null,
+    isEnabled: Boolean = true
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.wrapContentHeight()
+        horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.wrapContentHeight()
     ) {
         title?.let {
             Text(
@@ -81,14 +81,13 @@ fun FilterChipSelectionList(
         ) {
             items(filterList) { filter ->
                 val isSelected = selectedList.contains(filter)
-                FilterChip(
+                FilterChip(enabled = isEnabled,
                     modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.small_padding)),
                     selected = isSelected,
                     onClick = { onClick(filter) },
                     label = {
                         Text(
-                            text = filter,
-                            textAlign = TextAlign.Center
+                            text = filter, textAlign = TextAlign.Center
                         )
                     },
                     leadingIcon = if (isSelected) {
@@ -103,8 +102,7 @@ fun FilterChipSelectionList(
                         }
                     } else {
                         null
-                    }
-                )
+                    })
             }
         }
     }
@@ -120,6 +118,7 @@ private fun FilterChipSelectionListPreview() {
 
     GymLogTheme {
         FilterChipSelectionList(
+            isEnabled = false,
             selectedList = selectedList,
             filterList = filters,
             onClick = {
