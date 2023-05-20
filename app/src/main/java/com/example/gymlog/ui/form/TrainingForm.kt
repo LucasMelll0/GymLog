@@ -290,8 +290,19 @@ private fun DismissTrainingDialog(
             }
         },
         icon = { Icon(imageVector = Icons.Rounded.Delete, contentDescription = null) },
-        title = { Text(text = stringResource(id = R.string.common_dialog_title)) },
-        text = { Text(text = stringResource(id = R.string.training_form_dismiss_dialog_text)) }
+        title = {
+            Text(
+                text = stringResource(id = R.string.common_dialog_title),
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(id = R.string.training_form_dismiss_dialog_text),
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center
+            )
+        }
     )
 }
 

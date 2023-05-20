@@ -11,4 +11,15 @@ data class Training(
     val title: String = "",
     val filters: List<String> = emptyList(),
     val exercises: List<Exercise> = emptyList()
-)
+) {
+    fun getExercisesWithMutableState(): List<ExerciseMutableState> = exercises.map {
+        ExerciseMutableState(
+            id = it.exerciseId,
+            title = it.title,
+            repetitions = it.repetitions,
+            series = it.series,
+            initialChecked = it.isChecked
+        )
+    }
+
+}

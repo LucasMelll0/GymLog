@@ -46,4 +46,7 @@
     <string name="home_button_search_content_description">Buscar treino</string>
     <string name="home_button_filter_content_description">Filtrar treinos</string>
 
+    <!-- Log -->
+    <string name="training_log_edit_content_description">Editar</string>
+
 </resources>

@@ -7,6 +7,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,6 +68,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HomeScreen(
+    onItemClickListener: (trainingId: String) -> Unit,
     onButtonAddClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel()
@@ -108,6 +110,7 @@ fun HomeScreen(
 
                 }
                 TrainingList(
+                    onItemClickListener = { training ->  onItemClickListener(training.trainingId)},
                     trainingWithExercises = training.filter {
                         if (query.isNotEmpty()) {
                             it.title.contains(query, true)
@@ -198,6 +201,7 @@ fun HomeBottomBar(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TrainingList(
+    onItemClickListener: (Training) -> Unit,
     trainingWithExercises: List<Training>,
     modifier: Modifier = Modifier
 ) {
@@ -210,8 +214,9 @@ fun TrainingList(
             key = { training -> training.trainingId }
         ) { training ->
             TrainingItem(
+                onClick = { onItemClickListener(training) },
                 training = training,
-                Modifier
+                modifier = Modifier
                     .padding(dimensionResource(id = R.dimen.small_padding))
                     .animateItemPlacement()
             )
@@ -220,15 +225,22 @@ fun TrainingList(
 }
 
 @Composable
-fun TrainingItem(training: Training, modifier: Modifier = Modifier) {
+fun TrainingItem(
+    onClick: () -> Unit,
+    training: Training,
+    modifier: Modifier = Modifier
+) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     Card(
         modifier = modifier
+            .clickable {
+                onClick()
+            }
             .fillMaxWidth()
             .animateContentSize(animationSpec = spring(Spring.DampingRatioLowBouncy)),
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
+        )
     ) {
         Card(colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
             Column(
@@ -361,6 +373,6 @@ private fun HomeScreenPreview() {
             }
         }
         val viewModel: HomeViewModel = viewModel(factory = viewModelFactory)
-        HomeScreen({}, viewModel = viewModel)
+        HomeScreen({}, viewModel = viewModel, onButtonAddClick = {})
     }
 }

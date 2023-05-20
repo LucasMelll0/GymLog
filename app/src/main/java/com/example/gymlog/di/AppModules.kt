@@ -7,6 +7,7 @@ import com.example.gymlog.database.dao.TrainingDao
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.home.viewmodel.HomeViewModel
+import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -40,5 +41,11 @@ val homeModule = module {
 val formModule = module {
     viewModel {
         TrainingFormViewModel(get<TrainingRepositoryImpl>())
+    }
+}
+
+val logModule = module {
+    viewModel {
+        TrainingLogViewModel(get<TrainingRepositoryImpl>())
     }
 }
