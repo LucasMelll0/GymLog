@@ -22,7 +22,6 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,7 +36,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +60,7 @@ import com.example.gymlog.database.AppDataBase_Impl
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepositoryImpl
+import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.DefaultTextButton
 import com.example.gymlog.ui.components.DefaultTextField
 import com.example.gymlog.ui.components.FilterChipSelectionList
@@ -276,36 +275,15 @@ private fun DismissTrainingDialog(
     modifier: Modifier = Modifier,
     onConfirm: () -> Unit
 ) {
-    AlertDialog(
-        modifier = modifier.fillMaxWidth(),
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(text = stringResource(id = R.string.common_confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text(text = stringResource(id = R.string.common_cancel))
-            }
-        },
+    DefaultAlertDialog(
+        modifier = modifier,
+        title = stringResource(id = R.string.common_dialog_title),
+        text = stringResource(id = R.string.training_form_dismiss_dialog_text),
         icon = { Icon(imageVector = Icons.Rounded.Delete, contentDescription = null) },
-        title = {
-            Text(
-                text = stringResource(id = R.string.common_dialog_title),
-                style = MaterialTheme.typography.titleLarge
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(id = R.string.training_form_dismiss_dialog_text),
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
-            )
-        }
+        onDismissRequest = onDismissRequest,
+        onConfirm = onConfirm
     )
 }
-
 
 @Composable
 private fun TrainingFormBottomBar(
