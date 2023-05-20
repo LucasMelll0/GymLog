@@ -15,7 +15,7 @@ interface TrainingDao {
     fun getAll(): Flow<List<Training>>
 
     @Query("SELECT * FROM Training WHERE trainingId = :id")
-    fun getByTrainingId(id: String): Flow<Training>
+    suspend fun getByTrainingId(id: String): Training?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveTraining(training: Training)

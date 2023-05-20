@@ -59,9 +59,11 @@ fun AppNavHost(
             val trainingId = navBackStackEntry.arguments?.getString(Log.trainingIdArg)
             trainingId?.let {
                 TrainingLogScreen(
+                    onBackPressed = { navController.popBackStack() },
                     onNavIconClick = { navController.popBackStack() },
                     onError = { navController.popBackStack() },
-                    trainingId = trainingId
+                    trainingId = trainingId,
+                    onClickDelete = { navController.popBackStack() }
                 )
             }
         }

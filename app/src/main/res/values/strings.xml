@@ -16,7 +16,6 @@
     <string name="delete_exercise_content_description">Excluir Exercício</string>
 
 
-
     <!-- Common -->
     <string name="common_text_field_error_message">Este Campo não pode ser vazio!</string>
     <string name="common_go_to_back">Voltar</string>
@@ -36,11 +35,11 @@
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>
     <string name="training_form_top_bar_title">Novo Treino</string>
-    <string name="training_form_dismiss_dialog_text">Ao confirmar você irá perder qualquer alteração feita..</string>
+    <string name="training_form_dismiss_dialog_text">Ao confirmar você irá perder qualquer alteração feita…</string>
     <string name="training_form_training_type_filter_title">Tipo de Treino</string>
     <string name="training_form_button_add_exercise_text">Adicionar Exercício</string>
     <string name="training_form_filter_list_description">Marque os músculos que esse treino abrange.</string>
-    
+
     <!-- Home -->
     <string name="home_button_add_content_description">Adicionar treino</string>
     <string name="home_button_search_content_description">Buscar treino</string>
@@ -48,5 +47,7 @@
 
     <!-- Log -->
     <string name="training_log_edit_content_description">Editar</string>
+    <string name="training_log_reset_dialog_text">Ao confirmar você irá desmarcar todos os exercícios…</string>
+    <string name="training_log_delete_dialog_text">Ao confirmar você irá deletar o treino…</string>
 
 </resources>

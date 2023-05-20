@@ -9,7 +9,7 @@ interface TrainingRepository {
 
     fun getAll(): Flow<List<Training>>
 
-    suspend fun getById(id: String): Flow<Training?>
+    suspend fun getById(id: String): Training?
 
     suspend fun save(training: Training)
 
@@ -20,7 +20,7 @@ class TrainingRepositoryImpl(private val dao: TrainingDao) : TrainingRepository 
 
     override fun getAll(): Flow<List<Training>> = dao.getAll()
 
-    override suspend fun getById(id: String): Flow<Training?> = dao.getByTrainingId(id)
+    override suspend fun getById(id: String): Training? = dao.getByTrainingId(id)
 
     override suspend fun save(training: Training) = dao.saveTraining(training)
 
