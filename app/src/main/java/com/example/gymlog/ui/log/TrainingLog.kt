@@ -1,6 +1,7 @@
 package com.example.gymlog.ui.log
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,7 +17,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -76,8 +76,6 @@ fun TrainingLogScreen(
         }
     }
 
-    viewModel.updateTrainingPercent(viewModel.exercises)
-
     Scaffold(
         bottomBar = {
             TrainingLogBottomAppBar(
@@ -89,8 +87,7 @@ fun TrainingLogScreen(
                 },
                 onClickDelete = { showDeleteDialog = true },
                 onClickReset = { showResetDialog = true },
-                onClickEdit = { onClickEdit(trainingId) },
-                trainingPercent = viewModel.trainingPercent
+                onClickEdit = { onClickEdit(trainingId) }
             )
         }) { paddingValues ->
         if (showDeleteDialog) {
@@ -132,7 +129,11 @@ fun TrainingLogScreen(
             )
         } else {
             if (resource.value is Resource.Success) {
-                Column(modifier.padding(paddingValues)) {
+                Column(
+                    modifier
+                        .padding(paddingValues)
+                        .fillMaxSize()
+                ) {
                     ExerciseList(
                         modifier = modifier.padding(dimensionResource(id = R.dimen.default_padding)),
                         exercises = viewModel.exercises,
@@ -181,7 +182,6 @@ private fun ResetExercisesDialog(
 
 @Composable
 private fun TrainingLogBottomAppBar(
-    trainingPercent: Int,
     onNavIconClick: () -> Unit,
     onClickDelete: () -> Unit,
     onClickReset: () -> Unit,
@@ -211,7 +211,6 @@ private fun TrainingLogBottomAppBar(
             IconButton(onClick = onClickReset) {
                 Icon(imageVector = Icons.Rounded.Refresh, contentDescription = "")
             }
-            Text(text = "$trainingPercent% Completo", style = MaterialTheme.typography.titleMedium)
         }
     )
 }
@@ -245,11 +244,10 @@ private fun TrainingLogScreenPreview() {
 private fun TrainingLogBottomAppBarPreview() {
     GymLogTheme {
         TrainingLogBottomAppBar(
-            onClickEdit = {},
             onNavIconClick = {},
             onClickDelete = {},
             onClickReset = {},
-            trainingPercent = 40
+            onClickEdit = {}
         )
     }
 }

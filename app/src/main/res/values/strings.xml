@@ -49,5 +49,6 @@
     <string name="training_log_edit_content_description">Editar</string>
     <string name="training_log_reset_dialog_text">Ao confirmar você irá desmarcar todos os exercícios…</string>
     <string name="training_log_delete_dialog_text">Ao confirmar você irá deletar o treino…</string>
+    <string name="training_log_exercise_list_percent_place_holder">%d%% Completo</string>
 
 </resources>
