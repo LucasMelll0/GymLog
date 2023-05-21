@@ -11,6 +11,7 @@ import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepository
 import com.example.gymlog.utils.Resource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 
 class TrainingLogViewModel(private val repository: TrainingRepository) : ViewModel() {
@@ -22,7 +23,8 @@ class TrainingLogViewModel(private val repository: TrainingRepository) : ViewMod
     private val _exercises = mutableStateListOf<ExerciseMutableState>()
     val exercises: List<ExerciseMutableState> get() = _exercises
 
-    internal var training: Flow<Resource<Training>> = flow { emit(Resource.Loading) }
+    private val _training: MutableStateFlow<Resource<Training>> = MutableStateFlow(Resource.Loading)
+    internal var training: Flow<Resource<Training>> = _training
         private set
 
     private var _trainingPercent by mutableStateOf(0)
@@ -36,21 +38,20 @@ class TrainingLogViewModel(private val repository: TrainingRepository) : ViewMod
     }
 
     suspend fun getTraining(id: String) {
-        training = flow {
+        _training.value =
             try {
                 repository.getById(id)?.let { training ->
-                    emit(Resource.Success(training))
                     _exercises.clear()
                     _exercises.addAll(training.getExercisesWithMutableState())
+                    Resource.Success(training)
                 } ?: run {
-                    emit(Resource.Error("Error on get training: null pointer"))
+                    Resource.Error("Error on get training: null pointer")
                 }
 
             } catch (e: Exception) {
                 Log.w(TAG, "getTraining: ", e)
-                emit(Resource.Error("Error on get training"))
+                Resource.Error("Error on get training")
             }
-        }
     }
 
     fun updateExercise(exerciseId: String, isChecked: Boolean) {
