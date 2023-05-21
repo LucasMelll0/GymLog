@@ -21,6 +21,11 @@ object Home : Destination {
 
 object Form : Destination {
     override val route: String = "form"
+    const val trainingIdArg = "training_id"
+    val routeWithArgs = "$route/{$trainingIdArg}"
+    val arguments = listOf(navArgument(trainingIdArg) {
+        type = NavType.StringType
+    })
 }
 
 object Log : Destination {
@@ -47,8 +52,13 @@ fun AppNavHost(
                 onButtonAddClick = { navController.navigateSingleTopTo(Form.route) },
                 onItemClickListener = { navController.navigateToTrainingLog(it) })
         }
-        composable(route = Form.route) {
+        composable(
+            route = Form.routeWithArgs,
+            arguments = Form.arguments
+        ) { navBackStackEntry ->
+            val trainingId = navBackStackEntry.arguments?.getString(Form.trainingIdArg)
             TrainingFormScreen(
+                trainingId = trainingId,
                 onSaveTraining = { navController.popBackStack() },
                 onDismissClick = { navController.popBackStack() })
         }
@@ -63,7 +73,8 @@ fun AppNavHost(
                     onNavIconClick = { navController.popBackStack() },
                     onError = { navController.popBackStack() },
                     trainingId = trainingId,
-                    onClickDelete = { navController.popBackStack() }
+                    onClickDelete = { navController.popBackStack() },
+                    onClickEdit = { trainingId -> navController.navigateToTrainingForm(trainingId) }
                 )
             }
         }
@@ -74,6 +85,9 @@ fun NavHostController.navigateSingleTopTo(route: String) = this.navigate(route) 
     launchSingleTop = true
     restoreState = true
 }
+
+fun NavHostController.navigateToTrainingForm(trainingId: String?) =
+    this.navigateSingleTopTo("${Form.route}/$trainingId")
 
 private fun NavHostController.navigateToTrainingLog(trainingId: String) =
     this.navigateSingleTopTo("${Log.route}/$trainingId")

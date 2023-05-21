@@ -76,14 +76,23 @@ fun TrainingFormScreen(
     onSaveTraining: () -> Unit,
     onDismissClick: () -> Unit,
     modifier: Modifier = Modifier,
+    trainingId: String? = null,
     viewModel: TrainingFormViewModel = koinViewModel()
 ) {
+
+    val scope = rememberCoroutineScope()
+    trainingId?.let {
+        scope.launch {
+            viewModel.getTrainingById(trainingId)
+        }
+    }
+
     var showDismissDialog: Boolean by rememberSaveable {
         mutableStateOf(false)
     }
     var nameHasError by remember { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         bottomBar = {

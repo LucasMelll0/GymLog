@@ -44,6 +44,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun TrainingLogScreen(
+    onClickEdit: (String) -> Unit,
     onBackPressed: () -> Unit,
     onNavIconClick: () -> Unit,
     onError: () -> Unit,
@@ -83,7 +84,7 @@ fun TrainingLogScreen(
             },
             onClickDelete = { showDeleteDialog = true },
             onClickReset = { showResetDialog = true },
-            onClickEdit = { /*TODO*/ })
+            onClickEdit = { onClickEdit(trainingId) })
     }) { paddingValues ->
         if (showDeleteDialog) {
             DeleteDialog(onConfirm = {
@@ -222,7 +223,8 @@ private fun TrainingLogScreenPreview() {
             viewModel = viewModel,
             onError = {},
             onClickDelete = {},
-            onBackPressed = {}
+            onBackPressed = {},
+            onClickEdit = {}
         )
     }
 }

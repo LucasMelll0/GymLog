@@ -11,6 +11,8 @@ import com.example.gymlog.repository.TrainingRepository
 
 class TrainingFormViewModel(private val repository: TrainingRepository) : ViewModel() {
 
+    private var _trainingId: String? by mutableStateOf(null)
+
     private var _trainingTitle by mutableStateOf("")
     val trainingTitle get() = _trainingTitle
 
@@ -19,6 +21,18 @@ class TrainingFormViewModel(private val repository: TrainingRepository) : ViewMo
 
     private val _filters = mutableStateListOf<String>()
     val filters: List<String> get() = _filters
+
+
+    suspend fun getTrainingById(trainingId: String) {
+        repository.getById(trainingId)?.let { training ->
+            _trainingId = training.trainingId
+            _trainingTitle = training.title
+            _exercises.clear()
+            _exercises.addAll(training.exercises)
+            _filters.clear()
+            _filters.addAll(training.filters)
+        }
+    }
 
     fun setTrainingTitle(title: String) {
         _trainingTitle = title
@@ -40,5 +54,11 @@ class TrainingFormViewModel(private val repository: TrainingRepository) : ViewMo
         _filters.remove(filter)
     }
 
-    suspend fun saveTraining(training: Training) = repository.save(training)
+    suspend fun saveTraining(training: Training) {
+        _trainingId?.let {
+            repository.save(training.copy(trainingId = it))
+        } ?: run {
+            repository.save(training)
+        }
+    }
 }
