@@ -1,7 +1,10 @@
 package com.example.gymlog.ui.log.viewmodel
 
 import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.gymlog.model.ExerciseMutableState
 import com.example.gymlog.model.Training
@@ -21,6 +24,16 @@ class TrainingLogViewModel(private val repository: TrainingRepository) : ViewMod
 
     internal var training: Flow<Resource<Training>> = flow { emit(Resource.Loading) }
         private set
+
+    private var _trainingPercent by mutableStateOf(0)
+    internal val trainingPercent: Int get() = _trainingPercent
+
+    fun updateTrainingPercent(exercises: List<ExerciseMutableState>) {
+        if (exercises.isNotEmpty()) {
+            val exercisesChecked = exercises.filter { it.isChecked }.size
+            _trainingPercent = (exercisesChecked * 100) / exercises.size
+        }
+    }
 
     suspend fun getTraining(id: String) {
         training = flow {

@@ -1,4 +1,4 @@
-package com.example.gymlog.ui.components
+package com.example.gymlog.ui.log
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.Arrangement
@@ -8,10 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,29 +35,27 @@ fun ExerciseItem(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(modifier = modifier.fillMaxWidth()) {
-        Row(
-            Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+    Row(
+        modifier = modifier.padding(dimensionResource(id = R.dimen.default_padding)).fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = exercise.title,
+            modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
+            style = MaterialTheme.typography.titleMedium
+        )
+        Column() {
             Text(
-                text = exercise.title,
-                modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
-                style = MaterialTheme.typography.titleMedium
+                text = stringResource(
+                    R.string.exercise_repetions_place_holder,
+                    exercise.series,
+                    exercise.repetitions
+                ),
+                style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
             )
-            Column() {
-                Text(
-                    text = stringResource(
-                        R.string.exercise_repetions_place_holder,
-                        exercise.series,
-                        exercise.repetitions
-                    ),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
-                )
-            }
-            Checkbox(checked = exercise.isChecked, onCheckedChange = onCheckedChange)
         }
+        Checkbox(checked = exercise.isChecked, onCheckedChange = onCheckedChange)
     }
 }
 
@@ -68,16 +65,15 @@ fun ExerciseList(
     onCheckedChange: (exercise: ExerciseMutableState, isChecked: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = modifier) {
-        items(
-            items = exercises,
-            key = { exercise -> exercise.id }
-        ) { exercise ->
-            ExerciseItem(
-                exercise = exercise,
-                onCheckedChange = { isChecked -> onCheckedChange(exercise, isChecked) })
-            if (exercises.indexOf(exercise) != exercises.lastIndex) {
-                Divider()
+    Card(modifier = modifier) {
+        LazyColumn(modifier = modifier) {
+            items(
+                items = exercises,
+                key = { exercise -> exercise.id }
+            ) { exercise ->
+                ExerciseItem(
+                    exercise = exercise,
+                    onCheckedChange = { isChecked -> onCheckedChange(exercise, isChecked) })
             }
         }
     }
@@ -88,9 +84,16 @@ fun ExerciseList(
 @Composable
 private fun ExerciseListPreview() {
     val list =
-        List(20) { ExerciseMutableState(title = "Test $it", repetitions = 10, series = 5) }.toMutableStateList()
+        List(20) {
+            ExerciseMutableState(
+                title = "Test $it",
+                repetitions = 10,
+                series = 5
+            )
+        }.toMutableStateList()
     GymLogTheme {
         ExerciseList(
+            modifier = Modifier.padding(8.dp),
             exercises = list,
             onCheckedChange = { exercise, isChecked ->
                 list.find { it.id == exercise.id }?.let { it.isChecked = isChecked }
