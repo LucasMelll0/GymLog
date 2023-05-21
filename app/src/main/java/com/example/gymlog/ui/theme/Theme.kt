@@ -71,29 +71,29 @@ fun GymLogTheme(
 }
 
 private val LightColors = lightColorScheme(
-    primary = Blue700,
+    primary = Yellow700,
     onPrimary = Color.White,
-    secondary = Blue700,
+    secondary = Yellow700,
     onSecondary = Color.White,
-    primaryContainer = Blue700,
-    secondaryContainer = Blue700,
+    primaryContainer = Yellow700,
+    secondaryContainer = Yellow700,
     onSecondaryContainer = Color.White,
     surface = Color.White,
-    surfaceVariant = Blue50,
-    outline = Blue900,
-    outlineVariant = Blue800
+    surfaceVariant = Yellow50,
+    outline = Yellow900,
+    outlineVariant = Yellow800
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Blue300,
+    primary = Yellow300,
     onPrimary = Color.Black,
-    secondary = Blue300,
+    secondary = Yellow300,
     onSecondary = Color.Black,
-    primaryContainer = Blue300,
-    secondaryContainer = Blue200,
+    primaryContainer = Yellow300,
+    secondaryContainer = Yellow200,
     onSecondaryContainer = Color.Black,
     surface = Color.Black,
-    surfaceVariant = Blue1200,
-    outline = Blue50,
-    outlineVariant = Color.White
+    surfaceVariant = Yellow1200,
+    outline = Yellow50,
+    outlineVariant = Yellow50
 )
