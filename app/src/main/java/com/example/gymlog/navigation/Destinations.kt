@@ -49,7 +49,7 @@ fun AppNavHost(
     ) {
         composable(route = Home.route) {
             HomeScreen(
-                onButtonAddClick = { navController.navigateSingleTopTo(Form.route) },
+                onButtonAddClick = { navController.navigateToTrainingForm(null) },
                 onItemClickListener = { navController.navigateToTrainingLog(it) })
         }
         composable(
