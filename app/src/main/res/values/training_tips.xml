@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="training_tips">
+        <item>Mantenha uma postura adequada durante os exercícios para evitar lesões e obter melhores resultados.</item>
+        <item>Não se esqueça de respirar corretamente durante os exercícios. Inspire durante a fase de alongamento e expire durante o esforço.</item>
+        <item>Aqueça o corpo antes de começar os exercícios, isso ajuda a preparar os músculos e reduzir o risco de lesões.</item>
+        <item>Use pesos adequados para o seu nível de condicionamento físico. Comece com pesos mais leves e vá aumentando gradualmente.</item>
+        <item>Mantenha um ritmo constante ao realizar os exercícios. Evite movimentos rápidos e descontrolados.</item>
+        <item>Concentre-se no músculo que está sendo trabalhado. Sinta a contração e o alongamento adequados.</item>
+        <item>Não esqueça de fazer pausas regulares durante os exercícios. Descansar é importante para evitar a fadiga excessiva e lesões.</item>
+        <item>Escute seu corpo. Se sentir dor ou desconforto durante um exercício, pare e consulte um profissional de saúde.</item>
+        <item>Varie sua rotina de exercícios para promover um desenvolvimento muscular equilibrado.</item>
+        <item>Não negligencie o alongamento após os exercícios. Isso ajuda a reduzir a tensão muscular e promove a flexibilidade.</item>
+        <item>Monitore seu progresso ao longo do tempo. Mantenha um registro de seus exercícios e ajuste seu treino conforme necessário.</item>
+        <item>Descanse adequadamente entre os treinos para permitir a recuperação muscular.</item>
+        <item>Mantenha uma alimentação balanceada e saudável para complementar seus exercícios e alcançar melhores resultados.</item>
+    </string-array>
+</resources>

@@ -12,7 +12,6 @@ import com.example.gymlog.repository.TrainingRepository
 import com.example.gymlog.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flow
 
 class TrainingLogViewModel(private val repository: TrainingRepository) : ViewModel() {
 
@@ -20,29 +19,26 @@ class TrainingLogViewModel(private val repository: TrainingRepository) : ViewMod
         const val TAG = "trainingViewModel"
     }
 
+    private var _title by mutableStateOf("")
+    internal val title: String get() = _title
+
     private val _exercises = mutableStateListOf<ExerciseMutableState>()
     val exercises: List<ExerciseMutableState> get() = _exercises
+    private val _filters = mutableStateListOf<String>()
+    val filters: List<String> get() = _filters
 
-    private val _training: MutableStateFlow<Resource<Training>> = MutableStateFlow(Resource.Loading)
-    internal var training: Flow<Resource<Training>> = _training
-        private set
-
-    private var _trainingPercent by mutableStateOf(0)
-    internal val trainingPercent: Int get() = _trainingPercent
-
-    fun updateTrainingPercent(exercises: List<ExerciseMutableState>) {
-        if (exercises.isNotEmpty()) {
-            val exercisesChecked = exercises.filter { it.isChecked }.size
-            _trainingPercent = (exercisesChecked * 100) / exercises.size
-        }
-    }
+    private val _resource: MutableStateFlow<Resource<Training>> = MutableStateFlow(Resource.Loading)
+    internal val resource: Flow<Resource<Training>> = _resource
 
     suspend fun getTraining(id: String) {
-        _training.value =
+        _resource.value =
             try {
                 repository.getById(id)?.let { training ->
+                    _title = training.title
                     _exercises.clear()
                     _exercises.addAll(training.getExercisesWithMutableState())
+                    _filters.clear()
+                    _filters.addAll(training.filters)
                     Resource.Success(training)
                 } ?: run {
                     Resource.Error("Error on get training: null pointer")
@@ -68,16 +64,14 @@ class TrainingLogViewModel(private val repository: TrainingRepository) : ViewMod
 
     suspend fun removeTraining(trainingId: String) {
         repository.getById(trainingId)?.let { training ->
-            this.training = flow {
-                emit(Resource.Loading)
-            }
+            this._resource.value = Resource.Loading
             repository.remove(training)
         }
     }
 
     suspend fun updateTraining(trainingId: String) {
         repository.getById(trainingId)?.let { training ->
-            this.training = flow { emit(Resource.Loading) }
+            this._resource.value = Resource.Loading
             repository.save(training.copy(exercises = exercises.map { it.toExercise() }))
         }
     }
