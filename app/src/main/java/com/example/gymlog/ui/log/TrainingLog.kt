@@ -1,22 +1,29 @@
 package com.example.gymlog.ui.log
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,9 +32,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -37,6 +48,7 @@ import com.example.gymlog.R
 import com.example.gymlog.database.AppDataBase_Impl
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.ui.components.DefaultAlertDialog
+import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.BackPressHandler
@@ -107,7 +119,7 @@ fun TrainingLogScreen(
                 onDismiss = { showResetDialog = false }
             )
         }
-        val resource = viewModel.training.collectAsState(Resource.Loading)
+        val resource = viewModel.resource.collectAsState(Resource.Loading)
         when (resource.value) {
             is Resource.Loading -> {
                 isLoading = true
@@ -127,25 +139,93 @@ fun TrainingLogScreen(
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.primary.copy(0.1f)
             )
-        } else {
-            if (resource.value is Resource.Success) {
+        }
+        if (resource.value is Resource.Success) {
+            Surface(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
                 Column(
                     modifier
-                        .padding(paddingValues)
                         .fillMaxSize()
-                ) {
-                    ExerciseList(
-                        modifier = modifier.padding(dimensionResource(id = R.dimen.default_padding)),
-                        exercises = viewModel.exercises,
-                        onCheckedChange = { exercise, isChecked ->
-                            viewModel.updateExercise(exercise.id, isChecked)
-                        })
+                        .padding(top = dimensionResource(id = R.dimen.default_padding)),
+                    verticalArrangement = Arrangement.SpaceBetween,
+
+                    ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(
+                            dimensionResource(id = R.dimen.default_padding)
+                        )
+                    ) {
+                        TipCard(
+                            tips = stringArrayResource(id = R.array.training_tips).toList(),
+                            modifier = Modifier.padding(
+                                horizontal = dimensionResource(
+                                    id = R.dimen.default_padding
+                                )
+                            )
+                        )
+                        ExerciseList(
+                            modifier = modifier.padding(dimensionResource(id = R.dimen.default_padding)),
+                            exercises = viewModel.exercises,
+                            onCheckedChange = { exercise, isChecked ->
+                                viewModel.updateExercise(exercise.id, isChecked)
+                            })
+                    }
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(dimensionResource(id = R.dimen.default_padding))
+                    ) {
+                        FilterChipSelectionList(
+                            selectedList = emptyList(),
+                            filterList = viewModel.filters,
+                            onClick = {},
+                            isEnabled = false
+                        )
+                    }
                 }
             }
         }
-
     }
+}
 
+@Composable
+fun TipCard(tips: List<String>, modifier: Modifier = Modifier) {
+    Card(
+        shape = MaterialTheme.shapes.large,
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(id = R.dimen.default_padding)),
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_tip),
+                contentDescription = "Tip",
+                modifier = Modifier.size(dimensionResource(id = R.dimen.default_icon_size))
+            )
+            Text(
+                text = tips.random(),
+                style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun TipCardPreview() {
+    GymLogTheme {
+        val tips = stringArrayResource(id = R.array.training_tips)
+        TipCard(tips.toList())
+    }
 }
 
 @Composable

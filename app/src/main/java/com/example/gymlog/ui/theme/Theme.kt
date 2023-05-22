@@ -1,59 +1,25 @@
 package com.example.gymlog.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-)
 
 @Composable
 fun GymLogTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+    val colorScheme = if (darkTheme) DarkColors else LightColors
 
-        darkTheme -> DarkColors
-        else -> LightColors
-    }
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -71,29 +37,37 @@ fun GymLogTheme(
 }
 
 private val LightColors = lightColorScheme(
-    primary = Yellow700,
+    primary = PrimaryLightColor,
     onPrimary = Color.White,
-    secondary = Yellow700,
+    secondary = PrimaryLightColor,
     onSecondary = Color.White,
-    primaryContainer = Yellow700,
-    secondaryContainer = Yellow700,
-    onSecondaryContainer = Color.White,
-    surface = Color.White,
-    surfaceVariant = Yellow50,
-    outline = Yellow900,
-    outlineVariant = Yellow800
+    primaryContainer = PrimaryContainerLightColor,
+    onPrimaryContainer = OnPrimaryContainerLightColor,
+    secondaryContainer = PrimaryContainerLightColor,
+    onSecondaryContainer = OnPrimaryContainerLightColor,
+    surface = SurfaceLightColor,
+    surfaceVariant = SurfaceVariantLightColor,
+    outline = OutlineLightColor,
+    background = BackgroundLightColor,
+    onBackground = OnBackgroundLightColor,
+    onSurface = OnSurfaceLightColor,
+    onSurfaceVariant = OnSurfaceVariantLightColor
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Yellow300,
-    onPrimary = Color.Black,
-    secondary = Yellow300,
-    onSecondary = Color.Black,
-    primaryContainer = Yellow300,
-    secondaryContainer = Yellow200,
-    onSecondaryContainer = Color.Black,
-    surface = Color.Black,
-    surfaceVariant = Yellow1200,
-    outline = Yellow50,
-    outlineVariant = Yellow50
+    primary = PrimaryDarkColor,
+    onPrimary = OnPrimaryDarkColor,
+    secondary = PrimaryDarkColor,
+    onSecondary = OnPrimaryDarkColor,
+    primaryContainer = PrimaryContainerDarkColor,
+    onPrimaryContainer = OnPrimaryContainerDarkColor,
+    secondaryContainer = PrimaryContainerDarkColor,
+    onSecondaryContainer = OnPrimaryContainerDarkColor,
+    surface = SurfaceDarkColor,
+    surfaceVariant = SurfaceVariantDarkColor,
+    outline = OutlineDarkColor,
+    background = BackgroundDarkColor,
+    onBackground = OnBackgroundDarkColor,
+    onSurface = OnSurfaceDarkColor,
+    onSurfaceVariant = OnSurfaceVariantDarkColor
 )
