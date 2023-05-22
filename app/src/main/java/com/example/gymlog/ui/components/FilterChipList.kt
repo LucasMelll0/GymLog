@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -84,12 +83,6 @@ fun FilterChipSelectionList(
             items(filterList) { filter ->
                 val isSelected = selectedList.contains(filter)
                 FilterChip(enabled = isEnabled,
-                    colors = FilterChipDefaults.filterChipColors(
-                        disabledContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(
-                            0.5f
-                        ),
-                        disabledLabelColor = MaterialTheme.colorScheme.onPrimary
-                    ),
                     modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.small_padding)),
                     selected = isSelected,
                     onClick = { onClick(filter) },
