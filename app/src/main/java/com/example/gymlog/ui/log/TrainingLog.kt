@@ -274,7 +274,7 @@ private fun TrainingLogBottomAppBar(
             FloatingActionButton(onClick = onClickEdit) {
                 Icon(
                     imageVector = Icons.Rounded.Edit,
-                    contentDescription = stringResource(id = R.string.training_log_edit_content_description)
+                    contentDescription = stringResource(id = R.string.common_edit)
                 )
             }
         },
@@ -286,7 +286,10 @@ private fun TrainingLogBottomAppBar(
                 )
             }
             IconButton(onClick = onClickDelete) {
-                Icon(imageVector = Icons.Rounded.Delete, contentDescription = null)
+                Icon(
+                    imageVector = Icons.Rounded.Delete,
+                    contentDescription = stringResource(id = R.string.common_delete)
+                )
             }
             IconButton(onClick = onClickReset) {
                 Icon(imageVector = Icons.Rounded.Refresh, contentDescription = "")
