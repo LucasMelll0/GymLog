@@ -37,6 +37,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,6 +67,7 @@ import com.example.gymlog.ui.components.DefaultTextField
 import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
+import com.example.gymlog.utils.BackPressHandler
 import com.example.gymlog.utils.TrainingTypes
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -82,13 +84,17 @@ fun TrainingFormScreen(
 
     val scope = rememberCoroutineScope()
     trainingId?.let {
-        scope.launch {
+       LaunchedEffect(key1 = Unit) {
             viewModel.getTrainingById(trainingId)
         }
     }
 
+
     var showDismissDialog: Boolean by rememberSaveable {
         mutableStateOf(false)
+    }
+    BackPressHandler {
+        showDismissDialog = true
     }
     var nameHasError by remember { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
