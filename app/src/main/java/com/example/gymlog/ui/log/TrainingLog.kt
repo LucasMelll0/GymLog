@@ -1,13 +1,16 @@
 package com.example.gymlog.ui.log
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
@@ -149,7 +152,10 @@ fun TrainingLogScreen(
                 Column(
                     modifier
                         .fillMaxSize()
-                        .padding(top = dimensionResource(id = R.dimen.default_padding)),
+                        .padding(top = dimensionResource(id = R.dimen.default_padding))
+                        .verticalScroll(
+                            rememberScrollState()
+                        ),
                     verticalArrangement = Arrangement.SpaceBetween,
 
                     ) {
@@ -168,7 +174,13 @@ fun TrainingLogScreen(
                             )
                         )
                         ExerciseList(
-                            modifier = modifier.padding(dimensionResource(id = R.dimen.default_padding)),
+                            modifier = modifier
+                                .padding(dimensionResource(id = R.dimen.default_padding))
+                                .heightIn(
+                                    max = dimensionResource(
+                                        id = R.dimen.max_exercise_list_height
+                                    )
+                                ),
                             exercises = viewModel.exercises,
                             onCheckedChange = { exercise, isChecked ->
                                 viewModel.updateExercise(exercise.id, isChecked)
@@ -178,7 +190,8 @@ fun TrainingLogScreen(
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(dimensionResource(id = R.dimen.default_padding))
+                                .padding(dimensionResource(id = R.dimen.default_padding)),
+                            shape = MaterialTheme.shapes.large
                         ) {
                             FilterChipSelectionList(
                                 selectedList = emptyList(),
@@ -199,19 +212,17 @@ fun TipCard(tips: List<String>, modifier: Modifier = Modifier) {
     Card(
         shape = MaterialTheme.shapes.large,
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.tertiary)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(dimensionResource(id = R.dimen.default_padding)),
             horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
-            verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_tip),
                 contentDescription = "Tip",
-                modifier = Modifier.size(dimensionResource(id = R.dimen.default_icon_size))
             )
             Text(
                 text = tips.random(),
@@ -221,6 +232,7 @@ fun TipCard(tips: List<String>, modifier: Modifier = Modifier) {
     }
 }
 
+@Preview(uiMode = UI_MODE_NIGHT_YES)
 @Preview
 @Composable
 private fun TipCardPreview() {
