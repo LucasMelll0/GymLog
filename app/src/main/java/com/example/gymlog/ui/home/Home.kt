@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -51,6 +52,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -230,7 +232,6 @@ fun HomeBottomBar(
                 contentDescription = stringResource(id = R.string.home_button_filter_content_description)
             )
         }
-
     }, floatingActionButton = {
         FloatingActionButton(onClick = onFabClick) {
             Icon(
@@ -341,7 +342,7 @@ fun TrainingItem(
             }
         }
         if (isExpanded) {
-            if(training.exercises.isNotEmpty()) {
+            if (training.exercises.isNotEmpty()) {
                 ExerciseListTrainingItem(
                     exercises = training.exercises,
                     modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding))
@@ -473,5 +474,28 @@ private fun HomeScreenPreview() {
         }
         val viewModel: HomeViewModel = viewModel(factory = viewModelFactory)
         HomeScreen({}, viewModel = viewModel, onButtonAddClick = {}, onClickEdit = {})
+    }
+}
+
+@Composable
+private fun EmptyListHomeMessage(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Oops! Você ainda não possui treinos. Adicione um para começar!",
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun EmptyListHomeMessagePreview() {
+    GymLogTheme {
+        EmptyListHomeMessage()
     }
 }
