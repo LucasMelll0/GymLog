@@ -70,40 +70,42 @@ fun ExerciseList(
     onCheckedChange: (exercise: ExerciseMutableState, isChecked: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val percent = (exercises.filter { it.isChecked }.size.toFloat() / exercises.size.toFloat())
-    Card(modifier = modifier) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(
-                vertical = dimensionResource(
-                    id = R.dimen.default_padding
+    if (exercises.isNotEmpty()) {
+        val percent = (exercises.filter { it.isChecked }.size.toFloat() / exercises.size.toFloat())
+        Card(modifier = modifier) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(
+                    vertical = dimensionResource(
+                        id = R.dimen.default_padding
+                    )
                 )
-            )
-        ) {
-            Text(
-                text = stringResource(
-                    R.string.training_log_exercise_list_percent_place_holder,
-                    (percent * 100).toInt()
-                ),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.titleLarge
-            )
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp),
-                progress = percent,
-                trackColor = MaterialTheme.colorScheme.primary.copy(0.1f),
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-        LazyColumn(modifier = modifier) {
-            items(
-                items = exercises,
-                key = { exercise -> exercise.id }
-            ) { exercise ->
-                ExerciseItem(
-                    exercise = exercise,
-                    onCheckedChange = { isChecked -> onCheckedChange(exercise, isChecked) })
+            ) {
+                Text(
+                    text = stringResource(
+                        R.string.training_log_exercise_list_percent_place_holder,
+                        (percent * 100).toInt()
+                    ),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp),
+                    progress = percent,
+                    trackColor = MaterialTheme.colorScheme.primary.copy(0.1f),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            LazyColumn(modifier = modifier) {
+                items(
+                    items = exercises,
+                    key = { exercise -> exercise.id }
+                ) { exercise ->
+                    ExerciseItem(
+                        exercise = exercise,
+                        onCheckedChange = { isChecked -> onCheckedChange(exercise, isChecked) })
+                }
             }
         }
     }
