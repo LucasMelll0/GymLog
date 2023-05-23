@@ -21,6 +21,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
@@ -34,6 +36,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,14 +57,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
+import com.example.gymlog.data.Mock
 import com.example.gymlog.database.AppDataBase_Impl
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepositoryImpl
+import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.DefaultSearchBar
 import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.home.viewmodel.HomeViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
+import com.example.gymlog.utils.BackPressHandler
 import com.example.gymlog.utils.TrainingTypes
 import org.koin.androidx.compose.koinViewModel
 
@@ -69,12 +75,15 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun HomeScreen(
     onItemClickListener: (trainingId: String) -> Unit,
+    onClickEdit: (trainingId: String) -> Unit,
     onButtonAddClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel()
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
+    var showDeleteTrainingDialog by remember { mutableStateOf(false) }
+    var trainingIdForDelete: String? by rememberSaveable { mutableStateOf(null) }
     val focusRequester = remember { FocusRequester() }
     val training by viewModel.trainings.collectAsState(emptyList())
     Scaffold(bottomBar = {
@@ -93,11 +102,25 @@ fun HomeScreen(
             Column(
                 verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
             ) {
+                if (showDeleteTrainingDialog) {
+                    trainingIdForDelete?.let {
+                        DeleteTrainingDialog(
+                            trainingId = trainingIdForDelete!!,
+                            onConfirm = {
+                                viewModel.deleteTraining(trainingIdForDelete!!)
+                                showDeleteTrainingDialog = false
+                            },
+                            onDismissRequest = { showDeleteTrainingDialog = false })
+                    }
+                }
                 var query by remember { mutableStateOf("") }
                 if (!showSearchBar) {
                     query = ""
                 }
                 AnimatedVisibility(showSearchBar) {
+                    BackPressHandler {
+                        showSearchBar = false
+                    }
                     DefaultSearchBar(
                         focusRequester = focusRequester,
                         value = query,
@@ -110,7 +133,12 @@ fun HomeScreen(
 
                 }
                 TrainingList(
-                    onItemClickListener = { training ->  onItemClickListener(training.trainingId)},
+                    onClickDelete = {
+                        trainingIdForDelete = it
+                        showDeleteTrainingDialog = true
+                    },
+                    onClickEdit = onClickEdit,
+                    onItemClickListener = { training -> onItemClickListener(training.trainingId) },
                     trainingWithExercises = training.filter {
                         if (query.isNotEmpty()) {
                             it.title.contains(query, true)
@@ -169,6 +197,21 @@ fun FiltersBottomSheet(
 }
 
 @Composable
+private fun DeleteTrainingDialog(
+    trainingId: String,
+    onConfirm: (trainingId: String) -> Unit,
+    onDismissRequest: () -> Unit
+) {
+    DefaultAlertDialog(
+        title = stringResource(id = R.string.common_dialog_title),
+        text = stringResource(id = R.string.common_training_delete_dialog_text),
+        icon = { Icon(imageVector = Icons.Rounded.Delete, contentDescription = null) },
+        onDismissRequest = onDismissRequest,
+        onConfirm = { onConfirm(trainingId) }
+    )
+}
+
+@Composable
 fun HomeBottomBar(
     onButtonSearchClick: () -> Unit,
     onButtonFiltersClick: () -> Unit,
@@ -201,6 +244,8 @@ fun HomeBottomBar(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TrainingList(
+    onClickDelete: (trainingId: String) -> Unit,
+    onClickEdit: (trainingId: String) -> Unit,
     onItemClickListener: (Training) -> Unit,
     trainingWithExercises: List<Training>,
     modifier: Modifier = Modifier
@@ -215,10 +260,12 @@ fun TrainingList(
         ) { training ->
             TrainingItem(
                 onClick = { onItemClickListener(training) },
+                onClickEdit = { onClickEdit(training.trainingId) },
+                onClickDelete = { onClickDelete(training.trainingId) },
                 training = training,
                 modifier = Modifier
                     .padding(dimensionResource(id = R.dimen.small_padding))
-                    .animateItemPlacement()
+                    .animateItemPlacement(),
             )
         }
     }
@@ -228,7 +275,9 @@ fun TrainingList(
 fun TrainingItem(
     onClick: () -> Unit,
     training: Training,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClickDelete: () -> Unit,
+    onClickEdit: () -> Unit
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     Card(
@@ -268,16 +317,15 @@ fun TrainingItem(
                             )
                         )
                     )
-                    if (training.exercises.isNotEmpty()) {
-                        val angle: Float by animateFloatAsState(if (isExpanded) 180f else 0f)
-                        IconButton(onClick = { isExpanded = !isExpanded }) {
-                            Icon(
-                                imageVector = Icons.Rounded.ArrowDropDown,
-                                contentDescription = null,
-                                modifier = Modifier.rotate(angle)
-                            )
-                        }
+                    val angle: Float by animateFloatAsState(if (isExpanded) 180f else 0f)
+                    IconButton(onClick = { isExpanded = !isExpanded }) {
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowDropDown,
+                            contentDescription = null,
+                            modifier = Modifier.rotate(angle)
+                        )
                     }
+
                 }
                 if (training.filters.isNotEmpty()) {
                     FilterListTrainingItem(
@@ -293,15 +341,66 @@ fun TrainingItem(
             }
         }
         if (isExpanded) {
-            ExerciseListTrainingItem(
-                exercises = training.exercises,
-                modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding))
-            )
+            if(training.exercises.isNotEmpty()) {
+                ExerciseListTrainingItem(
+                    exercises = training.exercises,
+                    modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding))
+                )
+            }
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = dimensionResource(id = R.dimen.default_padding)),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    TextButton(
+                        onClick = onClickEdit,
+                        Modifier.weight(1f),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Edit, contentDescription = stringResource(
+                                id = R.string.common_edit
+                            )
+                        )
+                        Text(
+                            text = stringResource(id = R.string.common_edit),
+                            modifier = Modifier.padding(
+                                start = dimensionResource(
+                                    id = R.dimen.small_padding
+                                )
+                            )
+                        )
+                    }
+                    TextButton(onClick = onClickDelete, modifier = Modifier.weight(1f)) {
+                        Icon(
+                            imageVector = Icons.Rounded.Delete, contentDescription = stringResource(
+                                id = R.string.common_edit
+                            )
+                        )
+                        Text(
+                            text = stringResource(id = R.string.common_delete),
+                            modifier = Modifier.padding(start = dimensionResource(id = R.dimen.small_padding))
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@Preview
+@Composable
+private fun TrainingItemPreview() {
+    GymLogTheme {
+        TrainingItem(
+            onClick = { },
+            training = Mock.getTrainings().random(),
+            onClickEdit = {},
+            onClickDelete = {})
+    }
+}
+
 @Composable
 private fun FilterListTrainingItem(filters: List<String>, modifier: Modifier = Modifier) {
     val maxHeight = if (filters.size < 8) 40.dp else 80.dp
@@ -373,6 +472,6 @@ private fun HomeScreenPreview() {
             }
         }
         val viewModel: HomeViewModel = viewModel(factory = viewModelFactory)
-        HomeScreen({}, viewModel = viewModel, onButtonAddClick = {})
+        HomeScreen({}, viewModel = viewModel, onButtonAddClick = {}, onClickEdit = {})
     }
 }

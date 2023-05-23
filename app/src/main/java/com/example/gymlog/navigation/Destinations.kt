@@ -50,7 +50,8 @@ fun AppNavHost(
         composable(route = Home.route) {
             HomeScreen(
                 onButtonAddClick = { navController.navigateToTrainingForm(null) },
-                onItemClickListener = { navController.navigateToTrainingLog(it) })
+                onItemClickListener = { navController.navigateToTrainingLog(it) },
+                onClickEdit = { navController.navigateToTrainingForm(it) })
         }
         composable(
             route = Form.routeWithArgs,

@@ -174,17 +174,19 @@ fun TrainingLogScreen(
                                 viewModel.updateExercise(exercise.id, isChecked)
                             })
                     }
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(dimensionResource(id = R.dimen.default_padding))
-                    ) {
-                        FilterChipSelectionList(
-                            selectedList = emptyList(),
-                            filterList = viewModel.filters,
-                            onClick = {},
-                            isEnabled = false
-                        )
+                    if (viewModel.filters.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(dimensionResource(id = R.dimen.default_padding))
+                        ) {
+                            FilterChipSelectionList(
+                                selectedList = emptyList(),
+                                filterList = viewModel.filters,
+                                onClick = {},
+                                isEnabled = false
+                            )
+                        }
                     }
                 }
             }
@@ -237,7 +239,7 @@ private fun DeleteDialog(
     DefaultAlertDialog(
         modifier = modifier,
         title = stringResource(id = R.string.common_dialog_title),
-        text = stringResource(id = R.string.training_log_delete_dialog_text),
+        text = stringResource(id = R.string.common_training_delete_dialog_text),
         icon = { Icon(imageVector = Icons.Rounded.Delete, contentDescription = null) },
         onDismissRequest = onDismiss,
         onConfirm = onConfirm
