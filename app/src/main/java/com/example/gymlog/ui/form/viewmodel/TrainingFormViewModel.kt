@@ -39,11 +39,15 @@ class TrainingFormViewModel(private val repository: TrainingRepository) : ViewMo
     }
 
     fun addExercise(exercise: Exercise) {
+
         _exercises.add(exercise)
+
     }
 
     fun removeExercise(exercise: Exercise) {
-        _exercises.remove(exercise)
+        _exercises.find { it == exercise }?.let {
+            _exercises.remove(it)
+        }
     }
 
     fun addFilter(filter: String) {

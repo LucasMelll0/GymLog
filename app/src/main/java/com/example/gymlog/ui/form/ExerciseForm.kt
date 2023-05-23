@@ -44,7 +44,8 @@ fun ExerciseForm(
     onDismiss: () -> Unit,
     onExit: () -> Unit,
     onConfirm: (Exercise) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    exerciseToEdit: Exercise? = null
 ) {
     var title by rememberSaveable { mutableStateOf("") }
     var series: String by rememberSaveable { mutableStateOf("") }
@@ -52,6 +53,11 @@ fun ExerciseForm(
     var titleHasError by remember { mutableStateOf(false) }
     var seriesHasError by remember { mutableStateOf(false) }
     var repetitionsHasError by remember { mutableStateOf(false) }
+    exerciseToEdit?.let {
+        title = it.title
+        series = it.series.toString()
+        repetitions = it.repetitions.toString()
+    }
     Dialog(
         onDismissRequest = { onDismiss() },
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)

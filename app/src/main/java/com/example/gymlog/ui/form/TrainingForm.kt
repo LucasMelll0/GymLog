@@ -5,6 +5,7 @@ package com.example.gymlog.ui.form
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -84,7 +85,7 @@ fun TrainingFormScreen(
 
     val scope = rememberCoroutineScope()
     trainingId?.let {
-       LaunchedEffect(key1 = Unit) {
+        LaunchedEffect(key1 = Unit) {
             viewModel.getTrainingById(trainingId)
         }
     }
@@ -122,6 +123,7 @@ fun TrainingFormScreen(
         var showExerciseDialog: Boolean by rememberSaveable {
             mutableStateOf(false)
         }
+        var exerciseToEditIndex: Int? by rememberSaveable { mutableStateOf(null) }
         val filters = TrainingTypes.values().map { stringResource(id = it.stringRes()) }
         if (showDismissDialog) {
             DismissTrainingDialog(
@@ -129,13 +131,19 @@ fun TrainingFormScreen(
                 onConfirm = onDismissClick
             )
         }
+        val exerciseToEdit: Exercise? = exerciseToEditIndex?.let { viewModel.exercises[it] }
         if (showExerciseDialog) {
             ExerciseForm(
+                exerciseToEdit = exerciseToEdit,
                 onDismiss = { showExerciseDialog = false },
                 onExit = { showExerciseDialog = false },
                 onConfirm = {
+                    exerciseToEditIndex?.let {
+                        viewModel.removeExercise(exerciseToEdit!!)
+                    }
                     viewModel.addExercise(it)
                     showExerciseDialog = false
+                    exerciseToEditIndex = null
                 }
             )
         }
@@ -167,7 +175,14 @@ fun TrainingFormScreen(
                     exercises = viewModel.exercises,
                     onClickAdd = { showExerciseDialog = true },
                     onClickRemove = { viewModel.removeExercise(it) },
-                    modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))
+                    modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
+                    onItemClickListener = {
+                        exerciseToEditIndex =
+                            if (viewModel.exercises.indexOf(it) != -1) viewModel.exercises.indexOf(
+                                it
+                            ) else null
+                        showExerciseDialog = true
+                    }
                 )
                 Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
                 Card(
@@ -203,7 +218,8 @@ fun ExerciseListForm(
     exercises: List<Exercise>,
     onClickAdd: () -> Unit,
     onClickRemove: (Exercise) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onItemClickListener: (Exercise) -> Unit
 ) {
     Card(modifier = modifier) {
         if (exercises.isNotEmpty()) {
@@ -231,6 +247,7 @@ fun ExerciseListForm(
                         .animateItemPlacement(),
                     exercise = exercise,
                     onClickRemove = onClickRemove,
+                    onClick = onItemClickListener
                 )
             }
         }
@@ -250,13 +267,15 @@ fun ExerciseItemForm(
     modifier: Modifier = Modifier,
     exercise: Exercise,
     onClickRemove: (Exercise) -> Unit,
+    onClick: (Exercise) -> Unit
 
-    ) {
+) {
 
     Row(
         modifier
             .padding(dimensionResource(id = R.dimen.default_padding))
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable { onClick(exercise) },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -368,6 +387,10 @@ private fun ExerciseListFormPreview() {
     val list =
         List(2) { Exercise(title = "Test $it", repetitions = 10, series = 5) }.toMutableStateList()
     GymLogTheme {
-        ExerciseListForm(exercises = list, onClickAdd = {}, onClickRemove = { list.remove(it) })
+        ExerciseListForm(
+            exercises = list,
+            onClickAdd = {},
+            onClickRemove = { list.remove(it) },
+            onItemClickListener = {})
     }
 }
