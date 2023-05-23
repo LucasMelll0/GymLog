@@ -6,4 +6,5 @@
     <dimen name="default_chip_icon_size">16dp</dimen>
     <dimen name="minimum_training_item_height">70dp</dimen>
     <dimen name="default_icon_size">38dp</dimen>
+    <dimen name="max_exercise_list_height">400dp</dimen>
 </resources>

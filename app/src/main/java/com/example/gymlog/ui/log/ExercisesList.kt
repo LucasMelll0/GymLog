@@ -72,13 +72,14 @@ fun ExerciseList(
 ) {
     if (exercises.isNotEmpty()) {
         val percent = (exercises.filter { it.isChecked }.size.toFloat() / exercises.size.toFloat())
-        Card(modifier = modifier) {
+        Card(modifier = modifier, shape = MaterialTheme.shapes.large) {
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(
-                    vertical = dimensionResource(
-                        id = R.dimen.default_padding
+                horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+                    .padding(
+                        vertical = dimensionResource(
+                            id = R.dimen.default_padding
+                        )
                     )
-                )
             ) {
                 Text(
                     text = stringResource(

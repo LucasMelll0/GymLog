@@ -23,7 +23,6 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -187,7 +186,7 @@ fun TrainingFormScreen(
                     modifier = Modifier
                         .padding(dimensionResource(id = R.dimen.default_padding))
                         .fillMaxWidth(),
-                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    shape = MaterialTheme.shapes.large
                 ) {
                     FilterChipSelectionList(
                         selectedList = viewModel.filters,
