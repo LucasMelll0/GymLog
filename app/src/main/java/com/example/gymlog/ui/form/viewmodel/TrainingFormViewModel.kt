@@ -24,13 +24,15 @@ class TrainingFormViewModel(private val repository: TrainingRepository) : ViewMo
 
 
     suspend fun getTrainingById(trainingId: String) {
-        repository.getById(trainingId)?.let { training ->
-            _trainingId = training.trainingId
-            _trainingTitle = training.title
-            _exercises.clear()
-            _exercises.addAll(training.exercises)
-            _filters.clear()
-            _filters.addAll(training.filters)
+        _trainingId ?: run {
+            repository.getById(trainingId)?.let { training ->
+                _trainingId = training.trainingId
+                _trainingTitle = training.title
+                _exercises.clear()
+                _exercises.addAll(training.exercises)
+                _filters.clear()
+                _filters.addAll(training.filters)
+            }
         }
     }
 

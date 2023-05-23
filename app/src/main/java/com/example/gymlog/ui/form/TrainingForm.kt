@@ -88,6 +88,7 @@ fun TrainingFormScreen(
         LaunchedEffect(key1 = Unit) {
             viewModel.getTrainingById(trainingId)
         }
+
     }
 
 
