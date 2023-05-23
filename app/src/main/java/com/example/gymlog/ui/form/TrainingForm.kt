@@ -1,5 +1,3 @@
-@file:Suppress("UNCHECKED_CAST")
-
 package com.example.gymlog.ui.form
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -88,7 +86,6 @@ fun TrainingFormScreen(
         LaunchedEffect(key1 = Unit) {
             viewModel.getTrainingById(trainingId)
         }
-
     }
 
 
@@ -285,7 +282,7 @@ fun ExerciseItemForm(
             modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
             style = MaterialTheme.typography.titleMedium
         )
-        Column() {
+        Column {
             Text(
                 text = stringResource(
                     R.string.exercise_repetions_place_holder,
@@ -362,6 +359,7 @@ private fun DismissTrainingDialogPreview() {
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 private fun TrainingFormScreenPreview() {
@@ -382,7 +380,7 @@ private fun TrainingFormScreenPreview() {
 }
 
 @Preview(uiMode = UI_MODE_NIGHT_YES)
-@Preview()
+@Preview
 @Composable
 private fun ExerciseListFormPreview() {
     val list =
