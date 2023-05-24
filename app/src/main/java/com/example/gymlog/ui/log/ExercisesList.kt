@@ -1,7 +1,9 @@
 package com.example.gymlog.ui.log
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -72,7 +74,10 @@ fun ExerciseList(
     modifier: Modifier = Modifier
 ) {
     if (exercises.isNotEmpty()) {
-        val percent by animateFloatAsState(targetValue = (exercises.filter { it.isChecked }.size.toFloat() / exercises.size.toFloat()))
+        val percent by animateFloatAsState(
+            targetValue = (exercises.filter { it.isChecked }.size.toFloat() / exercises.size.toFloat()),
+            animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
+        )
         Card(modifier = modifier, shape = MaterialTheme.shapes.large) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
