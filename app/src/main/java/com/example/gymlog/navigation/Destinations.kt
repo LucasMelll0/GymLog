@@ -1,15 +1,19 @@
 package com.example.gymlog.navigation
 
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.gymlog.ui.form.TrainingFormScreen
 import com.example.gymlog.ui.home.HomeScreen
 import com.example.gymlog.ui.log.TrainingLogScreen
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
 
 interface Destination {
     val route: String
@@ -37,14 +41,40 @@ object Log : Destination {
     })
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    NavHost(
+
+    AnimatedNavHost(
         navController = navController,
         startDestination = Home.route,
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { width -> width * 2 },
+                animationSpec = tween(500)
+            )
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { width -> -2 * width },
+                animationSpec = tween(500)
+            )
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { width -> -2 * width },
+                animationSpec = tween(700)
+            )
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { width -> 2 * width },
+                animationSpec = tween(700)
+            )
+        },
         modifier = modifier
     ) {
         composable(route = Home.route) {
@@ -75,7 +105,11 @@ fun AppNavHost(
                     onError = { navController.popBackStack() },
                     trainingId = trainingId,
                     onClickDelete = { navController.popBackStack() },
-                    onClickEdit = { trainingId -> navController.navigateToTrainingForm(trainingId) }
+                    onClickEdit = { trainingId ->
+                        navController.navigateToTrainingForm(
+                            trainingId
+                        )
+                    }
                 )
             }
         }
