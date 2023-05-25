@@ -31,8 +31,37 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gymlog.R
+import com.example.gymlog.data.Mock
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.TrainingTypes
+
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun FilterChipList(filterList: List<String>, modifier: Modifier = Modifier) {
+    LazyHorizontalStaggeredGrid(
+        rows = StaggeredGridCells.Fixed(2),
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(max = 80.dp),
+        contentPadding = PaddingValues(horizontal = dimensionResource(id = R.dimen.default_padding)),
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
+
+    ) {
+        items(filterList) { filter ->
+            FilterChip(
+                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.small_padding)),
+                selected = true,
+                onClick = {},
+                label = {
+                    Text(
+                        text = filter, textAlign = TextAlign.Center
+                    )
+                }
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -120,5 +149,13 @@ private fun FilterChipSelectionListPreview() {
             description = "Marque quantos o treino se enquadrar",
             isEnabled = false
         )
+    }
+}
+
+@Preview
+@Composable
+private fun FilterChipListPreview() {
+    GymLogTheme {
+        FilterChipList(filterList = Mock.getFilters().map { stringResource(id = it.stringRes()) })
     }
 }

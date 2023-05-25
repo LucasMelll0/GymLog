@@ -1,6 +1,7 @@
 package com.example.gymlog.ui.form
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -67,6 +68,7 @@ import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.DefaultTextButton
 import com.example.gymlog.ui.components.DefaultTextField
+import com.example.gymlog.ui.components.FilterChipList
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.BackPressHandler
@@ -125,7 +127,7 @@ fun TrainingFormScreen(
             mutableStateOf(false)
         }
         var exerciseToEditIndex: Int? by rememberSaveable { mutableStateOf(null) }
-        val filters = TrainingTypes.values().map { stringResource(id = it.stringRes()) }
+        TrainingTypes.values().map { stringResource(id = it.stringRes()) }
         if (showDismissDialog) {
             DismissTrainingDialog(
                 onDismissRequest = { showDismissDialog = false },
@@ -155,37 +157,44 @@ fun TrainingFormScreen(
                 .fillMaxHeight()
                 .padding(paddingValues)
         ) {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                DefaultTextField(
-                    value = viewModel.trainingTitle,
-                    onValueChange = { viewModel.setTrainingTitle(it) },
-                    label = {
-                        Text(text = stringResource(id = R.string.training_name_label))
-                    },
-                    modifier = Modifier
-                        .padding(dimensionResource(id = R.dimen.default_padding))
-                        .fillMaxWidth(),
-                    isError = nameHasError,
-                    errorMessage = stringResource(id = R.string.common_text_field_error_message),
-                    charLimit = 50,
-                )
-                Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
-                ExerciseListForm(
-                    exercises = viewModel.exercises,
-                    onClickAdd = { showExerciseDialog = true },
-                    onClickRemove = { viewModel.removeExercise(it) },
-                    modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
-                    onItemClickListener = {
-                        exerciseToEditIndex =
-                            if (viewModel.exercises.indexOf(it) != -1) viewModel.exercises.indexOf(
-                                it
-                            ) else null
-                        showExerciseDialog = true
+            Column(verticalArrangement = Arrangement.SpaceBetween) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    DefaultTextField(
+                        value = viewModel.trainingTitle,
+                        onValueChange = { viewModel.setTrainingTitle(it) },
+                        label = {
+                            Text(text = stringResource(id = R.string.training_name_label))
+                        },
+                        modifier = Modifier
+                            .padding(dimensionResource(id = R.dimen.default_padding))
+                            .fillMaxWidth(),
+                        isError = nameHasError,
+                        errorMessage = stringResource(id = R.string.common_text_field_error_message),
+                        charLimit = 50,
+                    )
+                    Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
+                    ExerciseListForm(
+                        exercises = viewModel.exercises,
+                        onClickAdd = { showExerciseDialog = true },
+                        onClickRemove = { viewModel.removeExercise(it) },
+                        modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
+                        onItemClickListener = {
+                            exerciseToEditIndex =
+                                if (viewModel.exercises.indexOf(it) != -1) viewModel.exercises.indexOf(
+                                    it
+                                ) else null
+                            showExerciseDialog = true
+                        }
+                    )
+                }
+                AnimatedVisibility(viewModel.exercises.isNotEmpty()) {
+                    Card(modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))) {
+                        FilterChipList(filterList = viewModel.filters)
                     }
-                )
+                }
             }
         }
     }
@@ -404,19 +413,19 @@ private fun ExerciseListFormPreview() {
     }
 }
 
-@Preview()
+@Preview
 @Composable
 private fun ExerciseItemFormPreview() {
     GymLogTheme {
         Card() {
-            val exercice = Exercise(
+            val exercise = Exercise(
                 title = "Flexão de braço",
                 repetitions = 20,
                 series = 5,
                 observations = "Manter o peitoral sempre tensionado",
                 filters = listOf("peito", "triceps", "abdomen")
             )
-            ExerciseItemForm(exercise = exercice, onClickRemove = {}, onClick = {})
+            ExerciseItemForm(exercise = exercise, onClickRemove = {}, onClick = {})
         }
     }
 }

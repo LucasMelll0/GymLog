@@ -41,8 +41,10 @@ class TrainingFormViewModel(private val repository: TrainingRepository) : ViewMo
     }
 
     fun addExercise(exercise: Exercise) {
-
         _exercises.add(exercise)
+        exercise.filters.forEach {
+            if (!filters.contains(it)) _filters.add(it)
+        }
 
     }
 
@@ -50,14 +52,9 @@ class TrainingFormViewModel(private val repository: TrainingRepository) : ViewMo
         _exercises.find { it == exercise }?.let {
             _exercises.remove(it)
         }
-    }
-
-    fun addFilter(filter: String) {
-        _filters.add(filter)
-    }
-
-    fun removeFilter(filter: String) {
-        _filters.remove(filter)
+        exercise.filters.forEach { filter ->
+            _exercises.find { it.filters.contains(filter) } ?: _filters.remove(filter)
+        }
     }
 
     suspend fun saveTraining(training: Training) {

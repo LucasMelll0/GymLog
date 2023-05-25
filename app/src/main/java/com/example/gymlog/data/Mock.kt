@@ -10,7 +10,7 @@ import kotlin.random.Random
 class Mock {
 
     companion object {
-        private fun getFilters(): List<TrainingTypes> {
+        fun getFilters(): List<TrainingTypes> {
             val trainingTypes = TrainingTypes.values()
             val filters = mutableListOf<TrainingTypes>()
             val listSize = Random.nextInt(3, 5)
