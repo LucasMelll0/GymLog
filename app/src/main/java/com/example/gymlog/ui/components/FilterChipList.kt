@@ -42,38 +42,16 @@ fun FilterChipSelectionList(
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     rows: Int = 2,
-    title: String? = null,
     description: String? = null,
     isEnabled: Boolean = true
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.wrapContentHeight()
     ) {
-        title?.let {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(
-                    vertical = dimensionResource(
-                        id = R.dimen.default_padding
-                    )
-                ),
-                textAlign = TextAlign.Center
-            )
-        }
-        description?.let {
-            Text(
-                text = description,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
-            )
-        }
+
         LazyHorizontalStaggeredGrid(
             rows = StaggeredGridCells.Fixed(rows),
             modifier = Modifier
-                .padding(dimensionResource(id = R.dimen.default_padding))
                 .fillMaxWidth()
                 .heightIn(max = 80.dp),
             contentPadding = PaddingValues(horizontal = dimensionResource(id = R.dimen.default_padding)),
@@ -106,6 +84,15 @@ fun FilterChipSelectionList(
                     })
             }
         }
+        description?.let {
+            Text(
+                text = description,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
+                modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.small_padding))
+            )
+        }
     }
 }
 
@@ -120,7 +107,6 @@ private fun FilterChipSelectionListPreview() {
 
     GymLogTheme {
         FilterChipSelectionList(
-            isEnabled = false,
             selectedList = selectedList,
             filterList = filters,
             onClick = {
@@ -131,8 +117,8 @@ private fun FilterChipSelectionListPreview() {
                 }
             },
             modifier = Modifier.padding(8.dp),
-            title = "Filtros",
-            description = "Marque quantos o treino se enquadrar"
+            description = "Marque quantos o treino se enquadrar",
+            isEnabled = false
         )
     }
 }

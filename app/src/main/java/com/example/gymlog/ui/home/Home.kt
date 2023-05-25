@@ -188,10 +188,10 @@ fun FiltersBottomSheet(
             Text(text = "Filtrar por tipo de treino", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
             FilterChipSelectionList(
-                modifier = Modifier.fillMaxWidth(),
                 selectedList = selectedList,
                 filterList = filterList,
-                onClick = onFilterClick
+                onClick = onFilterClick,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
@@ -414,10 +414,10 @@ private fun FilterListTrainingItem(filters: List<String>, modifier: Modifier = M
     ) {
         val rows = if (filters.size < 8) 1 else 2
         FilterChipSelectionList(
-            rows = rows,
             selectedList = emptyList(),
             filterList = filters,
             onClick = {},
+            rows = rows,
             isEnabled = false
         )
     }

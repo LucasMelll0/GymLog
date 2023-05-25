@@ -4,17 +4,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,12 +31,16 @@ fun DefaultTextField(
     label: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     isError: Boolean = false,
+    leadingIcon: @Composable() (() -> Unit)? = null,
     errorMessage: String? = null,
     supportingText: String? = null,
     charLimit: Int? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    prefix: @Composable (() -> Unit)? = null
 ) {
     OutlinedTextField(
+        prefix = prefix,
+        leadingIcon = leadingIcon,
         value = value,
         onValueChange = { newValue ->
             charLimit?.let {
@@ -43,7 +48,6 @@ fun DefaultTextField(
             } ?: onValueChange(newValue)
         },
         isError = isError,
-        colors = TextFieldDefaults.textFieldColors(containerColor = Color.Transparent),
         supportingText = {
             if (isError) {
                 errorMessage?.let {
@@ -51,9 +55,6 @@ fun DefaultTextField(
                 }
             } else {
                 Column {
-                    supportingText?.let {
-                        Text(text = it)
-                    }
                     charLimit?.let {
                         Text(
                             text = stringResource(
@@ -62,6 +63,9 @@ fun DefaultTextField(
                                 charLimit
                             )
                         )
+                    }
+                    supportingText?.let {
+                        Text(text = it)
                     }
 
                 }
@@ -85,18 +89,19 @@ private fun DefaultTextFieldPreview() {
     }
     GymLogTheme {
         DefaultTextField(
-            text,
-            {
+            value = text,
+            onValueChange = {
                 text = it
                 hasError = it.isDigitsOnly()
             },
-            { Text(text = "Test") },
-            charLimit = 10,
-            isError = hasError,
-            errorMessage = "Deu erro",
+            label = { Text(text = "Test") },
             modifier = Modifier
                 .padding(8.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            isError = hasError,
+            leadingIcon = { Icon(imageVector = Icons.Rounded.Edit, contentDescription = null) },
+            errorMessage = "Deu erro",
+            charLimit = 10,
         )
     }
 }

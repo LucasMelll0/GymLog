@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,7 +39,9 @@ import com.example.gymlog.R
 import com.example.gymlog.extensions.isZeroOrEmpty
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.ui.components.DefaultTextField
+import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.theme.GymLogTheme
+import com.example.gymlog.utils.TrainingTypes
 
 @Composable
 fun ExerciseForm(
@@ -50,6 +54,8 @@ fun ExerciseForm(
     var title by rememberSaveable { mutableStateOf("") }
     var series: String by rememberSaveable { mutableStateOf("") }
     var repetitions: String by rememberSaveable { mutableStateOf("") }
+    var observations: String by rememberSaveable { mutableStateOf("") }
+    val filters = remember { mutableStateListOf<String>() }
     var titleHasError by remember { mutableStateOf(false) }
     var seriesHasError by remember { mutableStateOf(false) }
     var repetitionsHasError by remember { mutableStateOf(false) }
@@ -57,10 +63,16 @@ fun ExerciseForm(
         title = it.title
         series = it.series.toString()
         repetitions = it.repetitions.toString()
+        observations = it.observations
+        filters.clear()
+        filters.addAll(it.filters)
     }
     Dialog(
-        onDismissRequest = { onDismiss() },
-        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+        onDismissRequest = { onDismiss() }, properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
+        )
     ) {
         Card(
             shape = RoundedCornerShape(10.dp),
@@ -89,9 +101,13 @@ fun ExerciseForm(
                             text = stringResource(id = R.string.exercise_name_label)
                         )
                     },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(dimensionResource(id = R.dimen.default_padding)),
                     isError = titleHasError,
                     errorMessage = stringResource(id = R.string.common_text_field_error_message),
-                    charLimit = 50
+                    charLimit = 30,
+                    keyboardOptions = KeyboardOptions.Default.copy(capitalization = KeyboardCapitalization.Sentences)
                 )
                 Row(
                     horizontalArrangement = Arrangement.SpaceAround,
@@ -104,19 +120,18 @@ fun ExerciseForm(
                                 series = it
                             }
                         },
-                        charLimit = 3,
-                        isError = seriesHasError,
-                        errorMessage = stringResource(id = R.string.series_text_field_error_message),
                         label = {
                             Text(stringResource(id = R.string.exercise_series_label))
                         },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(dimensionResource(id = R.dimen.default_padding))
                             .weight(1f),
-
-                        )
+                        isError = seriesHasError,
+                        errorMessage = stringResource(id = R.string.series_text_field_error_message),
+                        charLimit = 3,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    )
 
                     DefaultTextField(
                         value = repetitions,
@@ -125,19 +140,44 @@ fun ExerciseForm(
                                 repetitions = it
                             }
                         },
-                        charLimit = 3,
-                        isError = repetitionsHasError,
-                        errorMessage = stringResource(id = R.string.repetitions_text_field_error_message),
                         label = {
                             Text(text = stringResource(id = R.string.exercise_repetitions_label))
                         },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(dimensionResource(id = R.dimen.default_padding))
-                            .weight(1f)
+                            .weight(1f),
+                        isError = repetitionsHasError,
+                        errorMessage = stringResource(id = R.string.repetitions_text_field_error_message),
+                        charLimit = 3,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
                 }
+                DefaultTextField(
+                    value = observations,
+                    onValueChange = { observations = it },
+                    label = {
+                        Text(text = stringResource(id = R.string.exercise_form_observations_place_holder))
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(dimensionResource(id = R.dimen.default_padding)),
+                    charLimit = 200
+                )
+                FilterChipSelectionList(
+                    modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)),
+                    selectedList = filters,
+                    filterList = TrainingTypes.values()
+                        .map { stringResource(id = it.stringRes()) },
+                    onClick = { selected ->
+                        filters.find { it == selected }?.let {
+                            filters.remove(selected)
+                        } ?: run {
+                            filters.add(selected)
+                        }
+                    },
+                    description = "Marque as partes do corpo que esse exercício abrange"
+                )
 
                 Row(horizontalArrangement = Arrangement.SpaceBetween) {
                     Button(
@@ -158,16 +198,14 @@ fun ExerciseForm(
                             titleHasError = title.isEmpty()
                             seriesHasError = series.isZeroOrEmpty()
                             repetitionsHasError = repetitions.isZeroOrEmpty()
-                            if (!titleHasError &&
-                                !seriesHasError &&
-                                !repetitionsHasError
-                            ) {
-                                val exercise =
-                                    Exercise(
-                                        title = title,
-                                        series = series.toInt(),
-                                        repetitions = repetitions.toInt()
-                                    )
+                            if (!titleHasError && !seriesHasError && !repetitionsHasError) {
+                                val exercise = Exercise(
+                                    title = title,
+                                    series = series.toInt(),
+                                    repetitions = repetitions.toInt(),
+                                    observations = observations,
+                                    filters = filters
+                                )
                                 onConfirm(exercise)
                             }
                         },
@@ -190,15 +228,14 @@ fun ExerciseForm(
 }
 
 
-@Preview(name = "Night Mode", uiMode = UI_MODE_NIGHT_YES, widthDp = 320)
-@Preview(widthDp = 320)
+@Preview(name = "Night Mode", uiMode = UI_MODE_NIGHT_YES, showSystemUi = true)
+@Preview()
 @Composable
 private fun ExerciseFormPreview() {
     var showDialog by remember { mutableStateOf(true) }
     GymLogTheme {
         if (showDialog) {
-            ExerciseForm(
-                onDismiss = { showDialog = false },
+            ExerciseForm(onDismiss = { showDialog = false },
                 onExit = { showDialog = false },
                 onConfirm = {
                     showDialog = false

@@ -47,8 +47,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -62,7 +67,6 @@ import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.DefaultTextButton
 import com.example.gymlog.ui.components.DefaultTextField
-import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.BackPressHandler
@@ -128,7 +132,8 @@ fun TrainingFormScreen(
                 onConfirm = onDismissClick
             )
         }
-        val exerciseToEdit: Exercise? = exerciseToEditIndex?.let { viewModel.exercises[it] }
+        val exerciseToEdit: Exercise? =
+            exerciseToEditIndex?.let { viewModel.exercises.getOrNull(it) }
         if (showExerciseDialog) {
             ExerciseForm(
                 exerciseToEdit = exerciseToEdit,
@@ -160,12 +165,12 @@ fun TrainingFormScreen(
                     label = {
                         Text(text = stringResource(id = R.string.training_name_label))
                     },
-                    charLimit = 50,
                     modifier = Modifier
                         .padding(dimensionResource(id = R.dimen.default_padding))
                         .fillMaxWidth(),
                     isError = nameHasError,
-                    errorMessage = stringResource(id = R.string.common_text_field_error_message)
+                    errorMessage = stringResource(id = R.string.common_text_field_error_message),
+                    charLimit = 50,
                 )
                 Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
                 ExerciseListForm(
@@ -181,28 +186,6 @@ fun TrainingFormScreen(
                         showExerciseDialog = true
                     }
                 )
-                Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
-                Card(
-                    modifier = Modifier
-                        .padding(dimensionResource(id = R.dimen.default_padding))
-                        .fillMaxWidth(),
-                    shape = MaterialTheme.shapes.large
-                ) {
-                    FilterChipSelectionList(
-                        selectedList = viewModel.filters,
-                        filterList = filters,
-                        onClick = {
-                            if (!viewModel.filters.contains(it)) {
-                                viewModel.addFilter(it)
-                            } else {
-                                viewModel.removeFilter(it)
-                            }
-
-                        },
-                        title = stringResource(id = R.string.training_form_training_type_filter_title),
-                        description = stringResource(id = R.string.training_form_filter_list_description)
-                    )
-                }
             }
         }
     }
@@ -267,34 +250,53 @@ fun ExerciseItemForm(
     onClick: (Exercise) -> Unit
 
 ) {
-
-    Row(
-        modifier
+    Column(
+        modifier = modifier
             .padding(dimensionResource(id = R.dimen.default_padding))
             .fillMaxWidth()
             .clickable { onClick(exercise) },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = exercise.title,
-            modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
-            style = MaterialTheme.typography.titleMedium
-        )
-        Column {
+        Row(
+            Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Text(
-                text = stringResource(
-                    R.string.exercise_repetions_place_holder,
-                    exercise.series,
-                    exercise.repetitions
-                ),
-                style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
+                text = exercise.title,
+                modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
+                style = MaterialTheme.typography.titleMedium
             )
+            Column {
+                Text(
+                    text = stringResource(
+                        R.string.exercise_repetions_place_holder,
+                        exercise.series,
+                        exercise.repetitions
+                    ),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
+                )
+            }
+            IconButton(onClick = { onClickRemove(exercise) }) {
+                Icon(
+                    Icons.Rounded.Close,
+                    contentDescription = stringResource(id = R.string.delete_exercise_content_description)
+                )
+            }
         }
-        IconButton(onClick = { onClickRemove(exercise) }) {
-            Icon(
-                Icons.Rounded.Close,
-                contentDescription = stringResource(id = R.string.delete_exercise_content_description)
+        if (exercise.observations.isNotEmpty()) {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("Observações: ")
+                    }
+                    append(exercise.observations)
+                },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))
             )
         }
     }
@@ -383,12 +385,38 @@ private fun TrainingFormScreenPreview() {
 @Composable
 private fun ExerciseListFormPreview() {
     val list =
-        List(2) { Exercise(title = "Test $it", repetitions = 10, series = 5) }.toMutableStateList()
+        List(2) {
+            val observations = if (it == 0) "Manter o peitoral sempre tensionado" else ""
+            Exercise(
+                title = "Test $it",
+                repetitions = 10,
+                series = 5,
+                observations = observations,
+                filters = emptyList()
+            )
+        }.toMutableStateList()
     GymLogTheme {
         ExerciseListForm(
             exercises = list,
             onClickAdd = {},
             onClickRemove = { list.remove(it) },
             onItemClickListener = {})
+    }
+}
+
+@Preview()
+@Composable
+private fun ExerciseItemFormPreview() {
+    GymLogTheme {
+        Card() {
+            val exercice = Exercise(
+                title = "Flexão de braço",
+                repetitions = 20,
+                series = 5,
+                observations = "Manter o peitoral sempre tensionado",
+                filters = listOf("peito", "triceps", "abdomen")
+            )
+            ExerciseItemForm(exercise = exercice, onClickRemove = {}, onClick = {})
+        }
     }
 }

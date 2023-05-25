@@ -10,7 +10,7 @@ import com.example.gymlog.model.Training
 
 const val DATABASE_NAME = "GymLog Database"
 @Database(
-    version = 1,
+    version = 2,
     entities = [Training::class, Exercise::class],
     exportSchema = false
 )

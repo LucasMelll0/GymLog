@@ -10,6 +10,8 @@ class ExerciseMutableState(
     val title: String,
     val repetitions: Int,
     val series: Int,
+    val observations: String,
+    val filters: List<String>,
     initialChecked: Boolean = false,
 
     ) {
@@ -20,7 +22,9 @@ class ExerciseMutableState(
         title = this.title,
         repetitions = this.repetitions,
         series = this.series,
-        isChecked = this.isChecked
+        isChecked = this.isChecked,
+        observations = observations,
+        filters = filters
         )
 
     override fun toString(): String {

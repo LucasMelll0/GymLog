@@ -14,6 +14,8 @@
     <string name="repetitions_text_field_error_message">Repetições deve ser maior que 0!</string>
     <string name="series_text_field_error_message">Séries deve ser maior que 0!</string>
     <string name="delete_exercise_content_description">Excluir Exercício</string>
+    <string name="exercise_form_observations_place_holder">Observações (Opcional)</string>
+
 
 
     <!-- Common -->
@@ -34,6 +36,7 @@
     <string name="common_edit">Editar</string>
     <string name="common_delete">Deletar</string>
     <string name="common_training_delete_dialog_text">Ao confirmar você irá deletar o treino…</string>
+    <string name="common_optional">Opcional</string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>

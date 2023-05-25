@@ -11,6 +11,8 @@ data class Exercise(
     val title: String,
     val repetitions: Int,
     val series: Int,
+    val observations: String,
+    val filters: List<String>,
     val isChecked: Boolean = false,
 ) {
     override fun equals(other: Any?): Boolean {

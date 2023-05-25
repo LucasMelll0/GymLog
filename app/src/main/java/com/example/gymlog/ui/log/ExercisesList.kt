@@ -127,7 +127,9 @@ private fun ExerciseListPreview() {
             ExerciseMutableState(
                 title = "Test $it",
                 repetitions = 10,
-                series = 5
+                series = 5,
+                observations = "",
+                filters = emptyList()
             )
         }.toMutableStateList()
     GymLogTheme {
@@ -145,7 +147,13 @@ private fun ExerciseListPreview() {
 @Preview()
 @Composable
 private fun ExerciseItemPreview() {
-    val exercise = ExerciseMutableState(title = "Flexão de braço", repetitions = 20, series = 5)
+    val exercise = ExerciseMutableState(
+        title = "Flexão de braço",
+        repetitions = 20,
+        series = 5,
+        observations = "",
+        filters = emptyList()
+    )
     var isChecked by rememberSaveable {
         mutableStateOf(false)
     }

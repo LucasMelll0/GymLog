@@ -18,7 +18,9 @@ data class Training(
             title = it.title,
             repetitions = it.repetitions,
             series = it.series,
-            initialChecked = it.isChecked
+            initialChecked = it.isChecked,
+            observations = it.observations,
+            filters = it.filters
         )
     }
 
