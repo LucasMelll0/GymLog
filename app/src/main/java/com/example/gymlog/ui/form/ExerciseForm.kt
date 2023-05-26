@@ -2,6 +2,7 @@ package com.example.gymlog.ui.form
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -51,6 +53,8 @@ fun ExerciseForm(
     modifier: Modifier = Modifier,
     exerciseToEdit: Exercise? = null
 ) {
+    val context = LocalContext.current
+    val filtersIsEmptyMessage = stringResource(id = R.string.exercise_form_filters_is_empty_toast_message)
     var title by rememberSaveable { mutableStateOf("") }
     var series: String by rememberSaveable { mutableStateOf("") }
     var repetitions: String by rememberSaveable { mutableStateOf("") }
@@ -198,15 +202,26 @@ fun ExerciseForm(
                             titleHasError = title.isEmpty()
                             seriesHasError = series.isZeroOrEmpty()
                             repetitionsHasError = repetitions.isZeroOrEmpty()
-                            if (!titleHasError && !seriesHasError && !repetitionsHasError) {
-                                val exercise = Exercise(
-                                    title = title,
-                                    series = series.toInt(),
-                                    repetitions = repetitions.toInt(),
-                                    observations = observations,
-                                    filters = filters
-                                )
-                                onConfirm(exercise)
+                            if (filters.isEmpty()) {
+                                Toast.makeText(
+                                    context,
+                                    filtersIsEmptyMessage,
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            } else {
+                                if (!titleHasError &&
+                                    !seriesHasError &&
+                                    !repetitionsHasError
+                                ) {
+                                    val exercise = Exercise(
+                                        title = title,
+                                        series = series.toInt(),
+                                        repetitions = repetitions.toInt(),
+                                        observations = observations,
+                                        filters = filters
+                                    )
+                                    onConfirm(exercise)
+                                }
                             }
                         },
                         Modifier

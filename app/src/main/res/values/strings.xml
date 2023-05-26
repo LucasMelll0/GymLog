@@ -15,6 +15,7 @@
     <string name="series_text_field_error_message">Séries deve ser maior que 0!</string>
     <string name="delete_exercise_content_description">Excluir Exercício</string>
     <string name="exercise_form_observations_place_holder">Observações (Opcional)</string>
+    <string name="exercise_form_filters_is_empty_toast_message">Selecione pelo menos uma parte do corpo em que o exercício abrange!</string>
 
 
 
