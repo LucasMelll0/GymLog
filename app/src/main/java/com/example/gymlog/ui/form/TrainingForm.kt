@@ -157,9 +157,11 @@ fun TrainingFormScreen(
                 .fillMaxHeight()
                 .padding(paddingValues)
         ) {
-            Column(verticalArrangement = Arrangement.SpaceBetween) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
                 Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     DefaultTextField(
