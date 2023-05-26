@@ -66,6 +66,7 @@ import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.DefaultSearchBar
+import com.example.gymlog.ui.components.FilterChipList
 import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.home.viewmodel.HomeViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
@@ -329,13 +330,15 @@ fun TrainingItem(
 
                 }
                 if (training.filters.isNotEmpty()) {
-                    FilterListTrainingItem(
-                        filters = training.filters,
+                    val filtersSize = training.filters.size
+                    FilterChipList(
+                        rows = if (filtersSize < 4) 1 else 2,
+                        filterList = training.filters,
                         modifier = Modifier.padding(
                             vertical = dimensionResource(
                                 id = R.dimen.default_padding
                             )
-                        )
+                        ).heightIn(max = if (filtersSize < 4) 40.dp else 80.dp)
                     )
                 }
 
@@ -399,27 +402,6 @@ private fun TrainingItemPreview() {
             training = Mock.getTrainings().random(),
             onClickEdit = {},
             onClickDelete = {})
-    }
-}
-
-@Composable
-private fun FilterListTrainingItem(filters: List<String>, modifier: Modifier = Modifier) {
-    val maxHeight = if (filters.size < 8) 40.dp else 80.dp
-    Surface(
-        modifier = modifier
-            .heightIn(max = maxHeight)
-            .fillMaxWidth(),
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.primaryContainer.copy(0.1f)
-    ) {
-        val rows = if (filters.size < 8) 1 else 2
-        FilterChipSelectionList(
-            selectedList = emptyList(),
-            filterList = filters,
-            onClick = {},
-            rows = rows,
-            isEnabled = false
-        )
     }
 }
 

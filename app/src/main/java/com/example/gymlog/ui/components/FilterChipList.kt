@@ -38,9 +38,9 @@ import com.example.gymlog.utils.TrainingTypes
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun FilterChipList(filterList: List<String>, modifier: Modifier = Modifier) {
+fun FilterChipList(filterList: List<String>, modifier: Modifier = Modifier, rows: Int = 2) {
     LazyHorizontalStaggeredGrid(
-        rows = StaggeredGridCells.Fixed(2),
+        rows = StaggeredGridCells.Fixed(rows),
         modifier = modifier
             .fillMaxWidth()
             .heightIn(max = 80.dp),
