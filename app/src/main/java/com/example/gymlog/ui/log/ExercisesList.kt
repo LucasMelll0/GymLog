@@ -22,7 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gymlog.R
@@ -35,29 +39,45 @@ fun ExerciseItem(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .padding(dimensionResource(id = R.dimen.default_padding))
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = exercise.title,
-            modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
-            style = MaterialTheme.typography.titleMedium
-        )
-        Column {
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier
+                .padding(dimensionResource(id = R.dimen.default_padding))
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Text(
-                text = stringResource(
-                    R.string.exercise_repetions_place_holder,
-                    exercise.series,
-                    exercise.repetitions
-                ),
-                style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
+                text = exercise.title,
+                modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Column {
+                Text(
+                    text = stringResource(
+                        R.string.exercise_repetions_place_holder,
+                        exercise.series,
+                        exercise.repetitions
+                    ),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
+                )
+            }
+            Checkbox(checked = exercise.isChecked, onCheckedChange = onCheckedChange)
+        }
+        if (exercise.observations.isNotEmpty()) {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(stringResource(id = R.string.common_observations_prefix))
+                    }
+                    append(exercise.observations)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(
+                    dimensionResource(id = R.dimen.default_padding)
+                )
             )
         }
-        Checkbox(checked = exercise.isChecked, onCheckedChange = onCheckedChange)
     }
 }
 
@@ -116,17 +136,19 @@ private fun ExerciseItemPreview() {
         title = "Flexão de braço",
         repetitions = 20,
         series = 5,
-        observations = "",
+        observations = "Ao realizar o agachamento, é essencial manter a postura correta e evitar que os joelhos ultrapassem a linha dos dedos dos pés.",
         filters = emptyList()
     )
     var isChecked by rememberSaveable {
         mutableStateOf(false)
     }
     GymLogTheme {
-        ExerciseItem(
-            exercise = exercise,
-            onCheckedChange = { isChecked = it },
-            modifier = Modifier.padding(8.dp)
-        )
+        Card {
+            ExerciseItem(
+                exercise = exercise,
+                onCheckedChange = { isChecked = it },
+                modifier = Modifier.padding(8.dp)
+            )
+        }
     }
 }

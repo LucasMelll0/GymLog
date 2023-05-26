@@ -38,6 +38,7 @@
     <string name="common_delete">Deletar</string>
     <string name="common_training_delete_dialog_text">Ao confirmar você irá deletar o treino…</string>
     <string name="common_optional">Opcional</string>
+    <string name="common_observations_prefix">Observações:</string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>
