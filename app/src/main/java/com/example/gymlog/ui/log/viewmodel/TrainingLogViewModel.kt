@@ -30,24 +30,30 @@ class TrainingLogViewModel(private val repository: TrainingRepository) : ViewMod
     private val _resource: MutableStateFlow<Resource<Training>> = MutableStateFlow(Resource.Loading)
     internal val resource: Flow<Resource<Training>> = _resource
 
-    suspend fun getTraining(id: String) {
-        _resource.value =
-            try {
-                repository.getById(id)?.let { training ->
-                    _title = training.title
-                    _exercises.clear()
-                    _exercises.addAll(training.getExercisesWithMutableState())
-                    _filters.clear()
-                    _filters.addAll(training.filters)
-                    Resource.Success(training)
-                } ?: run {
-                    Resource.Error("Error on get training: null pointer")
-                }
 
-            } catch (e: Exception) {
-                Log.w(TAG, "getTraining: ", e)
-                Resource.Error("Error on get training")
-            }
+    fun setLoading() {
+        _resource.value = Resource.Loading
+    }
+    suspend fun getTraining(id: String) {
+        if (_resource.value !is Resource.Success) {
+            _resource.value =
+                try {
+                    repository.getById(id)?.let { training ->
+                        _title = training.title
+                        _exercises.clear()
+                        _exercises.addAll(training.getExercisesWithMutableState())
+                        _filters.clear()
+                        _filters.addAll(training.filters)
+                        Resource.Success(training)
+                    } ?: run {
+                        Resource.Error("Error on get training: null pointer")
+                    }
+
+                } catch (e: Exception) {
+                    Log.w(TAG, "getTraining: ", e)
+                    Resource.Error("Error on get training")
+                }
+        }
     }
 
     fun updateExercise(exerciseId: String, isChecked: Boolean) {

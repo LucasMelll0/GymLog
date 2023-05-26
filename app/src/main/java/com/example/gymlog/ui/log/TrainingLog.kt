@@ -1,6 +1,9 @@
 package com.example.gymlog.ui.log
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,7 +52,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
 import com.example.gymlog.database.AppDataBase_Impl
+import com.example.gymlog.model.ExerciseMutableState
 import com.example.gymlog.repository.TrainingRepositoryImpl
+import com.example.gymlog.ui.components.CustomProgressBar
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
@@ -102,7 +107,10 @@ fun TrainingLogScreen(
                 },
                 onClickDelete = { showDeleteDialog = true },
                 onClickReset = { showResetDialog = true },
-                onClickEdit = { onClickEdit(trainingId) }
+                onClickEdit = {
+                    onClickEdit(trainingId)
+                    viewModel.setLoading()
+                }
             )
         }) { paddingValues ->
         if (showDeleteDialog) {
@@ -165,14 +173,21 @@ fun TrainingLogScreen(
                             dimensionResource(id = R.dimen.default_padding)
                         )
                     ) {
+                        val tips = stringArrayResource(id = R.array.training_tips).toList()
                         TipCard(
-                            tips = stringArrayResource(id = R.array.training_tips).toList(),
+                            tips = tips,
                             modifier = Modifier.padding(
                                 horizontal = dimensionResource(
                                     id = R.dimen.default_padding
                                 )
                             )
                         )
+                        TrainingProgressBar(
+                            exercises = viewModel.exercises, modifier = Modifier.padding(
+                                dimensionResource(id = R.dimen.default_padding)
+                            )
+                        )
+
                         ExerciseList(
                             modifier = modifier
                                 .padding(dimensionResource(id = R.dimen.default_padding))
@@ -205,6 +220,30 @@ fun TrainingLogScreen(
             }
         }
     }
+}
+
+@Composable
+private fun TrainingProgressBar(
+    exercises: List<ExerciseMutableState>,
+    modifier: Modifier = Modifier
+) {
+    val percent by
+    animateFloatAsState(
+        exercises.filter { it.isChecked }.size.toFloat() / exercises.size.toFloat(),
+        animationSpec = tween(
+            durationMillis = 600,
+            easing = LinearOutSlowInEasing,
+            delayMillis = 50
+        )
+    )
+    CustomProgressBar(
+        modifier = modifier,
+        percent = percent,
+        text = stringResource(
+            id = R.string.training_log_exercise_list_percent_place_holder,
+            (percent * 100).toInt()
+        )
+    )
 }
 
 @Composable

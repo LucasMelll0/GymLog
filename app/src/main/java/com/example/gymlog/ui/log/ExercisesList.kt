@@ -1,20 +1,15 @@
 package com.example.gymlog.ui.log
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gymlog.R
@@ -53,7 +47,7 @@ fun ExerciseItem(
             modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
             style = MaterialTheme.typography.titleMedium
         )
-        Column() {
+        Column {
             Text(
                 text = stringResource(
                     R.string.exercise_repetions_place_holder,
@@ -74,36 +68,7 @@ fun ExerciseList(
     modifier: Modifier = Modifier
 ) {
     if (exercises.isNotEmpty()) {
-        val percent by animateFloatAsState(
-            targetValue = (exercises.filter { it.isChecked }.size.toFloat() / exercises.size.toFloat()),
-            animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
-        )
         Card(modifier = modifier, shape = MaterialTheme.shapes.large) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
-                    .padding(
-                        vertical = dimensionResource(
-                            id = R.dimen.default_padding
-                        )
-                    )
-            ) {
-                Text(
-                    text = stringResource(
-                        R.string.training_log_exercise_list_percent_place_holder,
-                        (percent * 100).toInt()
-                    ),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleLarge
-                )
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp),
-                    progress = percent,
-                    trackColor = MaterialTheme.colorScheme.primary.copy(0.1f),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
             LazyColumn(modifier = modifier) {
                 items(
                     items = exercises,
