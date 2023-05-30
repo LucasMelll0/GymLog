@@ -56,7 +56,6 @@ import com.example.gymlog.model.ExerciseMutableState
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.ui.components.CustomProgressBar
 import com.example.gymlog.ui.components.DefaultAlertDialog
-import com.example.gymlog.ui.components.FilterChipList
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.BackPressHandler
@@ -200,20 +199,6 @@ fun TrainingLogScreen(
                             onCheckedChange = { exercise, isChecked ->
                                 viewModel.updateExercise(exercise.id, isChecked)
                             })
-                    }
-                    if (viewModel.filters.isNotEmpty()) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(dimensionResource(id = R.dimen.default_padding)),
-                            shape = MaterialTheme.shapes.large
-                        ) {
-                            FilterChipList(
-                                filterList = viewModel.filters, modifier = Modifier.padding(
-                                    dimensionResource(id = R.dimen.default_padding)
-                                )
-                            )
-                        }
                     }
                 }
             }
