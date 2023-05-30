@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,7 +44,7 @@ fun FilterChipList(filterList: List<String>, modifier: Modifier = Modifier, rows
         rows = StaggeredGridCells.Fixed(rows),
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(max = 80.dp),
+            .heightIn(max = (rows * 30).dp),
         contentPadding = PaddingValues(horizontal = dimensionResource(id = R.dimen.default_padding)),
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
 
@@ -51,6 +52,10 @@ fun FilterChipList(filterList: List<String>, modifier: Modifier = Modifier, rows
         items(filterList) { filter ->
             FilterChip(
                 modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.small_padding)),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    selectedLabelColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
                 selected = true,
                 onClick = {},
                 label = {

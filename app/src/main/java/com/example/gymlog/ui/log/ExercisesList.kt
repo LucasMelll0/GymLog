@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,16 +22,19 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gymlog.R
+import com.example.gymlog.data.Mock
 import com.example.gymlog.model.ExerciseMutableState
+import com.example.gymlog.ui.components.FilterChipList
+import com.example.gymlog.ui.components.TextWithIcon
 import com.example.gymlog.ui.theme.GymLogTheme
 
 @Composable
@@ -39,45 +43,82 @@ fun ExerciseItem(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier) {
+
+    Card(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.large,
+    ) {
         Row(
             modifier = Modifier
-                .padding(dimensionResource(id = R.dimen.default_padding))
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(dimensionResource(id = R.dimen.default_padding)),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
-            Text(
-                text = exercise.title,
-                modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Column {
+            Column(
+                modifier = Modifier
+                    .weight(3f)
+                    .padding(dimensionResource(id = R.dimen.default_padding)),
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
+                horizontalAlignment = Alignment.Start
+            ) {
                 Text(
-                    text = stringResource(
-                        R.string.exercise_repetions_place_holder,
-                        exercise.series,
-                        exercise.repetitions
+                    text = exercise.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(
+                        bottom = dimensionResource(
+                            id = R.dimen.small_padding
+                        )
+                    )
+                )
+                Column(horizontalAlignment = Alignment.Start) {
+                    TextWithIcon(text = stringResource(
+                        id = R.string.exercise_series_place_holder,
+                        exercise.series
                     ),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
-                )
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_check_list),
+                                contentDescription = null
+                            )
+                        })
+
+                    TextWithIcon(
+                        text = stringResource(
+                            id = R.string.exercise_repetitions_place_holder,
+                            exercise.repetitions
+                        ),
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_loop),
+                                contentDescription = null
+                            )
+                        }
+                    )
+                }
+                if (exercise.observations.isNotEmpty()) {
+                    Text(text = buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append(stringResource(id = R.string.common_observations_prefix))
+                        }
+                        append(" ")
+                        append(exercise.observations)
+                    })
+                }
             }
-            Checkbox(checked = exercise.isChecked, onCheckedChange = onCheckedChange)
-        }
-        if (exercise.observations.isNotEmpty()) {
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append(stringResource(id = R.string.common_observations_prefix))
-                    }
-                    append(exercise.observations)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(
-                    dimensionResource(id = R.dimen.default_padding)
-                )
+            Checkbox(
+                checked = exercise.isChecked,
+                onCheckedChange = onCheckedChange,
+                modifier = Modifier.weight(1f)
             )
         }
+        FilterChipList(
+            filterList = exercise.filters, rows = 1, modifier = Modifier.padding(
+                bottom = dimensionResource(
+                    id = R.dimen.default_padding
+                )
+            )
+        )
     }
 }
 
@@ -88,16 +129,20 @@ fun ExerciseList(
     modifier: Modifier = Modifier
 ) {
     if (exercises.isNotEmpty()) {
-        Card(modifier = modifier, shape = MaterialTheme.shapes.large) {
-            LazyColumn(modifier = modifier) {
-                items(
-                    items = exercises,
-                    key = { exercise -> exercise.id }
-                ) { exercise ->
-                    ExerciseItem(
-                        exercise = exercise,
-                        onCheckedChange = { isChecked -> onCheckedChange(exercise, isChecked) })
-                }
+        LazyColumn(modifier = modifier) {
+            items(
+                items = exercises,
+                key = { exercise -> exercise.id }
+            ) { exercise ->
+                ExerciseItem(
+                    modifier = Modifier.padding(
+                        horizontal = dimensionResource(id = R.dimen.default_padding),
+                        vertical = dimensionResource(
+                            id = R.dimen.small_padding
+                        )
+                    ),
+                    exercise = exercise,
+                    onCheckedChange = { isChecked -> onCheckedChange(exercise, isChecked) })
             }
         }
     }
@@ -137,7 +182,7 @@ private fun ExerciseItemPreview() {
         repetitions = 20,
         series = 5,
         observations = "Ao realizar o agachamento, é essencial manter a postura correta e evitar que os joelhos ultrapassem a linha dos dedos dos pés.",
-        filters = emptyList()
+        filters = Mock.getFilters().map { stringResource(id = it.stringRes()) }
     )
     var isChecked by rememberSaveable {
         mutableStateOf(false)

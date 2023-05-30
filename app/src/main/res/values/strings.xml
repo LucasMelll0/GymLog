@@ -3,6 +3,8 @@
 
     <!-- Exercise Item -->
     <string name="exercise_repetions_place_holder">%d séries de\n%d repetições</string>
+    <string name="exercise_repetitions_place_holder">%d repetições</string>
+    <string name="exercise_series_place_holder">%d séries</string>
 
     <!-- Exercise Form -->
     <string name="exercise_name_label">Nome do Exercicio</string>
@@ -38,7 +40,7 @@
     <string name="common_delete">Deletar</string>
     <string name="common_training_delete_dialog_text">Ao confirmar você irá deletar o treino…</string>
     <string name="common_optional">Opcional</string>
-    <string name="common_observations_prefix">Observações:</string>
+    <string name="common_observations_prefix">Observações: </string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>
