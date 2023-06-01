@@ -41,6 +41,8 @@
     <string name="common_training_delete_dialog_text">Ao confirmar você irá deletar o treino…</string>
     <string name="common_optional">Opcional</string>
     <string name="common_observations_prefix">Observações: </string>
+    <string name="common_timer">Pomodoro</string>
+    <string name="common_reset">Reiniciar</string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>
@@ -56,8 +58,11 @@
     <string name="home_button_filter_content_description">Filtrar treinos</string>
 
     <!-- Log -->
-
     <string name="training_log_reset_dialog_text">Ao confirmar você irá desmarcar todos os exercícios…</string>
     <string name="training_log_exercise_list_percent_place_holder">%d%% Completo</string>
+
+    <!-- AppTimer -->
+    <string name="app_timer_play_text">Começar</string>
+    <string name="app_timer_pause_text">Pausar</string>
 
 </resources>

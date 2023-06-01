@@ -22,11 +22,13 @@ import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -54,7 +56,8 @@ import com.example.gymlog.R
 import com.example.gymlog.database.AppDataBase_Impl
 import com.example.gymlog.model.ExerciseMutableState
 import com.example.gymlog.repository.TrainingRepositoryImpl
-import com.example.gymlog.ui.components.CustomProgressBar
+import com.example.gymlog.ui.components.AppTimer
+import com.example.gymlog.ui.components.CustomLinearProgressBar
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
@@ -74,15 +77,10 @@ fun TrainingLogScreen(
     modifier: Modifier = Modifier,
     viewModel: TrainingLogViewModel = koinViewModel()
 ) {
-    var isLoading: Boolean by remember {
-        mutableStateOf(false)
-    }
-    var showResetDialog: Boolean by remember {
-        mutableStateOf(false)
-    }
-    var showDeleteDialog: Boolean by remember {
-        mutableStateOf(false)
-    }
+    var isLoading: Boolean by remember { mutableStateOf(false) }
+    var showResetDialog: Boolean by remember { mutableStateOf(false) }
+    var showDeleteDialog: Boolean by remember { mutableStateOf(false) }
+    var showTimerBottomSheet: Boolean by remember { mutableStateOf(false) }
     LaunchedEffect(key1 = Unit) {
         viewModel.getTraining(trainingId)
     }
@@ -109,7 +107,8 @@ fun TrainingLogScreen(
                 onClickEdit = {
                     onClickEdit(trainingId)
                     viewModel.setLoading()
-                }
+                },
+                onClickTimer = { showTimerBottomSheet = true }
             )
         }) { paddingValues ->
         if (showDeleteDialog) {
@@ -203,6 +202,17 @@ fun TrainingLogScreen(
                 }
             }
         }
+        if (showTimerBottomSheet) {
+            TimerBottomSheet(onDismissRequest = { showTimerBottomSheet = false })
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TimerBottomSheet(onDismissRequest: () -> Unit) {
+    ModalBottomSheet(onDismissRequest = onDismissRequest) {
+        AppTimer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
     }
 }
 
@@ -220,7 +230,7 @@ private fun TrainingProgressBar(
             delayMillis = 50
         )
     )
-    CustomProgressBar(
+    CustomLinearProgressBar(
         modifier = modifier,
         percent = percent,
         text = stringResource(
@@ -303,6 +313,7 @@ private fun TrainingLogBottomAppBar(
     onClickDelete: () -> Unit,
     onClickReset: () -> Unit,
     onClickEdit: () -> Unit,
+    onClickTimer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     BottomAppBar(
@@ -329,7 +340,18 @@ private fun TrainingLogBottomAppBar(
                 )
             }
             IconButton(onClick = onClickReset) {
-                Icon(imageVector = Icons.Rounded.Refresh, contentDescription = "")
+                Icon(
+                    imageVector = Icons.Rounded.Refresh,
+                    contentDescription = stringResource(id = R.string.common_reset)
+                )
+            }
+            IconButton(onClick = onClickTimer) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_timer),
+                    contentDescription = stringResource(
+                        id = R.string.common_timer
+                    )
+                )
             }
         }
     )
@@ -367,7 +389,16 @@ private fun TrainingLogBottomAppBarPreview() {
             onNavIconClick = {},
             onClickDelete = {},
             onClickReset = {},
-            onClickEdit = {}
+            onClickEdit = {},
+            onClickTimer = {}
         )
+    }
+}
+
+@Preview
+@Composable
+private fun TimerBottomSheetPreview() {
+    GymLogTheme {
+        TimerBottomSheet(onDismissRequest = { /*TODO*/ })
     }
 }
