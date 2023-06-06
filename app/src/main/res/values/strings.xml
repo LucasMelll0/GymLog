@@ -43,6 +43,12 @@
     <string name="common_observations_prefix">Observações: </string>
     <string name="common_timer">Pomodoro</string>
     <string name="common_reset">Reiniciar</string>
+    <string name="common_male"> Maculino</string>
+    <string name="common_female">Feminino</string>
+    <string name="common_calculate">Calcular</string>
+    <string name="common_save">Salvar</string>
+    <string name="common_kg_suffix">kg</string>
+    <string name="common_years">anos</string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>
@@ -64,5 +70,23 @@
     <!-- AppTimer -->
     <string name="app_timer_play_text">Começar</string>
     <string name="app_timer_pause_text">Pausar</string>
+
+    <!-- BmiCalculator -->
+    <string name="bmi_calculator_title">Calcular Imc</string>
+    <string name="bmi_calculator_gender_label">Qual o seu gênero?</string>
+    <string name="bmi_calculator_height_label">Qual a sua altura?</string>
+    <string name="bmi_calculator_weight_label">Qual seu peso?</string>
+    <string name="bmi_calculator_age_label">Qual sua idade?</string>
+    <string name="bmi_calculator_result_text">Com %.1f kg, seu imc é %.2f</string>
+    <string name="bmi_calculator_ideal_weight_range">O peso ideal seria entre %.1f kg e %.1f kg</string>
+
+    <!-- BmiRating -->
+    <string name="common_under_weight">Abaixo do peso</string>
+    <string name="common_normal_weight">Peso normal</string>
+    <string name="common_pre_obesity">Pré-Obesidade</string>
+    <string name="common_obesity">Obesidade</string>
+    <string name="common_grade_one_obesity">Obesidade Grau 1</string>
+    <string name="common_grade_two_obesity">Obesidade Grau 2</string>
+    <string name="common_grade_three_obesity">Obesidade Grau 3</string>
 
 </resources>

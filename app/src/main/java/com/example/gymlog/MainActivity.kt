@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.gymlog.navigation.AppNavHost
+import com.example.gymlog.ui.bmi.BmiCalculatorScreen
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
@@ -18,7 +19,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            GymLogApp()
+            BmiCalculatorScreen(onNavIconClick = { /*TODO*/ }, onSaved = {})
         }
     }
 }

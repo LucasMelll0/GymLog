@@ -3,8 +3,9 @@ package com.example.gymlog.di
 import androidx.room.Room
 import com.example.gymlog.database.AppDataBase
 import com.example.gymlog.database.DATABASE_NAME
-import com.example.gymlog.database.dao.TrainingDao
+import com.example.gymlog.repository.BmiInfoRepositoryImpl
 import com.example.gymlog.repository.TrainingRepositoryImpl
+import com.example.gymlog.ui.bmi.viewmodel.BmiCalculatorViewModel
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.home.viewmodel.HomeViewModel
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
@@ -25,10 +26,16 @@ val roomModule = module {
     single {
         get<AppDataBase>().trainingDao()
     }
+    single {
+        get<AppDataBase>().bmiInfoDao()
+    }
 }
 val repositoryModule = module {
     single {
-        TrainingRepositoryImpl(get<TrainingDao>())
+        TrainingRepositoryImpl(get())
+    }
+    single {
+        BmiInfoRepositoryImpl(get())
     }
 }
 
@@ -47,5 +54,11 @@ val formModule = module {
 val logModule = module {
     viewModel {
         TrainingLogViewModel(get<TrainingRepositoryImpl>())
+    }
+}
+
+val bmiModule = module {
+    viewModel {
+        BmiCalculatorViewModel(get<BmiInfoRepositoryImpl>())
     }
 }

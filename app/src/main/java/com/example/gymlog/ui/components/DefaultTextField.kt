@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -23,7 +22,6 @@ import androidx.core.text.isDigitsOnly
 import com.example.gymlog.R
 import com.example.gymlog.ui.theme.GymLogTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DefaultTextField(
     value: String,
@@ -32,13 +30,15 @@ fun DefaultTextField(
     modifier: Modifier = Modifier,
     isError: Boolean = false,
     leadingIcon: @Composable() (() -> Unit)? = null,
-    errorMessage: String? = null,
+    errorMessage: String = stringResource(id = R.string.common_text_field_error_message),
     supportingText: String? = null,
     charLimit: Int? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    prefix: @Composable (() -> Unit)? = null
+    prefix: @Composable (() -> Unit)? = null,
+    suffix: @Composable (() -> Unit)? = null
 ) {
     OutlinedTextField(
+        suffix = suffix,
         prefix = prefix,
         leadingIcon = leadingIcon,
         value = value,
@@ -50,9 +50,7 @@ fun DefaultTextField(
         isError = isError,
         supportingText = {
             if (isError) {
-                errorMessage?.let {
                     Text(text = errorMessage)
-                }
             } else {
                 Column {
                     charLimit?.let {

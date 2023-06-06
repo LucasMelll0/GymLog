@@ -7,4 +7,5 @@
     <dimen name="minimum_training_item_height">70dp</dimen>
     <dimen name="default_icon_size">38dp</dimen>
     <dimen name="max_exercise_list_height">500dp</dimen>
+    <dimen name="height_selector_height">70dp</dimen>
 </resources>
