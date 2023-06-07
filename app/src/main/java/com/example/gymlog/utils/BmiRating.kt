@@ -1,5 +1,6 @@
 package com.example.gymlog.utils
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.example.gymlog.R
 
@@ -28,4 +29,13 @@ enum class BmiRating {
 
     @StringRes
     abstract fun stringRes(): Int
+
+    @DrawableRes
+    fun drawableRes(): Int {
+        return when(this) {
+            UnderWeight -> R.drawable.ic_double_arrow_down
+            NormalWeight -> R.drawable.ic_round_check
+            else -> R.drawable.ic_double_arrow_up
+        }
+    }
 }

@@ -282,11 +282,7 @@ private fun ResultCard(classifier: BmiClassifier, modifier: Modifier = Modifier)
                     classifier.bmiValue
                 )
             )
-            val icon = when (classifier.getRating()) {
-                BmiRating.UnderWeight -> painterResource(id = R.drawable.ic_double_arrow_down)
-                BmiRating.NormalWeight -> painterResource(id = R.drawable.ic_round_check)
-                else -> painterResource(id = R.drawable.ic_double_arrow_up)
-            }
+            val icon = painterResource(id = classifier.getRating().drawableRes())
             TextWithIcon(text = stringResource(id = classifier.getRating().stringRes()),
                 icon = { Icon(painter = icon, contentDescription = null) })
             if (classifier.getRating() != BmiRating.NormalWeight) {
