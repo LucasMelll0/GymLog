@@ -20,9 +20,9 @@ import com.example.gymlog.ui.theme.GymLogTheme
 fun DefaultAlertDialog(
     title: String,
     text: String,
-    icon: @Composable (() -> Unit)?,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
+    icon: @Composable (() -> Unit)? = null,
     onConfirm: () -> Unit
 ) {
     AlertDialog(

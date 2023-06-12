@@ -24,10 +24,12 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -38,11 +40,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -63,7 +67,9 @@ import com.example.gymlog.data.Mock
 import com.example.gymlog.database.AppDataBase_Impl
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
+import com.example.gymlog.navigation.Destination
 import com.example.gymlog.repository.TrainingRepositoryImpl
+import com.example.gymlog.ui.components.AppNavigationDrawer
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.DefaultSearchBar
 import com.example.gymlog.ui.components.FilterChipList
@@ -72,6 +78,7 @@ import com.example.gymlog.ui.home.viewmodel.HomeViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.BackPressHandler
 import com.example.gymlog.utils.TrainingTypes
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -80,93 +87,104 @@ fun HomeScreen(
     onItemClickListener: (trainingId: String) -> Unit,
     onClickEdit: (trainingId: String) -> Unit,
     onButtonAddClick: () -> Unit,
+    onDrawerItemClick: (Destination) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel()
 ) {
+    val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
     var showDeleteTrainingDialog by remember { mutableStateOf(false) }
     var trainingIdForDelete: String? by rememberSaveable { mutableStateOf(null) }
     val focusRequester = remember { FocusRequester() }
     val training by viewModel.trainings.collectAsState(emptyList())
-    Scaffold(bottomBar = {
-        HomeBottomBar(
-            onButtonSearchClick = { showSearchBar = !showSearchBar },
-            onButtonFiltersClick = { showBottomSheet = !showBottomSheet },
-            onFabClick = onButtonAddClick
-        )
-    }) { paddingValues ->
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    AppNavigationDrawer(onItemClick = onDrawerItemClick, drawerState = drawerState) {
+        Scaffold(bottomBar = {
+            HomeBottomBar(
+                onButtonSearchClick = { showSearchBar = !showSearchBar },
+                onButtonFiltersClick = { showBottomSheet = !showBottomSheet },
+                onFabClick = onButtonAddClick,
+                onNavIconClick = {
+                    scope.launch {
+                        drawerState.open()
+                    }
+                }
+            )
+        }) { paddingValues ->
 
-        Surface(
-            modifier = modifier
-                .padding(paddingValues)
-                .fillMaxWidth()
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
+            Surface(
+                modifier = modifier
+                    .padding(paddingValues)
+                    .fillMaxWidth()
             ) {
-                if (showDeleteTrainingDialog) {
-                    trainingIdForDelete?.let {
-                        DeleteTrainingDialog(
-                            trainingId = trainingIdForDelete!!,
-                            onConfirm = {
-                                viewModel.deleteTraining(trainingIdForDelete!!)
-                                showDeleteTrainingDialog = false
-                            },
-                            onDismissRequest = { showDeleteTrainingDialog = false })
-                    }
-                }
-                var query by remember { mutableStateOf("") }
-                if (!showSearchBar) {
-                    query = ""
-                }
-                AnimatedVisibility(showSearchBar) {
-                    BackPressHandler {
-                        showSearchBar = false
-                    }
-                    DefaultSearchBar(
-                        focusRequester = focusRequester,
-                        value = query,
-                        onClickBackButton = {
-                            showSearchBar = false
-                        },
-                        onClickClearText = { query = "" },
-                        onValueChanged = { query = it }
-                    )
-
-                }
-                TrainingList(
-                    onClickDelete = {
-                        trainingIdForDelete = it
-                        showDeleteTrainingDialog = true
-                    },
-                    onClickEdit = onClickEdit,
-                    onItemClickListener = { training -> onItemClickListener(training.trainingId) },
-                    trainingWithExercises = training.filter {
-                        if (query.isNotEmpty()) {
-                            it.title.contains(query, true)
-                        } else {
-                            it.filters.containsAll(viewModel.filters)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
+                ) {
+                    if (showDeleteTrainingDialog) {
+                        trainingIdForDelete?.let {
+                            DeleteTrainingDialog(
+                                trainingId = trainingIdForDelete!!,
+                                onConfirm = {
+                                    viewModel.deleteTraining(trainingIdForDelete!!)
+                                    showDeleteTrainingDialog = false
+                                },
+                                onDismissRequest = { showDeleteTrainingDialog = false })
                         }
-                    },
-                    modifier = Modifier
-                        .padding(
-                            vertical = dimensionResource(id = R.dimen.default_padding)
+                    }
+                    var query by remember { mutableStateOf("") }
+                    if (!showSearchBar) {
+                        query = ""
+                    }
+                    AnimatedVisibility(showSearchBar) {
+                        BackPressHandler {
+                            showSearchBar = false
+                        }
+                        DefaultSearchBar(
+                            focusRequester = focusRequester,
+                            value = query,
+                            onClickBackButton = {
+                                showSearchBar = false
+                            },
+                            onClickClearText = { query = "" },
+                            onValueChanged = { query = it }
                         )
-                        .fillMaxHeight()
-                )
+
+                    }
+                    TrainingList(
+                        onClickDelete = {
+                            trainingIdForDelete = it
+                            showDeleteTrainingDialog = true
+                        },
+                        onClickEdit = onClickEdit,
+                        onItemClickListener = { training -> onItemClickListener(training.trainingId) },
+                        trainingWithExercises = training.filter {
+                            if (query.isNotEmpty()) {
+                                it.title.contains(query, true)
+                            } else {
+                                it.filters.containsAll(viewModel.filters)
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(
+                                vertical = dimensionResource(id = R.dimen.default_padding)
+                            )
+                            .fillMaxHeight()
+                    )
+                }
+                if (showBottomSheet) {
+                    FiltersBottomSheet(
+                        selectedList = viewModel.filters,
+                        filterList = TrainingTypes.values()
+                            .map { stringResource(id = it.stringRes()) },
+                        onFilterClick = { filter -> viewModel.manageFilters(filter) },
+                        onDismissRequest = { showBottomSheet = false }
+                    )
+                }
             }
-            if (showBottomSheet) {
-                FiltersBottomSheet(
-                    selectedList = viewModel.filters,
-                    filterList = TrainingTypes.values().map { stringResource(id = it.stringRes()) },
-                    onFilterClick = { filter -> viewModel.manageFilters(filter) },
-                    onDismissRequest = { showBottomSheet = false }
-                )
-            }
+
+
         }
-
-
     }
 }
 
@@ -218,9 +236,16 @@ private fun DeleteTrainingDialog(
 fun HomeBottomBar(
     onButtonSearchClick: () -> Unit,
     onButtonFiltersClick: () -> Unit,
-    onFabClick: () -> Unit
+    onFabClick: () -> Unit,
+    onNavIconClick: () -> Unit
 ) {
     BottomAppBar(actions = {
+        IconButton(onClick = onNavIconClick) {
+            Icon(
+                imageVector = Icons.Rounded.Menu,
+                contentDescription = stringResource(id = R.string.common_open_navigation_drawer)
+            )
+        }
         IconButton(onClick = onButtonSearchClick) {
             Icon(
                 imageVector = Icons.Rounded.Search,
@@ -334,11 +359,13 @@ fun TrainingItem(
                     FilterChipList(
                         rows = if (filtersSize < 4) 1 else 2,
                         filterList = training.filters,
-                        modifier = Modifier.padding(
-                            vertical = dimensionResource(
-                                id = R.dimen.default_padding
+                        modifier = Modifier
+                            .padding(
+                                vertical = dimensionResource(
+                                    id = R.dimen.default_padding
+                                )
                             )
-                        ).heightIn(max = if (filtersSize < 4) 40.dp else 80.dp)
+                            .heightIn(max = if (filtersSize < 4) 40.dp else 80.dp)
                     )
                 }
 
@@ -455,7 +482,12 @@ private fun HomeScreenPreview() {
             }
         }
         val viewModel: HomeViewModel = viewModel(factory = viewModelFactory)
-        HomeScreen({}, viewModel = viewModel, onButtonAddClick = {}, onClickEdit = {})
+        HomeScreen(
+            {},
+            viewModel = viewModel,
+            onButtonAddClick = {},
+            onClickEdit = {},
+            onDrawerItemClick = {})
     }
 }
 

@@ -1,6 +1,12 @@
 <resources>
     <string name="app_name">GymLog</string>
 
+    <!-- Destinations Title -->
+    <string name="home_destination">Inicio</string>
+    <string name="form_destination">Novo Treino</string>
+    <string name="log_destination">Detalhes</string>
+    <string name="bmi_destination">Imc</string>
+
     <!-- Exercise Item -->
     <string name="exercise_repetions_place_holder">%d séries de\n%d repetições</string>
     <string name="exercise_repetitions_place_holder">%d repetições</string>
@@ -49,6 +55,7 @@
     <string name="common_kg_suffix">kg</string>
     <string name="common_years">anos</string>
     <string name="common_age_suffix">%d anos</string>
+    <string name="common_open_navigation_drawer">Abrir gaveta de navegação</string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>
@@ -109,4 +116,9 @@
     <!-- BmiHistoric -->
     <string name="bmi_historic_buttom_calculate">Calcular Imc</string>
     <string name="bmi_historic_information">O IMC é uma medida que avalia seu peso em relação à sua altura. É importante manter-se no peso ideal para uma vida saudável.</string>
+    <string name="bmi_historic_item_bmi_prefix">Imc %.1f</string>
+    <string name="bmi_historic_height_place_holder_in_meters">Altura: %.2f m</string>
+    <string name="bmi_historic_delete_register_dialog_title">Excluir Registro?</string>
+    <string name="bmi_historic_delete_register_dialog_text">Você ira perder este registro permanentemente!</string>
+    <string name="bmi_historic_title">Histórico</string>
 </resources>
