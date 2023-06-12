@@ -27,6 +27,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -79,7 +80,8 @@ fun BmiHistoricScreen(
     viewModel.getUser()
     val scope = rememberCoroutineScope()
     val userResource = viewModel.userResource.collectAsState(Resource.Loading)
-    var user: User? by rememberSaveable { mutableStateOf(null) }
+    var user: User? by remember { mutableStateOf(null) }
+    var showUserCreator: Boolean by rememberSaveable { mutableStateOf(false) }
     when (userResource.value) {
         is Resource.Loading -> {
             isLoading = true
@@ -89,15 +91,7 @@ fun BmiHistoricScreen(
             (userResource.value as Resource.Success<User?>).data?.let {
                 user = it
                 isLoading = false
-            } ?: UserCreatorDialog(
-                onDismiss = onError,
-                onConfirm = { newUser ->
-                    scope.launch {
-                        viewModel.setLoading()
-                        viewModel.saveUser(newUser)
-                        isLoading = false
-                    }
-                })
+            } ?: run { showUserCreator = true }
 
         }
 
@@ -112,6 +106,22 @@ fun BmiHistoricScreen(
             onClickCalculate = {})
     }) { paddingValues ->
         Box {
+            if (showUserCreator) UserCreatorDialog(
+                onDismiss = {
+                    user?.let {
+                        showUserCreator = false
+                    } ?: onError()
+                },
+                onConfirm = { newUser ->
+                    scope.launch {
+                        viewModel.setLoading()
+                        viewModel.saveUser(newUser)
+                        showUserCreator = false
+                        isLoading = false
+                    }
+                },
+                userToupdate = user
+            )
             if (isLoading) CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             Column(
                 modifier = Modifier
@@ -120,7 +130,9 @@ fun BmiHistoricScreen(
             ) {
                 user?.let {
                     BmiHistoricHeader(
-                        user = it, onClickEdit = {}, modifier = Modifier.padding(
+                        user = it,
+                        onClickEdit = { showUserCreator = true },
+                        modifier = Modifier.padding(
                             dimensionResource(id = R.dimen.default_padding)
                         )
                     )
@@ -178,9 +190,11 @@ fun BmiHistoricHeader(user: User, onClickEdit: () -> Unit, modifier: Modifier = 
                     Gender.Male -> "Homem"
                     Gender.Female -> "Mulher"
                 }
-                Text(text = gender)
-                Text(text = "${user.age} anos")
-                Text(text = "Altura: ${user.height.toFloat() / 100} m")
+                ProvideTextStyle(value = MaterialTheme.typography.titleLarge) {
+                    Text(text = gender)
+                    Text(text = "${user.age} anos")
+                    Text(text = "Altura: ${user.height.toFloat() / 100} m")
+                }
             }
             IconButton(onClick = onClickEdit, modifier = Modifier.weight(0.2f)) {
                 Icon(

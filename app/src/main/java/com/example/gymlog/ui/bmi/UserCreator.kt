@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
@@ -30,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,12 +53,36 @@ import com.example.gymlog.model.User
 import com.example.gymlog.ui.components.InfoCard
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.Gender
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 @Composable
-fun UserCreatorDialog(onDismiss: () -> Unit, onConfirm: (User) -> Unit) {
-    var selectedGender: Gender by rememberSaveable { mutableStateOf(Gender.Male) }
-    var selectedHeight: Int by rememberSaveable { mutableStateOf(heights[0]) }
-    var selectedAge: Int by rememberSaveable { mutableStateOf(ages[0]) }
+fun UserCreatorDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (User) -> Unit,
+    userToupdate: User? = null
+) {
+    val scope = rememberCoroutineScope()
+    val heightsListState = rememberLazyListState()
+    val agesListState = rememberLazyListState()
+    var selectedGender: Gender by rememberSaveable {
+        val initialValue = userToupdate?.gender ?: Gender.Male
+        mutableStateOf(initialValue)
+    }
+    var selectedHeight: Int by rememberSaveable {
+        val initialValue = userToupdate?.height ?: heights[0]
+        scope.launch {
+            heightsListState.scrollToItem(heights.indexOf(initialValue))
+        }
+        mutableStateOf(initialValue)
+    }
+    var selectedAge: Int by rememberSaveable {
+        val initialValue = userToupdate?.age ?: ages[0]
+        scope.launch {
+            agesListState.scrollToItem(ages.indexOf(initialValue))
+        }
+        mutableStateOf(initialValue)
+    }
     Dialog(
         onDismissRequest = onDismiss, properties = DialogProperties(
             dismissOnBackPress = false,
@@ -67,7 +94,8 @@ fun UserCreatorDialog(onDismiss: () -> Unit, onConfirm: (User) -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(dimensionResource(id = R.dimen.default_padding)),
+                    .padding(dimensionResource(id = R.dimen.default_padding))
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 InfoCard(
@@ -94,16 +122,20 @@ fun UserCreatorDialog(onDismiss: () -> Unit, onConfirm: (User) -> Unit) {
                     heights = heights,
                     selected = selectedHeight,
                     onItemClickListener = { selectedHeight = it },
-                    modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))
+                    modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
+                    listState = heightsListState
                 )
                 Text(
                     text = stringResource(id = R.string.bmi_calculator_age_label),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))
                 )
-                AgeSelector(ages = ages,
+                AgeSelector(
+                    ages = ages,
                     selected = selectedAge,
-                    onItemClickListener = { selectedAge = it })
+                    onItemClickListener = { selectedAge = it },
+                    listState = agesListState
+                )
                 Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -119,7 +151,10 @@ fun UserCreatorDialog(onDismiss: () -> Unit, onConfirm: (User) -> Unit) {
                     }
                     Button(onClick = {
                         val user = User(
-                            gender = selectedGender, height = selectedHeight, age = selectedAge
+                            id = userToupdate?.id ?: UUID.randomUUID().toString(),
+                            gender = selectedGender,
+                            height = selectedHeight,
+                            age = selectedAge
                         )
                         onConfirm(user)
                     }, modifier = Modifier.weight(0.6f)) {
