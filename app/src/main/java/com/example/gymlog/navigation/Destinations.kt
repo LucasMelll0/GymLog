@@ -89,7 +89,7 @@ fun AppNavHost(
         },
         modifier = modifier
     ) {
-        composable(route = Home.route) {
+        composable(route = Home.route, ) {
             HomeScreen(
                 onButtonAddClick = { navController.navigateToTrainingForm(null) },
                 onItemClickListener = { navController.navigateToTrainingLog(it) },
@@ -131,8 +131,10 @@ fun AppNavHost(
             }
         }
         composable(route = Bmi.route) {
-            BackPressHandler {
-                navController.navigateSingleTopTo(Home.route)
+            if (currentDestinationRoute == Bmi.route) {
+                BackPressHandler {
+                    navController.navigateSingleTopTo(Home.route)
+                }
             }
             BmiHistoricScreen(onDrawerItemClick = { destination ->
                 if (currentDestinationRoute != destination.route) {
