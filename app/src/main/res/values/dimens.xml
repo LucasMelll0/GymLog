@@ -2,6 +2,8 @@
 <resources>
     <dimen name="default_padding">8dp</dimen>
     <dimen name="small_padding">4dp</dimen>
+    <dimen name="large_padding">16dp</dimen>
+    <dimen name="big_corner_size">16dp</dimen>
     <dimen name="default_corner_size">10dp</dimen>
     <dimen name="default_chip_icon_size">16dp</dimen>
     <dimen name="minimum_training_item_height">70dp</dimen>

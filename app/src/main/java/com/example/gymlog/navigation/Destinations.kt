@@ -2,6 +2,8 @@ package com.example.gymlog.navigation
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
@@ -89,7 +91,10 @@ fun AppNavHost(
         },
         modifier = modifier
     ) {
-        composable(route = Home.route, ) {
+        composable(
+            route = Home.route,
+            enterTransition = { fadeIn() },
+            exitTransition = { fadeOut() }) {
             HomeScreen(
                 onButtonAddClick = { navController.navigateToTrainingForm(null) },
                 onItemClickListener = { navController.navigateToTrainingLog(it) },
@@ -130,7 +135,10 @@ fun AppNavHost(
                 )
             }
         }
-        composable(route = Bmi.route) {
+        composable(
+            route = Bmi.route,
+            enterTransition = { fadeIn() },
+            exitTransition = { fadeOut() }) {
             if (currentDestinationRoute == Bmi.route) {
                 BackPressHandler {
                     navController.navigateSingleTopTo(Home.route)

@@ -68,6 +68,7 @@ import com.example.gymlog.database.AppDataBase_Impl
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
 import com.example.gymlog.navigation.Destination
+import com.example.gymlog.navigation.Home
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.ui.components.AppNavigationDrawer
 import com.example.gymlog.ui.components.DefaultAlertDialog
@@ -99,7 +100,11 @@ fun HomeScreen(
     val focusRequester = remember { FocusRequester() }
     val training by viewModel.trainings.collectAsState(emptyList())
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    AppNavigationDrawer(onItemClick = onDrawerItemClick, drawerState = drawerState) {
+    AppNavigationDrawer(
+        onItemClick = onDrawerItemClick,
+        drawerState = drawerState,
+        currentDestinationRoute = Home.route
+    ) {
         Scaffold(bottomBar = {
             HomeBottomBar(
                 onButtonSearchClick = { showSearchBar = !showSearchBar },
@@ -483,11 +488,12 @@ private fun HomeScreenPreview() {
         }
         val viewModel: HomeViewModel = viewModel(factory = viewModelFactory)
         HomeScreen(
-            {},
+            onItemClickListener = {},
             viewModel = viewModel,
             onButtonAddClick = {},
             onClickEdit = {},
-            onDrawerItemClick = {})
+            onDrawerItemClick = {}
+        )
     }
 }
 

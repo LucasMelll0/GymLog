@@ -60,6 +60,7 @@ import com.example.gymlog.R
 import com.example.gymlog.database.AppDataBase_Impl
 import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.User
+import com.example.gymlog.navigation.Bmi
 import com.example.gymlog.navigation.Destination
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
 import com.example.gymlog.repository.UserRepositoryImpl
@@ -117,7 +118,11 @@ fun BmiHistoricScreen(
     }
     val bmiInfoList by viewModel.getHistoric.collectAsState(emptyList())
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    AppNavigationDrawer(onItemClick = onDrawerItemClick, drawerState = drawerState) {
+    AppNavigationDrawer(
+        onItemClick = onDrawerItemClick,
+        drawerState = drawerState,
+        currentDestinationRoute = Bmi.route
+    ) {
         Scaffold(bottomBar = {
             BmiHistoricBottomBar(
                 onNavIconClick = {
@@ -487,6 +492,10 @@ private fun BmiHistoricScreenPreview() {
             }
         }
         val viewModel: BmiHistoricViewModel = viewModel(factory = viewModelFactory)
-        BmiHistoricScreen(onDrawerItemClick = {}, onError = {}, viewModel = viewModel)
+        BmiHistoricScreen(
+            onDrawerItemClick = {},
+            onError = {},
+            viewModel = viewModel,
+        )
     }
 }
