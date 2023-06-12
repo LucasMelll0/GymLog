@@ -5,7 +5,9 @@ import com.example.gymlog.database.AppDataBase
 import com.example.gymlog.database.DATABASE_NAME
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
 import com.example.gymlog.repository.TrainingRepositoryImpl
+import com.example.gymlog.repository.UserRepositoryImpl
 import com.example.gymlog.ui.bmi.viewmodel.BmiCalculatorViewModel
+import com.example.gymlog.ui.bmi.viewmodel.BmiHistoricViewModel
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.home.viewmodel.HomeViewModel
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
@@ -29,6 +31,9 @@ val roomModule = module {
     single {
         get<AppDataBase>().bmiInfoDao()
     }
+    single {
+        get<AppDataBase>().userDao()
+    }
 }
 val repositoryModule = module {
     single {
@@ -36,6 +41,9 @@ val repositoryModule = module {
     }
     single {
         BmiInfoRepositoryImpl(get())
+    }
+    single {
+        UserRepositoryImpl(get())
     }
 }
 
@@ -60,5 +68,11 @@ val logModule = module {
 val bmiModule = module {
     viewModel {
         BmiCalculatorViewModel(get<BmiInfoRepositoryImpl>())
+    }
+    viewModel {
+        BmiHistoricViewModel(
+            userRepository = get<UserRepositoryImpl>(),
+            bmiRepository = get<BmiInfoRepositoryImpl>()
+        )
     }
 }

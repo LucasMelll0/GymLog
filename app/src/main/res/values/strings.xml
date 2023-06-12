@@ -20,7 +20,6 @@
     <string name="exercise_form_filters_is_empty_toast_message">Selecione pelo menos uma parte do corpo em que o exercício abrange!</string>
 
 
-
     <!-- Common -->
     <string name="common_text_field_error_message">Este Campo não pode ser vazio!</string>
     <string name="common_go_to_back">Voltar</string>
@@ -43,12 +42,13 @@
     <string name="common_observations_prefix">Observações: </string>
     <string name="common_timer">Pomodoro</string>
     <string name="common_reset">Reiniciar</string>
-    <string name="common_male"> Maculino</string>
-    <string name="common_female">Feminino</string>
+    <string name="common_male"> Homem</string>
+    <string name="common_female">Mulher</string>
     <string name="common_calculate">Calcular</string>
     <string name="common_save">Salvar</string>
     <string name="common_kg_suffix">kg</string>
     <string name="common_years">anos</string>
+    <string name="common_age_suffix">%d anos</string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>
@@ -73,7 +73,7 @@
 
     <!-- BmiCalculator -->
     <string name="bmi_calculator_title">Calcular Imc</string>
-    <string name="bmi_calculator_gender_label">Qual o seu gênero?</string>
+    <string name="bmi_calculator_gender_label">Qual o seu sexo?</string>
     <string name="bmi_calculator_height_label">Qual a sua altura?</string>
     <string name="bmi_calculator_weight_label">Qual seu peso?</string>
     <string name="bmi_calculator_age_label">Qual sua idade?</string>
@@ -89,4 +89,24 @@
     <string name="common_grade_two_obesity">Obesidade Grau 2</string>
     <string name="common_grade_three_obesity">Obesidade Grau 3</string>
 
+    <!-- Months -->
+    <string name="common_january">Janeiro</string>
+    <string name="common_february">Fevereiro</string>
+    <string name="common_march">Março</string>
+    <string name="common_april">Abril</string>
+    <string name="common_may">Maio</string>
+    <string name="common_june">Junho</string>
+    <string name="common_july">Julho</string>
+    <string name="common_august">Agosto</string>
+    <string name="common_september">Setembro</string>
+    <string name="common_october">Outubro</string>
+    <string name="common_november">Novembro</string>
+    <string name="common_december">Dezembro</string>
+
+    <!-- UserCreator -->
+    <string name="user_creator_info_card_text">Precisamos destas informações para futuros calculos do seu indice de massa corporal.</string>
+
+    <!-- BmiHistoric -->
+    <string name="bmi_historic_buttom_calculate">Calcular Imc</string>
+    <string name="bmi_historic_information">O IMC é uma medida que avalia seu peso em relação à sua altura. É importante manter-se no peso ideal para uma vida saudável.</string>
 </resources>

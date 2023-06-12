@@ -2,9 +2,13 @@ package com.example.gymlog.data
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
+import com.example.gymlog.model.User
+import com.example.gymlog.utils.Gender
 import com.example.gymlog.utils.TrainingTypes
+import java.util.Date
 import kotlin.random.Random
 
 class Mock {
@@ -74,6 +78,39 @@ class Mock {
                 }
             )
         }
+
+        fun getUser() = User(gender = Gender.Male, height = 176, age = 21)
+
+        fun getBmiList() = listOf(
+            BmiInfo(
+                gender = Gender.Male,
+                weight = 66f,
+                height = 176,
+                age = 21,
+                dateInMillis = Date().time
+            ),
+            BmiInfo(
+                gender = Gender.Male,
+                weight = 66f,
+                height = 176,
+                age = 21,
+                dateInMillis = 1686020400000
+            ),
+            BmiInfo(
+                gender = Gender.Male,
+                weight = 55f,
+                height = 176,
+                age = 21,
+                dateInMillis = 1677639600000
+            ),
+            BmiInfo(
+                gender = Gender.Male,
+                weight = 55f,
+                height = 176,
+                age = 21,
+                dateInMillis = 1677726000000
+            )
+        )
     }
 
 }
