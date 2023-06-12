@@ -75,7 +75,7 @@
     <string name="bmi_calculator_title">Calcular Imc</string>
     <string name="bmi_calculator_gender_label">Qual o seu sexo?</string>
     <string name="bmi_calculator_height_label">Qual a sua altura?</string>
-    <string name="bmi_calculator_weight_label">Qual seu peso?</string>
+    <string name="bmi_calculator_weight_label">Qual seu peso atual?</string>
     <string name="bmi_calculator_age_label">Qual sua idade?</string>
     <string name="bmi_calculator_result_text">Com %.1f kg, seu imc é %.2f</string>
     <string name="bmi_calculator_ideal_weight_range">O peso ideal seria entre %.1f kg e %.1f kg</string>

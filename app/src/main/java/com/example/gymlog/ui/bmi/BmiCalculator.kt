@@ -4,27 +4,23 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,10 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -50,6 +45,7 @@ import com.example.gymlog.R
 import com.example.gymlog.database.AppDataBase_Impl
 import com.example.gymlog.extensions.isZeroOrEmpty
 import com.example.gymlog.model.BmiInfo
+import com.example.gymlog.model.User
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
 import com.example.gymlog.ui.bmi.viewmodel.BmiCalculatorViewModel
 import com.example.gymlog.ui.components.DefaultTextField
@@ -64,105 +60,47 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BmiCalculatorScreen(
-    onNavIconClick: () -> Unit,
+fun BmiCalculatorDialog(
+    onDismissRequest: () -> Unit,
     onSaved: () -> Unit,
+    user: User,
     viewModel: BmiCalculatorViewModel = koinViewModel()
 ) {
-    val heights = mutableListOf<Int>().apply {
-        for (i in 120..250) {
-            add(i)
-        }
-    }
-    var selectedHeight: Int by rememberSaveable { mutableStateOf(heights[0]) }
-    var selectedGender: Gender by rememberSaveable { mutableStateOf(Gender.Male) }
     var weight by rememberSaveable { mutableStateOf("") }
-    var age by rememberSaveable { mutableStateOf("") }
     var weightHasError by remember { mutableStateOf(false) }
-    var ageHasError by remember { mutableStateOf(false) }
     var classifier: BmiClassifier? by remember { mutableStateOf(null) }
-    var isLoading: Boolean by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    Scaffold(bottomBar = { BmiCalculatorBottomBar(onNavIconClick = onNavIconClick) }) { paddingValues ->
-        Box {
-            if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier
-                    .align(Alignment.Center)
-                    .zIndex(2f))
-            }
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier.wrapContentHeight()
+    ) {
+        Card() {
             Column(
                 modifier = Modifier
-                    .zIndex(1f)
-                    .padding(paddingValues)
-                    .fillMaxHeight()
+                    .fillMaxWidth()
+                    .padding(dimensionResource(id = R.dimen.default_padding))
                     .verticalScroll(
                         rememberScrollState()
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = stringResource(id = R.string.bmi_calculator_title),
-                        style = MaterialTheme.typography.displaySmall
-                    )
-                    Card(modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))) {
-                        Text(
-                            text = stringResource(id = R.string.bmi_calculator_gender_label),
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))
-                        )
-                        GenderSelector(
-                            onSelectedListener = { selectedGender = it },
-                            selected = selectedGender,
-                            modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding))
-                        )
-                    }
-                    Card(modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))) {
-                        Text(
-                            text = stringResource(id = R.string.bmi_calculator_height_label),
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))
-                        )
-                        HeightSelector(
-                            heights = heights,
-                            selected = selectedHeight,
-                            onItemClickListener = { selectedHeight = it },
-                            modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))
-                        )
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .padding(
-                                dimensionResource(id = R.dimen.default_padding)
-                            )
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
-                    ) {
-                        DefaultTextField(
-                            value = weight,
-                            onValueChange = { weight = it },
-                            label = { Text(text = stringResource(id = R.string.bmi_calculator_weight_label)) },
-                            modifier = Modifier.weight(0.5f),
-                            charLimit = 3,
-                            suffix = { Text(text = stringResource(id = R.string.common_kg_suffix)) },
-                            isError = weightHasError,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-                        )
-                        DefaultTextField(
-                            value = age,
-                            onValueChange = { age = it },
-                            label = { Text(text = stringResource(id = R.string.bmi_calculator_age_label)) },
-                            modifier = Modifier.weight(0.5f),
-                            charLimit = 3,
-                            isError = ageHasError,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            suffix = { Text(text = stringResource(id = R.string.common_years)) }
-                        )
-                    }
-                }
+                Text(
+                    text = stringResource(id = R.string.bmi_calculator_title),
+                    style = MaterialTheme.typography.titleLarge
+                )
+                DefaultTextField(
+                    value = weight,
+                    onValueChange = { weight = it },
+                    label = { Text(text = stringResource(id = R.string.bmi_calculator_weight_label)) },
+                    charLimit = 3,
+                    suffix = { Text(text = stringResource(id = R.string.common_kg_suffix)) },
+                    isError = weightHasError,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                )
                 AnimatedVisibility(visible = classifier != null) {
                     classifier?.let {
                         ResultCard(
@@ -187,7 +125,6 @@ fun BmiCalculatorScreen(
                         onClick = {
                             classifier?.let {
                                 scope.launch {
-                                    isLoading = true
                                     val bmiInfo = BmiInfo(
                                         gender = it.gender,
                                         weight = it.weight,
@@ -196,34 +133,28 @@ fun BmiCalculatorScreen(
                                     )
                                     try {
                                         viewModel.save(bmiInfo)
-                                        isLoading = false
                                         onSaved()
                                     } catch (e: Exception) {
-                                        isLoading = false
                                         Log.w("BmiCalculator", "BmiCalculatorScreen: ", e)
                                     }
 
                                 }
                             } ?: run {
-                                isLoading = true
                                 weightHasError = weight.isZeroOrEmpty()
-                                ageHasError = age.isZeroOrEmpty()
-                                if (!weightHasError && !ageHasError) {
-                                    if (weight.isDigitsOnly() && age.isDigitsOnly()) {
+                                if (!weightHasError) {
+                                    if (weight.isDigitsOnly()) {
                                         scope.launch {
                                             classifier = BmiClassifier(
-                                                gender = selectedGender,
+                                                gender = user.gender,
                                                 weight = weight.toFloat(),
-                                                height = selectedHeight,
-                                                age = age.toInt()
+                                                height = user.height,
+                                                age = user.age
                                             )
                                         }
                                     }
                                 }
-                                isLoading = false
                             }
-                        }, modifier = Modifier
-                            .weight(0.7f)
+                        }, modifier = Modifier.weight(0.7f)
                     ) {
                         val text = classifier?.let { stringResource(id = R.string.common_save) }
                             ?: stringResource(id = R.string.common_calculate)
@@ -240,8 +171,10 @@ fun BmiCalculatorScreen(
                 }
             }
         }
+
     }
 }
+
 
 @Composable
 private fun ResultCard(classifier: BmiClassifier, modifier: Modifier = Modifier) {
@@ -252,8 +185,7 @@ private fun ResultCard(classifier: BmiClassifier, modifier: Modifier = Modifier)
     Card(
         modifier = modifier.fillMaxWidth(), colors = CardDefaults.elevatedCardColors(
             containerColor = cardColor, contentColor = contentColor
-        ),
-        shape = MaterialTheme.shapes.large
+        ), shape = MaterialTheme.shapes.large
     ) {
         Column(
             modifier = Modifier
@@ -264,9 +196,7 @@ private fun ResultCard(classifier: BmiClassifier, modifier: Modifier = Modifier)
         ) {
             Text(
                 text = stringResource(
-                    id = R.string.bmi_calculator_result_text,
-                    classifier.weight,
-                    classifier.bmiValue
+                    id = R.string.bmi_calculator_result_text, classifier.weight, classifier.bmiValue
                 )
             )
             val icon = painterResource(id = classifier.getRating().drawableRes())
@@ -286,17 +216,6 @@ private fun ResultCard(classifier: BmiClassifier, modifier: Modifier = Modifier)
 
 }
 
-@Composable
-private fun BmiCalculatorBottomBar(onNavIconClick: () -> Unit) {
-    BottomAppBar(actions = {
-        IconButton(onClick = onNavIconClick) {
-            Icon(
-                imageVector = Icons.Rounded.ArrowBack,
-                contentDescription = stringResource(id = R.string.common_go_to_back)
-            )
-        }
-    })
-}
 
 @Suppress("UNCHECKED_CAST")
 @Preview(uiMode = UI_MODE_NIGHT_YES, showBackground = true, showSystemUi = true)
@@ -311,7 +230,12 @@ private fun BmiCalculatorScreenPreview() {
             }
         }
         val viewModel: BmiCalculatorViewModel = viewModel(factory = viewModelFactory)
-        BmiCalculatorScreen(onNavIconClick = {}, onSaved = {}, viewModel = viewModel)
+        BmiCalculatorDialog(
+            onSaved = {},
+            user = User(gender = Gender.Male, height = 176, age = 21),
+            viewModel = viewModel,
+            onDismissRequest = {}
+        )
     }
 }
 
