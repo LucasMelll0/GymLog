@@ -121,4 +121,6 @@
     <string name="bmi_historic_delete_register_dialog_title">Excluir Registro?</string>
     <string name="bmi_historic_delete_register_dialog_text">Você ira perder este registro permanentemente!</string>
     <string name="bmi_historic_title">Histórico</string>
+    <string name="bmi_historic_item_day_prefix">Dia %d</string>
+    <string name="bmi_historic_item_weight_suffix">%.1f kg</string>
 </resources>

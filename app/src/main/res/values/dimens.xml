@@ -3,7 +3,7 @@
     <dimen name="default_padding">8dp</dimen>
     <dimen name="small_padding">4dp</dimen>
     <dimen name="large_padding">16dp</dimen>
-    <dimen name="big_corner_size">16dp</dimen>
+    <dimen name="large_corner_size">16dp</dimen>
     <dimen name="default_drawer_item_height">48dp</dimen>
     <dimen name="default_corner_size">10dp</dimen>
     <dimen name="default_chip_icon_size">16dp</dimen>
@@ -11,4 +11,5 @@
     <dimen name="default_icon_size">38dp</dimen>
     <dimen name="max_exercise_list_height">500dp</dimen>
     <dimen name="height_selector_height">70dp</dimen>
+    <dimen name="extra_large_corner_size">32dp</dimen>
 </resources>

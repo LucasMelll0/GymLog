@@ -44,7 +44,7 @@ fun DrawerBody(
     currentDestinationRoute: String,
     isOpen: Boolean
 ) {
-    val bigCornerSize = dimensionResource(id = R.dimen.big_corner_size)
+    val bigCornerSize = dimensionResource(id = R.dimen.large_corner_size)
     val widthFraction by animateFloatAsState(
         if (isOpen) 0.8f else 0f,
         animationSpec = tween(durationMillis = 150)

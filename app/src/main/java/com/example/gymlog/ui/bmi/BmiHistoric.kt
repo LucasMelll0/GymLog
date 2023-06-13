@@ -113,13 +113,11 @@ fun BmiHistoricScreen(
     }
     val bmiInfoList by viewModel.getHistoric.collectAsState(emptyList())
     Scaffold(bottomBar = {
-        BmiHistoricBottomBar(
-            onNavIconClick = onNavIconClick,
+        BmiHistoricBottomBar(onNavIconClick = onNavIconClick,
             onClickCalculate = { showBmiCalculatorDialog = true })
     }) { paddingValues ->
         Box {
-            if (showDeleteRegisterDialog) DefaultAlertDialog(
-                title = stringResource(id = R.string.bmi_historic_delete_register_dialog_title),
+            if (showDeleteRegisterDialog) DefaultAlertDialog(title = stringResource(id = R.string.bmi_historic_delete_register_dialog_title),
                 text = stringResource(id = R.string.bmi_historic_delete_register_dialog_text),
                 onDismissRequest = { showDeleteRegisterDialog = false },
                 onConfirm = {
@@ -128,26 +126,24 @@ fun BmiHistoricScreen(
                         showDeleteRegisterDialog = false
                     }
                 })
-            if (showBmiCalculatorDialog && user != null) BmiCalculatorDialog(
-                onDismissRequest = { showBmiCalculatorDialog = false },
+            if (showBmiCalculatorDialog && user != null) BmiCalculatorDialog(onDismissRequest = {
+                showBmiCalculatorDialog = false
+            },
                 onSaved = { showBmiCalculatorDialog = false },
                 user = user!!
             )
-            if (showUserCreatorDialog) UserCreatorDialog(
-                onDismiss = {
-                    user?.let {
-                        showUserCreatorDialog = false
-                    } ?: onError()
-                },
-                onConfirm = { newUser ->
-                    scope.launch {
-                        viewModel.setLoading()
-                        viewModel.saveUser(newUser)
-                        showUserCreatorDialog = false
-                        isLoading = false
-                    }
-                },
-                userToupdate = user
+            if (showUserCreatorDialog) UserCreatorDialog(onDismiss = {
+                user?.let {
+                    showUserCreatorDialog = false
+                } ?: onError()
+            }, onConfirm = { newUser ->
+                scope.launch {
+                    viewModel.setLoading()
+                    viewModel.saveUser(newUser)
+                    showUserCreatorDialog = false
+                    isLoading = false
+                }
+            }, userToupdate = user
             )
             if (isLoading) CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             Column(
@@ -171,12 +167,10 @@ fun BmiHistoricScreen(
                     )
                 )
                 BmiInfoList(
-                    bmiInfoList = bmiInfoList,
-                    onLongClickListener = {
+                    bmiInfoList = bmiInfoList, onLongClickListener = {
                         registerToDelete = it
                         showDeleteRegisterDialog = true
-                    },
-                    modifier = Modifier.heightIn(max = 500.dp)
+                    }, modifier = Modifier.heightIn(max = 500.dp)
                 )
             }
         }
@@ -186,26 +180,23 @@ fun BmiHistoricScreen(
 
 @Composable
 private fun BmiHistoricBottomBar(onNavIconClick: () -> Unit, onClickCalculate: () -> Unit) {
-    BottomAppBar(
-        floatingActionButton = {
-            FloatingActionButton(onClick = onClickCalculate) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_calculate),
-                    contentDescription = stringResource(
-                        id = R.string.bmi_historic_buttom_calculate
-                    )
+    BottomAppBar(floatingActionButton = {
+        FloatingActionButton(onClick = onClickCalculate) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_calculate),
+                contentDescription = stringResource(
+                    id = R.string.bmi_historic_buttom_calculate
                 )
-            }
-        },
-        actions = {
-            IconButton(onClick = onNavIconClick) {
-                Icon(
-                    imageVector = Icons.Rounded.Menu,
-                    contentDescription = stringResource(id = R.string.common_go_to_back)
-                )
-            }
+            )
         }
-    )
+    }, actions = {
+        IconButton(onClick = onNavIconClick) {
+            Icon(
+                imageVector = Icons.Rounded.Menu,
+                contentDescription = stringResource(id = R.string.common_go_to_back)
+            )
+        }
+    })
 }
 
 @Composable
@@ -302,15 +293,10 @@ fun BmiInfoList(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BmiInfoItem(
-    bmiInfo: BmiInfo,
-    modifier: Modifier = Modifier,
-    onLongClickListener: (BmiInfo) -> Unit
+    bmiInfo: BmiInfo, modifier: Modifier = Modifier, onLongClickListener: (BmiInfo) -> Unit
 ) {
     val classifier = BmiClassifier(
-        bmiInfo.gender,
-        weight = bmiInfo.weight,
-        height = bmiInfo.height,
-        age = bmiInfo.age
+        bmiInfo.gender, weight = bmiInfo.weight, height = bmiInfo.height, age = bmiInfo.age
     )
     val cardColor =
         if (classifier.getRating() != BmiRating.NormalWeight) warning_color else MaterialTheme.colorScheme.surfaceVariant
@@ -321,8 +307,7 @@ fun BmiInfoItem(
             .fillMaxWidth()
             .combinedClickable(onClick = {}, onLongClick = { onLongClickListener(bmiInfo) }),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = cardColor,
-            contentColor = contentColor
+            containerColor = cardColor, contentColor = contentColor
         ),
         shape = MaterialTheme.shapes.large
     ) {
@@ -336,7 +321,7 @@ fun BmiInfoItem(
         ) {
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(topEnd = 32.dp))
+                    .clip(RoundedCornerShape(topEnd = dimensionResource(id = R.dimen.extra_large_corner_size)))
                     .background(MaterialTheme.colorScheme.surface.copy(0.7f))
                     .fillMaxHeight()
             ) {
@@ -348,7 +333,7 @@ fun BmiInfoItem(
                 val dayTextColor =
                     if (classifier.getRating() != BmiRating.NormalWeight) MaterialTheme.colorScheme.onSurfaceVariant else Color.Unspecified
                 Text(
-                    text = "Dia $day",
+                    text = stringResource(id = R.string.bmi_historic_item_day_prefix, day),
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(
@@ -365,25 +350,22 @@ fun BmiInfoItem(
                         dimensionResource(id = R.dimen.default_padding)
                     )
             ) {
-                TextWithIcon(
-                    text = " %.${1}f kg".format(bmiInfo.weight),
-                    icon = {
-                        if (classifier.getRating() != BmiRating.NormalWeight) {
-                            Icon(
-                                imageVector = Icons.Rounded.Warning,
-                                contentDescription = null
-                            )
-                        }
-                    })
+                TextWithIcon(text = stringResource(
+                    id = R.string.bmi_historic_item_weight_suffix, bmiInfo.weight
+                ), icon = {
+                    if (classifier.getRating() != BmiRating.NormalWeight) {
+                        Icon(
+                            imageVector = Icons.Rounded.Warning, contentDescription = null
+                        )
+                    }
+                })
 
                 Text(
                     text = stringResource(
-                        id = R.string.bmi_historic_item_bmi_prefix,
-                        classifier.bmiValue
+                        id = R.string.bmi_historic_item_bmi_prefix, classifier.bmiValue
                     )
                 )
-                TextWithIcon(
-                    text = stringResource(id = classifier.getRating().stringRes()),
+                TextWithIcon(text = stringResource(id = classifier.getRating().stringRes()),
                     icon = {
                         val icon = painterResource(id = classifier.getRating().drawableRes())
                         Icon(painter = icon, contentDescription = null)
@@ -405,22 +387,19 @@ private fun BmiInfoListPreview() {
                 height = 176,
                 age = 21,
                 dateInMillis = Date().time
-            ),
-            BmiInfo(
+            ), BmiInfo(
                 gender = Gender.Male,
                 weight = 66f,
                 height = 176,
                 age = 21,
                 dateInMillis = 1686020400000
-            ),
-            BmiInfo(
+            ), BmiInfo(
                 gender = Gender.Male,
                 weight = 55f,
                 height = 176,
                 age = 21,
                 dateInMillis = 1677639600000
-            ),
-            BmiInfo(
+            ), BmiInfo(
                 gender = Gender.Male,
                 weight = 55f,
                 height = 176,
@@ -440,14 +419,13 @@ private fun BmiInfoListPreview() {
 private fun BmiHistoricItemPreview() {
     GymLogTheme {
         Surface(color = MaterialTheme.colorScheme.surface) {
-            val bmiInfo =
-                BmiInfo(
-                    gender = Gender.Male,
-                    weight = 66f,
-                    height = 176,
-                    age = 21,
-                    dateInMillis = Date().time
-                )
+            val bmiInfo = BmiInfo(
+                gender = Gender.Male,
+                weight = 66f,
+                height = 176,
+                age = 21,
+                dateInMillis = Date().time
+            )
             BmiInfoItem(bmiInfo = bmiInfo, onLongClickListener = {})
         }
     }
