@@ -25,7 +25,6 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,7 +33,6 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -60,12 +58,9 @@ import com.example.gymlog.R
 import com.example.gymlog.database.AppDataBase_Impl
 import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.User
-import com.example.gymlog.navigation.Bmi
-import com.example.gymlog.navigation.Destination
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
 import com.example.gymlog.repository.UserRepositoryImpl
 import com.example.gymlog.ui.bmi.viewmodel.BmiHistoricViewModel
-import com.example.gymlog.ui.components.AppNavigationDrawer
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.InfoCard
 import com.example.gymlog.ui.components.TextWithIcon
@@ -88,7 +83,7 @@ import java.util.TimeZone
 fun BmiHistoricScreen(
     onError: () -> Unit,
     viewModel: BmiHistoricViewModel = koinViewModel(),
-    onDrawerItemClick: (Destination) -> Unit
+    onNavIconClick: () -> Unit
 ) {
     var isLoading: Boolean by remember { mutableStateOf(false) }
     viewModel.getUser()
@@ -117,86 +112,76 @@ fun BmiHistoricScreen(
         }
     }
     val bmiInfoList by viewModel.getHistoric.collectAsState(emptyList())
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    AppNavigationDrawer(
-        onItemClick = onDrawerItemClick,
-        drawerState = drawerState,
-        currentDestinationRoute = Bmi.route
-    ) {
-        Scaffold(bottomBar = {
-            BmiHistoricBottomBar(
-                onNavIconClick = {
+    Scaffold(bottomBar = {
+        BmiHistoricBottomBar(
+            onNavIconClick = onNavIconClick,
+            onClickCalculate = { showBmiCalculatorDialog = true })
+    }) { paddingValues ->
+        Box {
+            if (showDeleteRegisterDialog) DefaultAlertDialog(
+                title = stringResource(id = R.string.bmi_historic_delete_register_dialog_title),
+                text = stringResource(id = R.string.bmi_historic_delete_register_dialog_text),
+                onDismissRequest = { showDeleteRegisterDialog = false },
+                onConfirm = {
+                    registerToDelete?.let {
+                        viewModel.deleteBmiInfoRegister(it)
+                        showDeleteRegisterDialog = false
+                    }
+                })
+            if (showBmiCalculatorDialog && user != null) BmiCalculatorDialog(
+                onDismissRequest = { showBmiCalculatorDialog = false },
+                onSaved = { showBmiCalculatorDialog = false },
+                user = user!!
+            )
+            if (showUserCreatorDialog) UserCreatorDialog(
+                onDismiss = {
+                    user?.let {
+                        showUserCreatorDialog = false
+                    } ?: onError()
+                },
+                onConfirm = { newUser ->
                     scope.launch {
-                        drawerState.open()
+                        viewModel.setLoading()
+                        viewModel.saveUser(newUser)
+                        showUserCreatorDialog = false
+                        isLoading = false
                     }
                 },
-                onClickCalculate = { showBmiCalculatorDialog = true })
-        }) { paddingValues ->
-            Box {
-                if (showDeleteRegisterDialog) DefaultAlertDialog(
-                    title = stringResource(id = R.string.bmi_historic_delete_register_dialog_title),
-                    text = stringResource(id = R.string.bmi_historic_delete_register_dialog_text),
-                    onDismissRequest = { showDeleteRegisterDialog = false },
-                    onConfirm = {
-                        registerToDelete?.let {
-                            viewModel.deleteBmiInfoRegister(it)
-                            showDeleteRegisterDialog = false
-                        }
-                    })
-                if (showBmiCalculatorDialog && user != null) BmiCalculatorDialog(
-                    onDismissRequest = { showBmiCalculatorDialog = false },
-                    onSaved = { showBmiCalculatorDialog = false },
-                    user = user!!
-                )
-                if (showUserCreatorDialog) UserCreatorDialog(
-                    onDismiss = {
-                        user?.let {
-                            showUserCreatorDialog = false
-                        } ?: onError()
-                    },
-                    onConfirm = { newUser ->
-                        scope.launch {
-                            viewModel.setLoading()
-                            viewModel.saveUser(newUser)
-                            showUserCreatorDialog = false
-                            isLoading = false
-                        }
-                    },
-                    userToupdate = user
-                )
-                if (isLoading) CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                Column(
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    user?.let {
-                        BmiHistoricHeader(
-                            user = it,
-                            onClickEdit = { showUserCreatorDialog = true },
-                            modifier = Modifier.padding(
-                                dimensionResource(id = R.dimen.default_padding)
-                            )
-                        )
-                    }
-                    InfoCard(
-                        text = stringResource(id = R.string.bmi_historic_information),
+                userToupdate = user
+            )
+            if (isLoading) CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                user?.let {
+                    BmiHistoricHeader(
+                        user = it,
+                        onClickEdit = { showUserCreatorDialog = true },
                         modifier = Modifier.padding(
                             dimensionResource(id = R.dimen.default_padding)
                         )
                     )
-                    BmiInfoList(
-                        bmiInfoList = bmiInfoList,
-                        onLongClickListener = {
-                            registerToDelete = it
-                            showDeleteRegisterDialog = true
-                        },
-                        modifier = Modifier.heightIn(max = 500.dp)
-                    )
                 }
+                InfoCard(
+                    text = stringResource(id = R.string.bmi_historic_information),
+                    modifier = Modifier.padding(
+                        dimensionResource(id = R.dimen.default_padding)
+                    )
+                )
+                BmiInfoList(
+                    bmiInfoList = bmiInfoList,
+                    onLongClickListener = {
+                        registerToDelete = it
+                        showDeleteRegisterDialog = true
+                    },
+                    modifier = Modifier.heightIn(max = 500.dp)
+                )
             }
         }
     }
+
 }
 
 @Composable
@@ -493,7 +478,7 @@ private fun BmiHistoricScreenPreview() {
         }
         val viewModel: BmiHistoricViewModel = viewModel(factory = viewModelFactory)
         BmiHistoricScreen(
-            onDrawerItemClick = {},
+            onNavIconClick = {},
             onError = {},
             viewModel = viewModel,
         )
