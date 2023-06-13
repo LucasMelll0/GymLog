@@ -11,7 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.gymlog.navigation.AppNavHost
-import com.example.gymlog.ui.bmi.BmiHistoricScreen
+import com.example.gymlog.ui.auth.AuthenticationScreen
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
@@ -19,7 +19,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            GymLogApp()
+            GymLogTheme {
+                AuthenticationScreen()
+            }
         }
     }
 }

@@ -123,4 +123,10 @@
     <string name="bmi_historic_title">Histórico</string>
     <string name="bmi_historic_item_day_prefix">Dia %d</string>
     <string name="bmi_historic_item_weight_suffix">%.1f kg</string>
+
+    <!-- Auth -->
+    <string name="common_login">Entrar</string>
+    <string name="common_register">Registrar-se</string>
+    <string name="common_welcome">BEM-VINDO(A)!</string>
+    <string name="auth_welcome_text">Dê um salto em direção à melhor versão de si mesmo(a)!</string>
 </resources>
