@@ -6,15 +6,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,7 +28,7 @@ import com.example.gymlog.R
 import com.example.gymlog.ui.theme.GymLogTheme
 
 @Composable
-fun DefaultTextField(
+fun DefaultOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: @Composable () -> Unit,
@@ -50,7 +55,7 @@ fun DefaultTextField(
         isError = isError,
         supportingText = {
             if (isError) {
-                    Text(text = errorMessage)
+                Text(text = errorMessage)
             } else {
                 Column {
                     charLimit?.let {
@@ -76,9 +81,82 @@ fun DefaultTextField(
         )
 }
 
+@Composable
+fun DefaultTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    label: @Composable() (() -> Unit)? = null,
+    leadingIcon: @Composable() (() -> Unit)? = null,
+    maxLines: Int = 1,
+    isError: Boolean = false,
+    charLimit: Int? = null,
+    errorMessage: String = stringResource(id = R.string.common_text_field_error_message),
+    supportingText: String? = null,
+
+    ) {
+    TextField(
+        maxLines = maxLines,
+        modifier = modifier,
+        leadingIcon = leadingIcon,
+        label = label,
+        value = value,
+        isError = isError,
+        supportingText = {
+            if (isError) {
+                Text(text = errorMessage)
+            } else {
+                Column {
+                    charLimit?.let {
+                        Text(
+                            text = stringResource(
+                                R.string.default_text_field_char_limit_place_holder,
+                                value.length,
+                                charLimit
+                            )
+                        )
+                    }
+                    supportingText?.let {
+                        Text(text = it)
+                    }
+
+                }
+            }
+        },
+        onValueChange = onValueChange,
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            errorIndicatorColor = Color.Transparent,
+            cursorColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    )
+}
+
+@Preview(backgroundColor = 0xFFFFFFFF, showBackground = true)
+@Composable
+fun DefaultTextFieldPreview() {
+    GymLogTheme {
+        var value by remember { mutableStateOf("") }
+        DefaultTextField(
+            value = value,
+            onValueChange = { value = it },
+            modifier = Modifier.padding(16.dp),
+            label = { Text(text = "Teste") },
+            leadingIcon = { Icon(imageVector = Icons.Rounded.Email, contentDescription = null) },
+            supportingText = "Teste",
+            isError = true
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
-private fun DefaultTextFieldPreview() {
+private fun DefaultOutlinedTextFieldPreview() {
     var text by remember {
         mutableStateOf("")
     }
@@ -86,7 +164,7 @@ private fun DefaultTextFieldPreview() {
         mutableStateOf(false)
     }
     GymLogTheme {
-        DefaultTextField(
+        DefaultOutlinedTextField(
             value = text,
             onValueChange = {
                 text = it
