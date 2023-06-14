@@ -67,7 +67,7 @@ import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.DefaultTextButton
-import com.example.gymlog.ui.components.DefaultTextField
+import com.example.gymlog.ui.components.DefaultOutlinedTextField
 import com.example.gymlog.ui.components.FilterChipList
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
@@ -164,7 +164,7 @@ fun TrainingFormScreen(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    DefaultTextField(
+                    DefaultOutlinedTextField(
                         value = viewModel.trainingTitle,
                         onValueChange = { viewModel.setTrainingTitle(it) },
                         label = {
