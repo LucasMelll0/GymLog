@@ -64,6 +64,9 @@ dependencies {
     // LiveData
     implementation"androidx.compose.runtime:runtime-livedata:1.4.3"
 
+    // Flow
+    implementation "androidx.lifecycle:lifecycle-runtime-compose:2.6.1"
+
     // Navigation
     def nav_version = "2.5.3"
     def nav_animation_version = "0.30.1"
