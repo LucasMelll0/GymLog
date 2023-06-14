@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">GymLog</string>
+    <string name="web_client_id">541978872345-ge1o3gahhbsgsn2vr1if2mplj03evsea.apps.googleusercontent.com</string>
 
     <!-- Destinations Title -->
     <string name="home_destination">Inicio</string>
@@ -56,6 +57,7 @@
     <string name="common_years">anos</string>
     <string name="common_age_suffix">%d anos</string>
     <string name="common_open_navigation_drawer">Abrir gaveta de navegação</string>
+    <string name="common_visibility">Visibilidade</string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>

@@ -6,6 +6,7 @@ import com.example.gymlog.database.DATABASE_NAME
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.repository.UserRepositoryImpl
+import com.example.gymlog.ui.auth.LoginViewModel
 import com.example.gymlog.ui.bmi.viewmodel.BmiCalculatorViewModel
 import com.example.gymlog.ui.bmi.viewmodel.BmiHistoricViewModel
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
@@ -74,5 +75,11 @@ val bmiModule = module {
             userRepository = get<UserRepositoryImpl>(),
             bmiRepository = get<BmiInfoRepositoryImpl>()
         )
+    }
+}
+
+val authModule = module {
+    viewModel {
+        LoginViewModel()
     }
 }

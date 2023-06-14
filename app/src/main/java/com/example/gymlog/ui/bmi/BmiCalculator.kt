@@ -48,7 +48,7 @@ import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.User
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
 import com.example.gymlog.ui.bmi.viewmodel.BmiCalculatorViewModel
-import com.example.gymlog.ui.components.DefaultTextField
+import com.example.gymlog.ui.components.DefaultOutlinedTextField
 import com.example.gymlog.ui.components.TextWithIcon
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.ui.theme.md_theme_dark_onPrimary
@@ -92,7 +92,7 @@ fun BmiCalculatorDialog(
                     text = stringResource(id = R.string.bmi_calculator_title),
                     style = MaterialTheme.typography.titleLarge
                 )
-                DefaultTextField(
+                DefaultOutlinedTextField(
                     value = weight,
                     onValueChange = { weight = it },
                     label = { Text(text = stringResource(id = R.string.bmi_calculator_weight_label)) },

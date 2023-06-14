@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.gymlog.navigation.AppNavHost
 import com.example.gymlog.ui.auth.AuthenticationScreen
+import com.example.gymlog.ui.auth.LoginScreen
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
@@ -20,7 +21,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             GymLogTheme {
-                AuthenticationScreen()
+                LoginScreen()
             }
         }
     }

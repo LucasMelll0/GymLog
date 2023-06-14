@@ -1,6 +1,7 @@
 package com.example.gymlog
 
 import android.app.Application
+import com.example.gymlog.di.authModule
 import com.example.gymlog.di.bmiModule
 import com.example.gymlog.di.formModule
 import com.example.gymlog.di.homeModule
@@ -24,7 +25,8 @@ class Application : Application() {
                 homeModule,
                 formModule,
                 logModule,
-                bmiModule
+                bmiModule,
+                authModule
             )
         }
     }

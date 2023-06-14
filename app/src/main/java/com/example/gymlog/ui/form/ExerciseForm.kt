@@ -40,7 +40,7 @@ import androidx.core.text.isDigitsOnly
 import com.example.gymlog.R
 import com.example.gymlog.extensions.isZeroOrEmpty
 import com.example.gymlog.model.Exercise
-import com.example.gymlog.ui.components.DefaultTextField
+import com.example.gymlog.ui.components.DefaultOutlinedTextField
 import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.TrainingTypes
@@ -97,7 +97,7 @@ fun ExerciseForm(
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding))
                 )
-                DefaultTextField(
+                DefaultOutlinedTextField(
                     value = title,
                     onValueChange = { newTitle -> title = newTitle },
                     label = {
@@ -117,7 +117,7 @@ fun ExerciseForm(
                     horizontalArrangement = Arrangement.SpaceAround,
                 ) {
 
-                    DefaultTextField(
+                    DefaultOutlinedTextField(
                         value = series,
                         onValueChange = {
                             if (it.isDigitsOnly()) {
@@ -137,7 +137,7 @@ fun ExerciseForm(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
 
-                    DefaultTextField(
+                    DefaultOutlinedTextField(
                         value = repetitions,
                         onValueChange = {
                             if (it.isDigitsOnly()) {
@@ -157,7 +157,7 @@ fun ExerciseForm(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
                 }
-                DefaultTextField(
+                DefaultOutlinedTextField(
                     value = observations,
                     onValueChange = { observations = it },
                     label = {
