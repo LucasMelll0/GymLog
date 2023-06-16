@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
@@ -77,6 +79,7 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly,
@@ -85,7 +88,12 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.spacedBy(
                 dimensionResource(id = R.dimen.default_padding)
             ),
-            modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.extra_large_padding))
+            modifier = Modifier.padding(
+                horizontal = dimensionResource(id = R.dimen.extra_large_padding),
+                vertical = dimensionResource(
+                    id = R.dimen.large_padding
+                )
+            )
         ) {
             DefaultTextField(
                 modifier = Modifier.fillMaxWidth(),
@@ -172,7 +180,9 @@ fun RegisterScreen(
                 )
             }
         }
-        GoogleSignInButton(onClick = onGoogleSignInClick)
+        GoogleSignInButton(
+            onClick = onGoogleSignInClick
+        )
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = stringResource(id = R.string.auth_have_account_ask),
@@ -190,7 +200,10 @@ fun RegisterScreen(
 @Composable
 fun RegisterScreenPreview() {
     GymLogTheme {
-        RegisterScreen(onClickLogin = {}, onGoogleSignInClick = {}, onConventionalRegisterClick = {})
+        RegisterScreen(
+            onClickLogin = {},
+            onGoogleSignInClick = {},
+            onConventionalRegisterClick = {})
     }
 }
 
