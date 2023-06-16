@@ -1,4 +1,4 @@
-package com.example.gymlog.ui.auth
+package com.example.gymlog.ui.auth.data
 
 data class SignInResult(
     val data: UserData?,

@@ -93,7 +93,7 @@ fun DrawerBodyItem(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()) {
             Text(
-                text = stringResource(id = destination.title),
+                text = destination.title?.let { stringResource(id = it) } ?: "",
                 style = MaterialTheme.typography.titleMedium,
                 color = contentColor,
                 modifier = Modifier

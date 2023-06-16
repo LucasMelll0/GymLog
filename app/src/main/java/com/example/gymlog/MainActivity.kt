@@ -1,5 +1,6 @@
 package com.example.gymlog
 
+import AppNavHost
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,9 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.example.gymlog.navigation.AppNavHost
-import com.example.gymlog.ui.auth.AuthenticationScreen
-import com.example.gymlog.ui.auth.LoginScreen
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
@@ -21,7 +19,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             GymLogTheme {
-                LoginScreen()
+                GymLogApp()
             }
         }
     }

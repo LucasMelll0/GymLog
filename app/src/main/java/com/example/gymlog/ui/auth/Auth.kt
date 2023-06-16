@@ -29,7 +29,7 @@ import com.example.gymlog.R
 import com.example.gymlog.ui.theme.GymLogTheme
 
 @Composable
-fun AuthenticationScreen() {
+fun AuthenticationScreen(onClickLogin: () -> Unit, onClickRegister: () -> Unit) {
     Image(
         painter = painterResource(id = R.drawable.welcome_background),
         contentDescription = null,
@@ -76,7 +76,7 @@ fun AuthenticationScreen() {
                 ),
             verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.large_padding))
         ) {
-            Button(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = onClickLogin, modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = stringResource(id = R.string.common_login),
                     style = MaterialTheme.typography.titleMedium,
@@ -88,7 +88,7 @@ fun AuthenticationScreen() {
                 )
             }
             OutlinedButton(
-                onClick = { /*TODO*/ },
+                onClick = onClickRegister,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
@@ -110,6 +110,6 @@ fun AuthenticationScreen() {
 @Composable
 fun AuthenticationScreenPreview() {
     GymLogTheme {
-        AuthenticationScreen()
+        AuthenticationScreen(onClickLogin = {}, onClickRegister = {})
     }
 }

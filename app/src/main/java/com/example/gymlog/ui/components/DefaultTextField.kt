@@ -101,8 +101,10 @@ fun DefaultTextField(
     errorMessage: String = stringResource(id = R.string.common_text_field_error_message),
     supportingText: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    singleLine: Boolean = false,
 ) {
     TextField(
+        singleLine = singleLine,
         modifier = modifier,
         leadingIcon = leadingIcon,
         label = label,
@@ -245,6 +247,7 @@ fun DefaultTextFieldPreview() {
             leadingIcon = { Icon(imageVector = Icons.Rounded.Email, contentDescription = null) },
             isError = true,
             supportingText = "Teste",
+            singleLine = false,
         )
     }
 }

@@ -7,6 +7,8 @@
     <string name="form_destination">Novo Treino</string>
     <string name="log_destination">Detalhes</string>
     <string name="bmi_destination">Indice de Massa Corporal</string>
+    <string name="login_destination">Entrar</string>
+    <string name="register_destination">Registrar</string>
 
     <!-- Exercise Item -->
     <string name="exercise_repetions_place_holder">%d séries de\n%d repetições</string>
@@ -130,5 +132,15 @@
     <string name="common_login">Entrar</string>
     <string name="common_register">Registrar-se</string>
     <string name="common_welcome">BEM-VINDO(A)!</string>
+    <string name="common_email">Email</string>
+    <string name="common_password">Senha</string>
+    <string name="common_user_name">Nome de usuário</string>
     <string name="auth_welcome_text">Dê um salto em direção à melhor versão de si mesmo(a)!</string>
+    <string name="auth_invalid_email_message">Email invalido!</string>
+    <string name="auth_password_confirmation">Confirme a senha</string>
+    <string name="auth_no_account_ask">Não possui uma conta?</string>
+    <string name="auth_have_account_ask">Já possui uma conta?</string>
+    <string name="auth_passwords_do_not_match">As senhas não coincidem!</string>
+    <string name="auth_forgot_password_ask">Esqueceu a senha?</string>
+    <string name="auth_invalid_credentials_message">Verifique suas credenciais</string>
 </resources>
