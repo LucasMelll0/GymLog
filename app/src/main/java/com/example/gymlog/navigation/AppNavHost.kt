@@ -15,7 +15,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -86,6 +89,7 @@ fun AppNavHost(
             )
         }
     }
+    var currentUserdata by remember { mutableStateOf(authUiClient.getSignedInUser()) }
 
     LaunchedEffect(key1 = signInState.signInError) {
         signInState.signInError?.let { error ->
@@ -98,6 +102,7 @@ fun AppNavHost(
     }
     LaunchedEffect(key1 = signInState.isSignInSuccessful) {
         if (signInState.isSignInSuccessful) {
+            currentUserdata = authUiClient.getSignedInUser()
             navController.navigateSingleTopTo(Home.route)
         }
     }
@@ -107,11 +112,6 @@ fun AppNavHost(
             scope.launch {
                 drawerState.close()
             }
-        }
-    }
-    if (currentRoute == Home.route) {
-        BackPressHandler {
-            currentActivity.finish()
         }
     }
     AppNavigationDrawer(
@@ -124,7 +124,13 @@ fun AppNavHost(
                 }
             }
         },
-        drawerState = drawerState
+        drawerState = drawerState,
+        onClickExit = {
+            authUiClient.signOutUser()
+            authViewModel.resetState()
+            navController.navigateInclusive(Auth.route)
+        },
+        user = currentUserdata
     ) {
         val startDestination = authViewModel.currentUser?.let { Home.route } ?: Auth.route
         AnimatedNavHost(
@@ -159,7 +165,7 @@ fun AppNavHost(
             composable(Login.route) {
                 LoginScreen(
                     onGoogleSignInClick = { signInWithGoogle() },
-                    onClickRegister = { navController.navigateSingleTopTo(Register.route) },
+                    onClickRegister = { navController.navigateInclusive(Home.route) },
                     onConventionalSignInClick = {
                         scope.launch {
                             val signInResult = authUiClient.signInWithEmailAndPassword(it)
@@ -266,3 +272,7 @@ fun NavHostController.navigateToTrainingForm(trainingId: String?) =
 
 private fun NavHostController.navigateToTrainingLog(trainingId: String) =
     this.navigateSingleTopTo("${Log.route}/$trainingId")
+
+private fun NavHostController.navigateInclusive(route: String) = this.navigate(route) {
+    popUpTo(0)
+}

@@ -138,4 +138,8 @@ class AuthUiClient(
         )
     }
 
+    fun signOutUser() {
+        auth.signOut()
+    }
+
 }
