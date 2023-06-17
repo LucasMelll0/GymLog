@@ -9,6 +9,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -18,9 +20,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -38,6 +42,7 @@ import com.example.gymlog.ui.auth.RegisterScreen
 import com.example.gymlog.ui.auth.viewmodel.AuthViewModel
 import com.example.gymlog.ui.bmi.BmiHistoricScreen
 import com.example.gymlog.ui.components.AppNavigationDrawer
+import com.example.gymlog.ui.components.LoadingDialog
 import com.example.gymlog.ui.form.TrainingFormScreen
 import com.example.gymlog.ui.home.HomeScreen
 import com.example.gymlog.ui.log.TrainingLogScreen
@@ -55,6 +60,7 @@ fun AppNavHost(
     modifier: Modifier = Modifier
 ) {
     val scope = rememberCoroutineScope()
+    var isLoading: Boolean by rememberSaveable { mutableStateOf(false) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val currentActivity = LocalContext.current as Activity
@@ -69,24 +75,31 @@ fun AppNavHost(
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult(),
         onResult = { result ->
+            isLoading = true
             if (result.resultCode == Activity.RESULT_OK) {
                 scope.launch {
                     val signInResult = authUiClient.signInWithIntent(
-                        intent = result.data ?: return@launch
+                        intent = result.data ?: run {
+                            isLoading = false
+                            return@launch
+                        }
                     )
                     authViewModel.onSignInResult(signInResult)
                 }
             }
+            isLoading = false
         }
     )
     val signInWithGoogle = {
         scope.launch {
+            isLoading = true
             val signInIntentSender = authUiClient.signInWithGoogle()
             launcher.launch(
                 IntentSenderRequest.Builder(
                     signInIntentSender ?: return@launch
                 ).build()
             )
+            isLoading = false
         }
     }
     var currentUserdata by remember { mutableStateOf(authUiClient.getSignedInUser()) }
@@ -126,12 +139,23 @@ fun AppNavHost(
         },
         drawerState = drawerState,
         onClickExit = {
+            isLoading = true
             authUiClient.signOutUser()
             authViewModel.resetState()
+            isLoading = false
             navController.navigateInclusive(Auth.route)
         },
         user = currentUserdata
     ) {
+        if (isLoading) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .zIndex(1f)
+            ) {
+                LoadingDialog()
+            }
+        }
         val startDestination = authViewModel.currentUser?.let { Home.route } ?: Auth.route
         AnimatedNavHost(
             navController = navController,
@@ -168,8 +192,10 @@ fun AppNavHost(
                     onClickRegister = { navController.navigateInclusive(Home.route) },
                     onConventionalSignInClick = {
                         scope.launch {
+                            isLoading = true
                             val signInResult = authUiClient.signInWithEmailAndPassword(it)
                             authViewModel.onSignInResult(signInResult)
+                            isLoading = false
                         }
                     }
                 )
@@ -188,8 +214,10 @@ fun AppNavHost(
                     onGoogleSignInClick = { signInWithGoogle() },
                     onConventionalRegisterClick = {
                         scope.launch {
+                            isLoading = true
                             val signInResult = authUiClient.registerWithEmailAndPassword(it)
                             authViewModel.onSignInResult(signInResult)
+                            isLoading = false
                         }
                     }
                 )
