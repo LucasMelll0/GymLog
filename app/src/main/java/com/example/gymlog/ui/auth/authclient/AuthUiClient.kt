@@ -35,7 +35,7 @@ class AuthUiClient(
             val profileUpdates = userProfileChangeRequest {
                 displayName = userCredentials.userName
             }
-            userData?.updateProfile(profileUpdates)
+            userData?.updateProfile(profileUpdates)?.await()
             SignInResult(
                 data = userData?.run {
                     UserData(
