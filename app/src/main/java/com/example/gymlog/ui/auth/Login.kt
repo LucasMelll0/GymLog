@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
@@ -21,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,10 +45,7 @@ fun LoginScreen(
     onClickRegister: () -> Unit,
     onConventionalSignInClick: (UserCredentials) -> Unit
 ) {
-    rememberCoroutineScope()
     val context = LocalContext.current
-
-
     var email: String by rememberSaveable { mutableStateOf("") }
     var password: String by rememberSaveable { mutableStateOf("") }
     var emailHasError: Boolean by remember { mutableStateOf(false) }
@@ -59,6 +57,7 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly
@@ -68,7 +67,12 @@ fun LoginScreen(
             verticalArrangement = Arrangement.spacedBy(
                 dimensionResource(id = R.dimen.default_padding)
             ),
-            modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.extra_large_padding))
+            modifier = Modifier.padding(
+                horizontal = dimensionResource(id = R.dimen.extra_large_padding),
+                vertical = dimensionResource(
+                    id = R.dimen.large_padding
+                )
+            )
         ) {
             DefaultTextField(
                 singleLine = true,
