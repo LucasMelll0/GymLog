@@ -7,14 +7,14 @@ import com.example.gymlog.R
 import com.example.gymlog.ui.auth.data.SignInResult
 import com.example.gymlog.ui.auth.data.UserCredentials
 import com.example.gymlog.ui.auth.data.UserData
+import com.example.gymlog.utils.Response
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.BeginSignInRequest.GoogleIdTokenRequestOptions
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
-import java.lang.Exception
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.ktx.userProfileChangeRequest
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.CancellationException
 
@@ -142,4 +142,13 @@ class AuthUiClient(
         auth.signOut()
     }
 
+    suspend fun sendPasswordResetEmail(email: String): Response {
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            Response(isSuccess = true)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Response(isSuccess = false, errorMessage = e.message)
+        }
+    }
 }

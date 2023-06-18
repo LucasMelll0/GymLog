@@ -36,9 +36,9 @@ import com.example.gymlog.navigation.Log
 import com.example.gymlog.navigation.Login
 import com.example.gymlog.navigation.Register
 import com.example.gymlog.ui.auth.AuthenticationScreen
-import com.example.gymlog.ui.auth.authclient.AuthUiClient
 import com.example.gymlog.ui.auth.LoginScreen
 import com.example.gymlog.ui.auth.RegisterScreen
+import com.example.gymlog.ui.auth.authclient.AuthUiClient
 import com.example.gymlog.ui.auth.viewmodel.AuthViewModel
 import com.example.gymlog.ui.bmi.BmiHistoricScreen
 import com.example.gymlog.ui.components.AppNavigationDrawer
@@ -195,6 +195,28 @@ fun AppNavHost(
                             isLoading = true
                             val signInResult = authUiClient.signInWithEmailAndPassword(it)
                             authViewModel.onSignInResult(signInResult)
+                            isLoading = false
+                        }
+                    },
+                    onSendResetPasswordEmailClick = {
+                        scope.launch {
+                            isLoading = true
+                            val response = authUiClient.sendPasswordResetEmail(it)
+                            if (response.isSuccess) {
+                                Toast.makeText(
+                                    currentActivity,
+                                    "Enviamos um link para a redefinição de senha para seu email!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            } else {
+                                response.errorMessage?.let {
+                                    Toast.makeText(
+                                        currentActivity,
+                                        it,
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            }
                             isLoading = false
                         }
                     }
