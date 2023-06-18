@@ -58,8 +58,7 @@ fun DrawerBody(
 ) {
     val bigCornerSize = dimensionResource(id = R.dimen.large_corner_size)
     val widthFraction by animateFloatAsState(
-        if (isOpen) 0.8f else 0f,
-        animationSpec = tween(durationMillis = 150)
+        if (isOpen) 0.8f else 0f, animationSpec = tween(durationMillis = 150)
     )
     Column(
         modifier
@@ -70,14 +69,18 @@ fun DrawerBody(
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))) {
-            user?.let {
+            Text(
+                text = stringResource(id = R.string.app_name),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            user?.userName?.let { userName ->
                 Text(
-                    text = stringResource(id = R.string.app_name),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "Seja bem vindo, ${user.userName}!",
+                    text = stringResource(
+                        id = R.string.drawer_welcome_message, userName.split(" ").joinToString(
+                                separator = " ",
+                                transform = { it.replaceFirstChar { firstLetter -> firstLetter.uppercase() } })
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -89,9 +92,7 @@ fun DrawerBody(
                 items(items) {
                     val isCurrentDestination = it.route == currentDestinationRoute
                     DrawerBodyItem(
-                        destination = it,
-                        onItemClick = onItemClick,
-                        isCurrentDestination
+                        destination = it, onItemClick = onItemClick, isCurrentDestination
                     )
                 }
             }
@@ -122,9 +123,7 @@ fun DrawerBody(
 
 @Composable
 fun DrawerBodyItem(
-    destination: Destination,
-    onItemClick: (Destination) -> Unit,
-    isCurrentDestination: Boolean
+    destination: Destination, onItemClick: (Destination) -> Unit, isCurrentDestination: Boolean
 ) {
     val containerColor =
         if (isCurrentDestination) MaterialTheme.colorScheme.primary.copy(0.8f) else Color.Transparent
@@ -135,12 +134,9 @@ fun DrawerBodyItem(
             .padding(vertical = dimensionResource(id = R.dimen.default_padding))
             .height(dimensionResource(id = R.dimen.default_drawer_item_height))
             .fillMaxWidth()
-            .clickable { onItemClick(destination) },
-        colors = CardDefaults.cardColors(
-            containerColor = containerColor,
-            contentColor = contentColor
-        ),
-        shape = MaterialTheme.shapes.large
+            .clickable { onItemClick(destination) }, colors = CardDefaults.cardColors(
+            containerColor = containerColor, contentColor = contentColor
+        ), shape = MaterialTheme.shapes.large
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()) {
             destination.icon?.let {
@@ -150,13 +146,10 @@ fun DrawerBodyItem(
                     modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding))
                 )
             }
-            Text(
-                text = destination.title?.let { stringResource(id = it) } ?: "",
+            Text(text = destination.title?.let { stringResource(id = it) } ?: "",
                 style = MaterialTheme.typography.titleMedium,
                 color = contentColor,
-                modifier = Modifier
-                    .padding(dimensionResource(id = R.dimen.default_padding))
-            )
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)))
         }
     }
 }
@@ -173,8 +166,7 @@ fun AppNavigationDrawer(
 ) {
     val destinations = listOf(Home, Bmi)
     ModalNavigationDrawer(
-        gesturesEnabled = gesturesEnabled,
-        drawerContent = {
+        gesturesEnabled = gesturesEnabled, drawerContent = {
             DrawerBody(
                 items = destinations,
                 onItemClick = onItemClick,
@@ -183,11 +175,7 @@ fun AppNavigationDrawer(
                 onClickExit = onClickExit,
                 user = user
             )
-        },
-        content = content,
-        drawerState = drawerState,
-        modifier = Modifier
-            .fillMaxHeight()
+        }, content = content, drawerState = drawerState, modifier = Modifier.fillMaxHeight()
     )
 }
 

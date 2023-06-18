@@ -128,6 +128,9 @@
     <string name="bmi_historic_item_day_prefix">Dia %d</string>
     <string name="bmi_historic_item_weight_suffix">%.1f kg</string>
 
+    <!-- NavigationDrawer -->
+    <string name="drawer_welcome_message">Seja bem vindo(a), %s</string>
+
     <!-- Auth -->
     <string name="common_login">Entrar</string>
     <string name="common_register">Registrar-se</string>
