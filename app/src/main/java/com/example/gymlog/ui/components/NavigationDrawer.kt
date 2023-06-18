@@ -1,8 +1,8 @@
 package com.example.gymlog.ui.components
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,64 +56,63 @@ fun DrawerBody(
     user: UserData?
 ) {
     val bigCornerSize = dimensionResource(id = R.dimen.large_corner_size)
-    val widthFraction by animateFloatAsState(
-        if (isOpen) 0.8f else 0f, animationSpec = tween(durationMillis = 150)
-    )
-    Column(
-        modifier
-            .fillMaxHeight()
-            .clip(RoundedCornerShape(topEnd = bigCornerSize, bottomEnd = bigCornerSize))
-            .background(MaterialTheme.colorScheme.surface)
-            .fillMaxWidth(widthFraction),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))) {
-            Text(
-                text = stringResource(id = R.string.app_name),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            user?.userName?.let { userName ->
+    AnimatedVisibility(visible = isOpen, enter = slideInHorizontally { -it/2 }) {
+        Column(
+            modifier
+                .fillMaxHeight()
+                .clip(RoundedCornerShape(topEnd = bigCornerSize, bottomEnd = bigCornerSize))
+                .background(MaterialTheme.colorScheme.surface)
+                .fillMaxWidth(0.8f),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))) {
                 Text(
-                    text = stringResource(
-                        id = R.string.drawer_welcome_message, userName.split(" ").joinToString(
-                                separator = " ",
-                                transform = { it.replaceFirstChar { firstLetter -> firstLetter.uppercase() } })
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
+                    text = stringResource(id = R.string.app_name),
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
-            }
-            Divider()
-            Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
-            LazyColumn() {
-                items(items) {
-                    val isCurrentDestination = it.route == currentDestinationRoute
-                    DrawerBodyItem(
-                        destination = it, onItemClick = onItemClick, isCurrentDestination
+                user?.userName?.let { userName ->
+                    Text(
+                        text = stringResource(
+                            id = R.string.drawer_welcome_message, userName.split(" ").joinToString(
+                                separator = " ",
+                                transform = { it.replaceFirstChar { firstLetter -> firstLetter.uppercase() } })
+                        ),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+                    Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
+                }
+                Divider()
+                Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
+                LazyColumn() {
+                    items(items) {
+                        val isCurrentDestination = it.route == currentDestinationRoute
+                        DrawerBodyItem(
+                            destination = it, onItemClick = onItemClick, isCurrentDestination
+                        )
+                    }
                 }
             }
-        }
-        TextButton(
-            onClick = onClickExit,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = dimensionResource(id = R.dimen.default_padding)),
+            TextButton(
+                onClick = onClickExit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = dimensionResource(id = R.dimen.default_padding)),
 
-            ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.ExitToApp,
-                    contentDescription = null,
-                    modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.default_padding))
-                )
-                Text(text = "Sair", style = MaterialTheme.typography.titleMedium)
+                ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.ExitToApp,
+                        contentDescription = null,
+                        modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.default_padding))
+                    )
+                    Text(text = "Sair", style = MaterialTheme.typography.titleMedium)
+                }
             }
         }
     }
