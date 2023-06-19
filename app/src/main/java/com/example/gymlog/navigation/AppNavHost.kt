@@ -28,6 +28,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.gymlog.R
 import com.example.gymlog.navigation.Auth
 import com.example.gymlog.navigation.Bmi
 import com.example.gymlog.navigation.Form
@@ -205,7 +206,7 @@ fun AppNavHost(
                             if (response.isSuccess) {
                                 Toast.makeText(
                                     currentActivity,
-                                    "Enviamos um link para a redefinição de senha para seu email!",
+                                    currentActivity.getString(R.string.auth_send_password_reset_email_success_message),
                                     Toast.LENGTH_LONG
                                 ).show()
                             } else {

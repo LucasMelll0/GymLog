@@ -148,4 +148,5 @@
     <string name="auth_forgot_password_ask">Esqueceu a senha?</string>
     <string name="auth_invalid_credentials_message">Verifique suas credenciais</string>
     <string name="auth_send_password_reset_email_bottom_sheet_message">Digite o endereço de email vinculado a sua conta para enviarmos um email com um link para a recuperação de senha:</string>
+    <string name="auth_send_password_reset_email_success_message">"Enviamos um link para a redefinição de senha para seu email!"</string>
 </resources>
