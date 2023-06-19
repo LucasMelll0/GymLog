@@ -24,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -43,6 +44,7 @@ import com.example.gymlog.ui.auth.authclient.AuthUiClient
 import com.example.gymlog.ui.auth.viewmodel.AuthViewModel
 import com.example.gymlog.ui.bmi.BmiHistoricScreen
 import com.example.gymlog.ui.components.AppNavigationDrawer
+import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.LoadingDialog
 import com.example.gymlog.ui.form.TrainingFormScreen
 import com.example.gymlog.ui.home.HomeScreen
@@ -62,6 +64,7 @@ fun AppNavHost(
 ) {
     val scope = rememberCoroutineScope()
     var isLoading: Boolean by rememberSaveable { mutableStateOf(false) }
+    var showExitConfirmationDialog: Boolean by remember { mutableStateOf(false) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val currentActivity = LocalContext.current as Activity
@@ -140,22 +143,32 @@ fun AppNavHost(
         },
         drawerState = drawerState,
         onClickExit = {
-            isLoading = true
-            authUiClient.signOutUser()
-            authViewModel.resetState()
-            isLoading = false
-            navController.navigateInclusive(Auth.route)
+            scope.launch {
+                drawerState.close()
+                showExitConfirmationDialog = true
+            }
         },
         user = currentUserdata
     ) {
-        if (isLoading) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .zIndex(1f)
-            ) {
-                LoadingDialog()
-            }
+        Box(
+            Modifier
+                .fillMaxSize()
+                .zIndex(1f)
+        ) {
+            if (isLoading) LoadingDialog()
+            if (showExitConfirmationDialog) DefaultAlertDialog(
+                title = stringResource(id = R.string.common_dialog_title),
+                text = stringResource(id = R.string.auth_exit_confirmation_dialog_text),
+                onDismissRequest = { showExitConfirmationDialog = false },
+                onConfirm = {
+                    isLoading = true
+                    authUiClient.signOutUser()
+                    authViewModel.resetState()
+                    isLoading = false
+                    showExitConfirmationDialog = false
+                    navController.navigateInclusive(Auth.route)
+                }
+            )
         }
         val startDestination = authViewModel.currentUser?.let { Home.route } ?: Auth.route
         AnimatedNavHost(
