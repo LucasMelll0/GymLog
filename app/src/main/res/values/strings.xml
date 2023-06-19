@@ -130,6 +130,7 @@
 
     <!-- NavigationDrawer -->
     <string name="drawer_welcome_message">Seja bem vindo(a), %s</string>
+    <string name="drawer_exit_button">Sair</string>
 
     <!-- Auth -->
     <string name="common_login">Entrar</string>

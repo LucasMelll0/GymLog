@@ -56,7 +56,7 @@ fun DrawerBody(
     user: UserData?
 ) {
     val bigCornerSize = dimensionResource(id = R.dimen.large_corner_size)
-    AnimatedVisibility(visible = isOpen, enter = slideInHorizontally { -it/2 }) {
+    AnimatedVisibility(visible = isOpen, enter = slideInHorizontally { -it / 2 }) {
         Column(
             modifier
                 .fillMaxHeight()
@@ -111,7 +111,10 @@ fun DrawerBody(
                         contentDescription = null,
                         modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.default_padding))
                     )
-                    Text(text = "Sair", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = stringResource(id = R.string.drawer_exit_button),
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
             }
         }
