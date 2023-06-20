@@ -42,7 +42,7 @@ import com.example.gymlog.R
 import com.example.gymlog.navigation.Bmi
 import com.example.gymlog.navigation.Destination
 import com.example.gymlog.navigation.Home
-import com.example.gymlog.ui.auth.data.UserData
+import com.example.gymlog.ui.auth.authclient.UserData
 import com.example.gymlog.ui.theme.GymLogTheme
 
 @Composable

@@ -1,4 +1,4 @@
-package com.example.gymlog.ui.auth.data
+package com.example.gymlog.ui.auth.authclient
 
 data class SignInState(
     val isSignInSuccessful: Boolean = false,

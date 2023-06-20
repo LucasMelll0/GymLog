@@ -4,9 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import com.example.gymlog.R
-import com.example.gymlog.ui.auth.data.SignInResult
-import com.example.gymlog.ui.auth.data.UserCredentials
-import com.example.gymlog.ui.auth.data.UserData
 import com.example.gymlog.utils.Response
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.BeginSignInRequest.GoogleIdTokenRequestOptions

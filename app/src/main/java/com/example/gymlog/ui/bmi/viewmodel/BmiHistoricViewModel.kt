@@ -8,6 +8,8 @@ import com.example.gymlog.model.User
 import com.example.gymlog.repository.BmiInfoRepository
 import com.example.gymlog.repository.UserRepository
 import com.example.gymlog.utils.Resource
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -24,19 +26,29 @@ class BmiHistoricViewModel(
 
     val getHistoric = bmiRepository.getAll()
 
+    private val currentUser = Firebase.auth.currentUser
+
     fun setLoading() {
         _userResource.value = Resource.Loading
     }
 
-    suspend fun saveUser(user: User) = userRepository.saveUser(user)
+    suspend fun saveUser(user: User) {
+        currentUser?.let {
+            userRepository.saveUser(user.copy(id = it.uid))
+        }
+    }
 
-    fun getUser() {
+    suspend fun sync() {
+        currentUser?.let {
+            userRepository.sync(currentUser.uid)
+        }
+    }
+
+    suspend fun getUser() {
         if (_userResource.value !is Resource.Success) {
             try {
-                viewModelScope.launch {
-                    userRepository.getUser().collect { user ->
-                        _userResource.value = Resource.Success(user)
-                    }
+                userRepository.getUser().collect { user ->
+                    _userResource.value = Resource.Success(user)
                 }
             } catch (e: Exception) {
                 _userResource.value = Resource.Error("error on get user")
@@ -48,7 +60,7 @@ class BmiHistoricViewModel(
         viewModelScope.launch {
             try {
                 bmiRepository.delete(bmiInfo)
-            }catch (e: Exception) {
+            } catch (e: Exception) {
                 Log.w("Error", "deleteBmiInfoRegister: ", e)
             }
         }

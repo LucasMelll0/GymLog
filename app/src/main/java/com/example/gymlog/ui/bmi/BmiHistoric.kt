@@ -24,7 +24,6 @@ import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +33,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +56,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
 import com.example.gymlog.data.AppDataBase_Impl
+import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.User
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
@@ -63,6 +64,7 @@ import com.example.gymlog.repository.UserRepositoryImpl
 import com.example.gymlog.ui.bmi.viewmodel.BmiHistoricViewModel
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.InfoCard
+import com.example.gymlog.ui.components.LoadingDialog
 import com.example.gymlog.ui.components.TextWithIcon
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.ui.theme.md_theme_dark_onPrimary
@@ -86,7 +88,6 @@ fun BmiHistoricScreen(
     onNavIconClick: () -> Unit
 ) {
     var isLoading: Boolean by remember { mutableStateOf(false) }
-    viewModel.getUser()
     val scope = rememberCoroutineScope()
     val userResource = viewModel.userResource.collectAsState(Resource.Loading)
     var user: User? by remember { mutableStateOf(null) }
@@ -94,6 +95,12 @@ fun BmiHistoricScreen(
     var showUserCreatorDialog: Boolean by rememberSaveable { mutableStateOf(false) }
     var showBmiCalculatorDialog: Boolean by rememberSaveable { mutableStateOf(false) }
     var showDeleteRegisterDialog: Boolean by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        isLoading = true
+        viewModel.sync()
+        viewModel.getUser()
+        isLoading = false
+    }
     when (userResource.value) {
         is Resource.Loading -> {
             isLoading = true
@@ -117,8 +124,7 @@ fun BmiHistoricScreen(
             onClickCalculate = { showBmiCalculatorDialog = true })
     }) { paddingValues ->
         Box {
-            if (showDeleteRegisterDialog) DefaultAlertDialog(title = stringResource(id = R.string.bmi_historic_delete_register_dialog_title),
-                text = stringResource(id = R.string.bmi_historic_delete_register_dialog_text),
+            if (showDeleteRegisterDialog) DeleteHistoricRegisterConfirmationDialog(
                 onDismissRequest = { showDeleteRegisterDialog = false },
                 onConfirm = {
                     registerToDelete?.let {
@@ -126,9 +132,10 @@ fun BmiHistoricScreen(
                         showDeleteRegisterDialog = false
                     }
                 })
-            if (showBmiCalculatorDialog && user != null) BmiCalculatorDialog(onDismissRequest = {
-                showBmiCalculatorDialog = false
-            },
+            if (showBmiCalculatorDialog && user != null) BmiCalculatorDialog(
+                onDismissRequest = {
+                    showBmiCalculatorDialog = false
+                },
                 onSaved = { showBmiCalculatorDialog = false },
                 user = user!!
             )
@@ -140,12 +147,12 @@ fun BmiHistoricScreen(
                 scope.launch {
                     viewModel.setLoading()
                     viewModel.saveUser(newUser)
-                    showUserCreatorDialog = false
                     isLoading = false
                 }
-            }, userToupdate = user
+                showUserCreatorDialog = false
+            }, userToUpdate = user
             )
-            if (isLoading) CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            if (isLoading) LoadingDialog()
             Column(
                 modifier = Modifier
                     .padding(paddingValues)
@@ -176,6 +183,16 @@ fun BmiHistoricScreen(
         }
     }
 
+}
+
+@Composable
+fun DeleteHistoricRegisterConfirmationDialog(onDismissRequest: () -> Unit, onConfirm: () -> Unit) {
+    DefaultAlertDialog(
+        title = stringResource(id = R.string.bmi_historic_delete_register_dialog_title),
+        text = stringResource(id = R.string.bmi_historic_delete_register_dialog_text),
+        onDismissRequest = onDismissRequest,
+        onConfirm = onConfirm
+    )
 }
 
 @Composable
@@ -212,7 +229,8 @@ fun BmiHistoricHeader(user: User, onClickEdit: () -> Unit, modifier: Modifier = 
                     .weight(0.8f)
                     .padding(dimensionResource(id = R.dimen.default_padding))
             ) {
-                val gender = stringResource(id = user.gender.stringRes())
+                val gender =
+                    stringResource(id = user.gender?.stringRes() ?: R.string.common_error_message)
                 ProvideTextStyle(value = MaterialTheme.typography.titleLarge) {
                     Text(text = gender)
                     Text(text = stringResource(id = R.string.common_age_suffix, user.age))
@@ -449,7 +467,8 @@ private fun BmiHistoricScreenPreview() {
     GymLogTheme {
         val viewModelFactory = object : ViewModelProvider.NewInstanceFactory() {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val userRepositoryImpl = UserRepositoryImpl(AppDataBase_Impl().userDao())
+                val userRepositoryImpl =
+                    UserRepositoryImpl(AppDataBase_Impl().userDao(), FireStoreClient())
                 val bmiRepositoryImpl = BmiInfoRepositoryImpl(AppDataBase_Impl().bmiInfoDao())
                 return BmiHistoricViewModel(userRepositoryImpl, bmiRepositoryImpl) as T
             }

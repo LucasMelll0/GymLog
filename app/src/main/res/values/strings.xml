@@ -60,6 +60,7 @@
     <string name="common_age_suffix">%d anos</string>
     <string name="common_open_navigation_drawer">Abrir gaveta de navegação</string>
     <string name="common_visibility">Visibilidade</string>
+    <string name="common_error_message">Ocorreu um erro</string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>

@@ -60,24 +60,24 @@ import java.util.UUID
 fun UserCreatorDialog(
     onDismiss: () -> Unit,
     onConfirm: (User) -> Unit,
-    userToupdate: User? = null
+    userToUpdate: User? = null
 ) {
     val scope = rememberCoroutineScope()
     val heightsListState = rememberLazyListState()
     val agesListState = rememberLazyListState()
     var selectedGender: Gender by rememberSaveable {
-        val initialValue = userToupdate?.gender ?: Gender.Male
+        val initialValue = userToUpdate?.gender ?: Gender.Male
         mutableStateOf(initialValue)
     }
     var selectedHeight: Int by rememberSaveable {
-        val initialValue = userToupdate?.height ?: heights[0]
+        val initialValue = userToUpdate?.height ?: heights[0]
         scope.launch {
             heightsListState.scrollToItem(heights.indexOf(initialValue))
         }
         mutableStateOf(initialValue)
     }
     var selectedAge: Int by rememberSaveable {
-        val initialValue = userToupdate?.age ?: ages[0]
+        val initialValue = userToUpdate?.age ?: ages[0]
         scope.launch {
             agesListState.scrollToItem(ages.indexOf(initialValue))
         }
@@ -151,7 +151,7 @@ fun UserCreatorDialog(
                     }
                     Button(onClick = {
                         val user = User(
-                            id = userToupdate?.id ?: UUID.randomUUID().toString(),
+                            id = userToUpdate?.id ?: UUID.randomUUID().toString(),
                             gender = selectedGender,
                             height = selectedHeight,
                             age = selectedAge

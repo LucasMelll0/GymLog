@@ -36,7 +36,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.gymlog.R
-import com.example.gymlog.ui.auth.data.UserCredentials
+import com.example.gymlog.ui.auth.authclient.UserCredentials
 import com.example.gymlog.ui.components.DefaultPasswordTextField
 import com.example.gymlog.ui.components.DefaultTextField
 import com.example.gymlog.ui.components.GoogleSignInButton

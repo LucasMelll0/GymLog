@@ -1,8 +1,8 @@
 package com.example.gymlog.ui.auth.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.gymlog.ui.auth.data.SignInResult
-import com.example.gymlog.ui.auth.data.SignInState
+import com.example.gymlog.ui.auth.authclient.SignInResult
+import com.example.gymlog.ui.auth.authclient.SignInState
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow

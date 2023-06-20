@@ -3,6 +3,7 @@ package com.example.gymlog.di
 import androidx.room.Room
 import com.example.gymlog.data.AppDataBase
 import com.example.gymlog.data.DATABASE_NAME
+import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.repository.UserRepositoryImpl
@@ -36,6 +37,13 @@ val roomModule = module {
         get<AppDataBase>().userDao()
     }
 }
+
+val firebaseModule = module {
+    single {
+        FireStoreClient()
+    }
+}
+
 val repositoryModule = module {
     single {
         TrainingRepositoryImpl(get())
@@ -44,7 +52,7 @@ val repositoryModule = module {
         BmiInfoRepositoryImpl(get())
     }
     single {
-        UserRepositoryImpl(get())
+        UserRepositoryImpl(get(), get())
     }
 }
 

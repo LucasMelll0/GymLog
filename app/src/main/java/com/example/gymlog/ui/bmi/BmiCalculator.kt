@@ -145,7 +145,7 @@ fun BmiCalculatorDialog(
                                     if (weight.isDigitsOnly()) {
                                         scope.launch {
                                             classifier = BmiClassifier(
-                                                gender = user.gender,
+                                                gender = user.gender ?: Gender.Male,
                                                 weight = weight.toFloat(),
                                                 height = user.height,
                                                 age = user.age
