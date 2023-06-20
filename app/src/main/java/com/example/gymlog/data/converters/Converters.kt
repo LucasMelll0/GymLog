@@ -1,4 +1,4 @@
-package com.example.gymlog.database.converters
+package com.example.gymlog.data.converters
 
 import androidx.room.TypeConverter
 import com.example.gymlog.model.Exercise

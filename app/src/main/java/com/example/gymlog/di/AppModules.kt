@@ -1,8 +1,8 @@
 package com.example.gymlog.di
 
 import androidx.room.Room
-import com.example.gymlog.database.AppDataBase
-import com.example.gymlog.database.DATABASE_NAME
+import com.example.gymlog.data.AppDataBase
+import com.example.gymlog.data.DATABASE_NAME
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.repository.UserRepositoryImpl

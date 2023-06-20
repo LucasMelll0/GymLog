@@ -1,6 +1,6 @@
 package com.example.gymlog.repository
 
-import com.example.gymlog.database.dao.UserDao
+import com.example.gymlog.data.dao.UserDao
 import com.example.gymlog.model.User
 import kotlinx.coroutines.flow.Flow
 

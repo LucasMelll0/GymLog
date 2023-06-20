@@ -1,12 +1,12 @@
-package com.example.gymlog.database
+package com.example.gymlog.data
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.example.gymlog.database.converters.Converters
-import com.example.gymlog.database.dao.BmiInfoDao
-import com.example.gymlog.database.dao.TrainingDao
-import com.example.gymlog.database.dao.UserDao
+import com.example.gymlog.data.converters.Converters
+import com.example.gymlog.data.dao.BmiInfoDao
+import com.example.gymlog.data.dao.TrainingDao
+import com.example.gymlog.data.dao.UserDao
 import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training

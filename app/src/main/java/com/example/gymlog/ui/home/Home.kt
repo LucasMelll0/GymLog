@@ -61,7 +61,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
 import com.example.gymlog.data.Mock
-import com.example.gymlog.database.AppDataBase_Impl
+import com.example.gymlog.data.AppDataBase_Impl
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepositoryImpl

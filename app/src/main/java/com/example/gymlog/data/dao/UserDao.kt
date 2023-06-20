@@ -1,4 +1,4 @@
-package com.example.gymlog.database.dao
+package com.example.gymlog.data.dao
 
 import androidx.room.Dao
 import androidx.room.Insert

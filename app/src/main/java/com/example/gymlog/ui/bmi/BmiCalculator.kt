@@ -42,7 +42,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
-import com.example.gymlog.database.AppDataBase_Impl
+import com.example.gymlog.data.AppDataBase_Impl
 import com.example.gymlog.extensions.isZeroOrEmpty
 import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.User
