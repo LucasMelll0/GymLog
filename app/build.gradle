@@ -57,6 +57,9 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth-ktx:22.0.0'
     implementation 'com.google.android.gms:play-services-auth:20.5.0'
 
+    // Firestore
+    implementation 'com.google.firebase:firebase-firestore-ktx:24.6.1'
+
     // ViewModel
     def lifecycle_version = "2.6.1"
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
