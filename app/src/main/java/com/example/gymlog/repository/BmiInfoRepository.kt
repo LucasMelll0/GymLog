@@ -1,6 +1,5 @@
 package com.example.gymlog.repository
 
-import android.util.Log
 import com.example.gymlog.data.dao.BmiInfoDao
 import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.model.BmiInfo
@@ -39,8 +38,6 @@ class BmiInfoRepositoryImpl(private val dao: BmiInfoDao, private val fireStore: 
         val allDisabled = dao.getAllDisabled(userId)
         val allLocal = dao.getAll(userId)
         val allCloud = fireStore.getHistoric(userId)
-        Log.i("BmiInfoRepository", "sync: allCloud = $allCloud")
-        Log.i("BmiInfoRepository", "sync: allLocal = $allLocal")
         allDisabled.forEach {
             if (fireStore.deleteBmiInfo(it).isSuccess) {
                 dao.delete(it)

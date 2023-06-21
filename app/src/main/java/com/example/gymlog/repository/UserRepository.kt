@@ -1,6 +1,5 @@
 package com.example.gymlog.repository
 
-import android.util.Log
 import com.example.gymlog.data.dao.UserDao
 import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.model.User
@@ -31,7 +30,6 @@ class UserRepositoryImpl(
     override suspend fun sync(id: String) {
         val localUser = dao.getUserById(id)
         val cloudUser = fireStore.getUser(id)
-        Log.i("UserRepository", "sync: cloudUser = $cloudUser")
         localUser?.let {
             if (localUser != cloudUser) {
                 fireStore.saveUserInfo(localUser)

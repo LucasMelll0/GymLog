@@ -54,7 +54,7 @@ class FireStoreClient {
                 .delete()
                 .await()
             Response(isSuccess = true)
-        } catch (e: java.lang.Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
             Response(isSuccess = false)
         }
