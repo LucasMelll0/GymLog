@@ -49,7 +49,7 @@ val repositoryModule = module {
         TrainingRepositoryImpl(get())
     }
     single {
-        BmiInfoRepositoryImpl(get())
+        BmiInfoRepositoryImpl(get(), get())
     }
     single {
         UserRepositoryImpl(get(), get())

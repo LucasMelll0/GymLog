@@ -10,9 +10,11 @@ import java.util.UUID
 data class BmiInfo(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
-    val gender: Gender,
-    val weight: Float,
-    val height: Int,
-    val age: Int,
-    val dateInMillis: Long = Date().time
+    val userId: String = "",
+    val gender: Gender = Gender.Male,
+    val weight: Float = 0f,
+    val height: Int = 0,
+    val age: Int = 0,
+    val dateInMillis: Long = Date().time,
+    val isDisabled: Boolean = false
 )

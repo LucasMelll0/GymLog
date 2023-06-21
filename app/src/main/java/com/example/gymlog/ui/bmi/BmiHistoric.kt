@@ -469,7 +469,8 @@ private fun BmiHistoricScreenPreview() {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val userRepositoryImpl =
                     UserRepositoryImpl(AppDataBase_Impl().userDao(), FireStoreClient())
-                val bmiRepositoryImpl = BmiInfoRepositoryImpl(AppDataBase_Impl().bmiInfoDao())
+                val bmiRepositoryImpl =
+                    BmiInfoRepositoryImpl(AppDataBase_Impl().bmiInfoDao(), FireStoreClient())
                 return BmiHistoricViewModel(userRepositoryImpl, bmiRepositoryImpl) as T
             }
         }

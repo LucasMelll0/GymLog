@@ -1,5 +1,6 @@
 package com.example.gymlog.data.firebase
 
+import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.User
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -28,7 +29,46 @@ class FireStoreClient {
             e.printStackTrace()
             null
         }
+    }
 
+    suspend fun saveBmiInfo(bmiInfo: BmiInfo) {
+        try {
+            db.collection(BMI_INFO)
+                .document(bmiInfo.userId)
+                .collection(HISTORIC)
+                .document(bmiInfo.id)
+                .set(bmiInfo)
+                .await()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun deleteBmiInfo(bmiInfo: BmiInfo) {
+        try {
+            db.collection(BMI_INFO)
+                .document(bmiInfo.userId)
+                .collection(HISTORIC)
+                .document(bmiInfo.id)
+                .delete()
+                .await()
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun getHistoric(userId: String): List<BmiInfo>? {
+        return try {
+            db.collection(BMI_INFO)
+                .document(userId)
+                .collection(HISTORIC)
+                .get()
+                .await()
+                .toObjects(BmiInfo::class.java)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
 }
