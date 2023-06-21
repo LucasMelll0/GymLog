@@ -7,19 +7,19 @@ import kotlinx.coroutines.flow.Flow
 
 interface BmiInfoRepository {
 
-    fun getAll(): Flow<List<BmiInfo>>
+    fun getAll(userId: String): Flow<List<BmiInfo>>
 
     suspend fun save(bmiInfo: BmiInfo)
 
-    suspend fun delete(bmiInfo: BmiInfo)
+    suspend fun disable(bmiInfo: BmiInfo)
 
-    suspend fun sync()
+    suspend fun sync(userId: String)
 
 }
 
 class BmiInfoRepositoryImpl(private val dao: BmiInfoDao, private val fireStore: FireStoreClient) :
     BmiInfoRepository {
-    override fun getAll(): Flow<List<BmiInfo>> = dao.getAll()
+    override fun getAll(userId: String): Flow<List<BmiInfo>> = dao.getAllFlow(userId)
 
     override suspend fun save(bmiInfo: BmiInfo) {
         if (bmiInfo.userId.isNotEmpty()) {
@@ -28,14 +28,33 @@ class BmiInfoRepositoryImpl(private val dao: BmiInfoDao, private val fireStore: 
         }
     }
 
-    override suspend fun delete(bmiInfo: BmiInfo) {
+    override suspend fun disable(bmiInfo: BmiInfo) {
         if (bmiInfo.userId.isNotEmpty()) {
-            dao.delete(bmiInfo)
-            fireStore.deleteBmiInfo(bmiInfo)
+            dao.save(bmiInfo)
         }
     }
 
-    override suspend fun sync() {
-        TODO("Not yet implemented")
+    override suspend fun sync(userId: String) {
+        val allDisabled = dao.getAllDisabled(userId)
+        val allLocal = dao.getAll(userId)
+        val allCloud = fireStore.getHistoric(userId)
+        allDisabled.forEach {
+            if (fireStore.deleteBmiInfo(it).isSuccess) {
+                dao.delete(it)
+            }
+        }
+        if (allLocal.isNotEmpty()) {
+            if (allLocal != allCloud) {
+                allLocal.forEach {
+                    fireStore.saveBmiInfo(it)
+                }
+            } else {
+                if (allCloud.isNotEmpty()) {
+                    allCloud.forEach {
+                        dao.save(it)
+                    }
+                }
+            }
+        }
     }
 }

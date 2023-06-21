@@ -128,7 +128,11 @@ fun BmiHistoricScreen(
                 onDismissRequest = { showDeleteRegisterDialog = false },
                 onConfirm = {
                     registerToDelete?.let {
-                        viewModel.deleteBmiInfoRegister(it)
+                        scope.launch {
+                            isLoading = true
+                            viewModel.disableBmiInfoRegister(it)
+                            isLoading = false
+                        }
                         showDeleteRegisterDialog = false
                     }
                 })

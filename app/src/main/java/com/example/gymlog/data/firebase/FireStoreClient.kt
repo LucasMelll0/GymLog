@@ -2,6 +2,7 @@ package com.example.gymlog.data.firebase
 
 import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.User
+import com.example.gymlog.utils.Response
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
@@ -44,16 +45,18 @@ class FireStoreClient {
         }
     }
 
-    suspend fun deleteBmiInfo(bmiInfo: BmiInfo) {
-        try {
+    suspend fun deleteBmiInfo(bmiInfo: BmiInfo): Response {
+        return try {
             db.collection(BMI_INFO)
                 .document(bmiInfo.userId)
                 .collection(HISTORIC)
                 .document(bmiInfo.id)
                 .delete()
                 .await()
+            Response(isSuccess = true)
         } catch (e: java.lang.Exception) {
             e.printStackTrace()
+            Response(isSuccess = false)
         }
     }
 

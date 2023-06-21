@@ -2,7 +2,6 @@ package com.example.gymlog.ui.bmi.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.User
 import com.example.gymlog.repository.BmiInfoRepository
@@ -12,7 +11,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.emptyFlow
 
 class BmiHistoricViewModel(
     private val userRepository: UserRepository,
@@ -24,9 +23,9 @@ class BmiHistoricViewModel(
         MutableStateFlow(Resource.Loading)
     internal val userResource: Flow<Resource<User?>> = _userResource
 
-    val getHistoric = bmiRepository.getAll()
-
     private val currentUser = Firebase.auth.currentUser
+
+    val getHistoric = currentUser?.let{ bmiRepository.getAll(it.uid) } ?: emptyFlow()
 
     fun setLoading() {
         _userResource.value = Resource.Loading
@@ -40,7 +39,8 @@ class BmiHistoricViewModel(
 
     suspend fun sync() {
         currentUser?.let {
-            userRepository.sync(currentUser.uid)
+            userRepository.sync(it.uid)
+            bmiRepository.sync(it.uid)
         }
     }
 
@@ -56,13 +56,11 @@ class BmiHistoricViewModel(
         }
     }
 
-    fun deleteBmiInfoRegister(bmiInfo: BmiInfo) =
-        viewModelScope.launch {
-            try {
-                bmiRepository.delete(bmiInfo)
-            } catch (e: Exception) {
-                Log.w("Error", "deleteBmiInfoRegister: ", e)
-            }
+    suspend fun disableBmiInfoRegister(bmiInfo: BmiInfo) {
+        try {
+            bmiRepository.disable(bmiInfo.copy(isDisabled = true))
+        } catch (e: Exception) {
+            Log.w("Error", "deleteBmiInfoRegister: ", e)
         }
-
+    }
 }

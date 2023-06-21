@@ -11,13 +11,19 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface BmiInfoDao {
 
-    @Query("SELECT * FROM BmiInfo")
-    fun getAll(): Flow<List<BmiInfo>>
+    @Query("SELECT * FROM BmiInfo WHERE userId = :userId AND isDisabled = 0")
+    fun getAllFlow(userId: String): Flow<List<BmiInfo>>
+
+    @Query("SELECT * FROM BmiInfo WHERE userId = :userId AND isDisabled = 0")
+    suspend fun getAll(userId: String): List<BmiInfo>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun save(bmiInfo: BmiInfo)
 
     @Delete
     suspend fun delete(bmiInfo: BmiInfo)
+
+    @Query("SELECT * FROM BmiInfo WHERE userId = :userId AND isDisabled = 1")
+    suspend fun getAllDisabled(userId: String): List<BmiInfo>
 
 }
