@@ -53,7 +53,7 @@ class TrainingRepositoryImpl(private val dao: TrainingDao, private val fireStore
             }
         }
         allUnSynchronized.forEach {
-            if(fireStore.saveTraining(it).isSuccess) {
+            if (fireStore.saveTraining(it).isSuccess) {
                 dao.save(it.copy(isSynchronized = true))
             } else {
                 return@forEach
@@ -62,7 +62,9 @@ class TrainingRepositoryImpl(private val dao: TrainingDao, private val fireStore
         if (allLocal.isEmpty()) {
             Log.i("TrainingRepository", "sync: $allCloud")
             allCloud?.forEach {
-                dao.save(it)
+                allDisabled.find { disabled -> disabled.trainingId == it.trainingId } ?: run {
+                    dao.save(it)
+                }
             }
         }
 

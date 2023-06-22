@@ -1,6 +1,7 @@
 package com.example.gymlog.ui.bmi
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -256,6 +257,7 @@ fun BmiHistoricHeader(user: User, onClickEdit: () -> Unit, modifier: Modifier = 
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BmiInfoList(
     bmiInfoList: List<BmiInfo>,
@@ -280,7 +282,9 @@ fun BmiInfoList(
         }
     }
     Column(
-        modifier = modifier.padding(dimensionResource(id = R.dimen.default_padding))
+        modifier = modifier
+            .padding(dimensionResource(id = R.dimen.default_padding))
+            .animateContentSize()
     ) {
         Text(
             text = stringResource(id = R.string.bmi_historic_title),
@@ -302,7 +306,9 @@ fun BmiInfoList(
                     items(list.sortedBy { it.dateInMillis }, key = { it.id }) {
                         BmiInfoItem(
                             bmiInfo = it,
-                            modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
+                            modifier = Modifier
+                                .padding(dimensionResource(id = R.dimen.default_padding))
+                                .animateItemPlacement(),
                             onLongClickListener = onLongClickListener
                         )
                     }
