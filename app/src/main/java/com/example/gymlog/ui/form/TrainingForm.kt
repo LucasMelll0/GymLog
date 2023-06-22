@@ -135,7 +135,7 @@ fun TrainingFormScreen(
                 onNavIconClick = { showDismissDialog = true })
         }) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
-            if (isLoading) LoadingDialog(text = "Salvando")
+            if (isLoading) LoadingDialog(text = stringResource(id = R.string.common_saving))
         }
         var showExerciseDialog: Boolean by rememberSaveable {
             mutableStateOf(false)

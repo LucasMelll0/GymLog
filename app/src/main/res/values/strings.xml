@@ -61,6 +61,8 @@
     <string name="common_open_navigation_drawer">Abrir gaveta de navegação</string>
     <string name="common_visibility">Visibilidade</string>
     <string name="common_error_message">Ocorreu um erro</string>
+    <string name="common_synchronizing">Sincronizando</string>
+    <string name="common_saving">Salvando</string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>

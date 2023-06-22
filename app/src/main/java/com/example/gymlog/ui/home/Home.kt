@@ -112,7 +112,7 @@ fun HomeScreen(
         )
     }) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
-            if (isLoading) LoadingDialog(text = "Sincronizando treinos")
+            if (isLoading) LoadingDialog(text = stringResource(id = R.string.common_synchronizing))
         }
         Surface(
             modifier = modifier
