@@ -1,5 +1,6 @@
 package com.example.gymlog.repository
 
+import android.util.Log
 import com.example.gymlog.data.dao.TrainingDao
 import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.model.Training
@@ -34,7 +35,7 @@ class TrainingRepositoryImpl(private val dao: TrainingDao, private val fireStore
         }
     }
 
-    override suspend fun disable(training: Training)  {
+    override suspend fun disable(training: Training) {
         if (training.userId.isNotEmpty()) {
             dao.save(training.copy(isDisabled = true))
         }
@@ -44,9 +45,24 @@ class TrainingRepositoryImpl(private val dao: TrainingDao, private val fireStore
         val allDisabled = dao.getAllDisabled(userId)
         val allUnSynchronized = dao.getAllUnSynchronized(userId)
         val allLocal = dao.getAll(userId)
+        val allCloud = fireStore.getAllTrainings(userId)
+
         allDisabled.forEach {
             if (fireStore.deleteTraining(it).isSuccess) {
                 dao.delete(it)
+            }
+        }
+        allUnSynchronized.forEach {
+            if(fireStore.saveTraining(it).isSuccess) {
+                dao.save(it.copy(isSynchronized = true))
+            } else {
+                return@forEach
+            }
+        }
+        if (allLocal.isEmpty()) {
+            Log.i("TrainingRepository", "sync: $allCloud")
+            allCloud?.forEach {
+                dao.save(it)
             }
         }
 

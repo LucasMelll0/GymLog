@@ -64,11 +64,11 @@ class TrainingFormViewModel(private val repository: TrainingRepository) : ViewMo
     }
 
     suspend fun saveTraining(training: Training) {
-        currentUser?.let {
+        currentUser?.let { currentUser ->
             _trainingId?.let {
-                repository.save(training.copy(trainingId = it))
+                repository.save(training.copy(trainingId = it, userId = currentUser.uid))
             } ?: run {
-                repository.save(training.copy(userId = it.uid))
+                repository.save(training.copy(userId = currentUser.uid))
             }
         }
     }

@@ -95,7 +95,7 @@ class FireStoreClient {
 
     suspend fun deleteTraining(training: Training): Response {
         return try {
-            withTimeout(5000) {
+            withTimeout(2000) {
                 db.collection(USERS)
                     .document(training.userId)
                     .collection(TRAININGS)
@@ -107,6 +107,22 @@ class FireStoreClient {
         } catch (e: Exception) {
             e.printStackTrace()
             Response(isSuccess = false)
+        }
+    }
+
+    suspend fun getAllTrainings(userId: String): List<Training>? {
+        return try {
+            withTimeout(2000) {
+                db.collection(USERS)
+                    .document(userId)
+                    .collection(TRAININGS)
+                    .get()
+                    .await()
+                    .toObjects(Training::class.java)
+            }
+        }catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 

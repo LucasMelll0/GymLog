@@ -8,11 +8,11 @@ import java.util.UUID
 data class Exercise(
     @PrimaryKey
     val exerciseId: String = UUID.randomUUID().toString(),
-    val title: String,
-    val repetitions: Int,
-    val series: Int,
-    val observations: String,
-    val filters: List<String>,
+    val title: String = "",
+    val repetitions: Int = 0,
+    val series: Int = 0,
+    val observations: String = "",
+    val filters: List<String> = emptyList(),
     val isChecked: Boolean = false,
 ) {
     override fun equals(other: Any?): Boolean {

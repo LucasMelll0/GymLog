@@ -50,10 +50,8 @@ class BmiInfoRepositoryImpl(private val dao: BmiInfoDao, private val fireStore: 
                 }
             }
         } else {
-            if (allCloud?.isNotEmpty() == true) {
-                allCloud.forEach {
-                    dao.save(it)
-                }
+            allCloud?.forEach {
+                dao.save(it)
             }
         }
     }

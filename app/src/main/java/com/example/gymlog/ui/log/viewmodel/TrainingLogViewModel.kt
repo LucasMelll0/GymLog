@@ -88,7 +88,12 @@ class TrainingLogViewModel(private val repository: TrainingRepository) : ViewMod
         currentUser?.let {
             repository.getById(trainingId, it.uid)?.let { training ->
                 this._resource.value = Resource.Loading
-                repository.save(training.copy(exercises = exercises.map { it.toExercise() }))
+                repository.save(
+                    training.copy(
+                        exercises = exercises.map { it.toExercise() },
+                        isSynchronized = false
+                    )
+                )
             }
         }
     }
