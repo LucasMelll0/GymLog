@@ -9,6 +9,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,6 +41,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +64,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
 import com.example.gymlog.data.Mock
 import com.example.gymlog.data.AppDataBase_Impl
+import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepositoryImpl
@@ -69,6 +72,7 @@ import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.DefaultSearchBar
 import com.example.gymlog.ui.components.FilterChipList
 import com.example.gymlog.ui.components.FilterChipSelectionList
+import com.example.gymlog.ui.components.LoadingDialog
 import com.example.gymlog.ui.home.viewmodel.HomeViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.BackPressHandler
@@ -85,12 +89,20 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel()
 ) {
+    var isLoading by rememberSaveable { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
     var showDeleteTrainingDialog by remember { mutableStateOf(false) }
     var trainingIdForDelete: String? by rememberSaveable { mutableStateOf(null) }
     val focusRequester = remember { FocusRequester() }
     val training by viewModel.trainings.collectAsState(emptyList())
+
+    LaunchedEffect(Unit) {
+        isLoading = true
+        viewModel.sync()
+        isLoading = false
+    }
+
     Scaffold(bottomBar = {
         HomeBottomBar(
             onButtonSearchClick = { showSearchBar = !showSearchBar },
@@ -99,7 +111,9 @@ fun HomeScreen(
             onNavIconClick = onNavIconClick
         )
     }) { paddingValues ->
-
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (isLoading) LoadingDialog(text = "Sincronizando treinos")
+        }
         Surface(
             modifier = modifier
                 .padding(paddingValues)
@@ -464,7 +478,8 @@ private fun HomeScreenPreview() {
     GymLogTheme {
         val viewModelFactory = object : ViewModelProvider.NewInstanceFactory() {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val repositoryImpl = TrainingRepositoryImpl(AppDataBase_Impl().trainingDao())
+                val repositoryImpl =
+                    TrainingRepositoryImpl(AppDataBase_Impl().trainingDao(), FireStoreClient())
                 return HomeViewModel(repositoryImpl) as T
             }
         }

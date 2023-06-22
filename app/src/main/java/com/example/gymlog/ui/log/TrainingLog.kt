@@ -56,6 +56,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
 import com.example.gymlog.data.AppDataBase_Impl
+import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.model.ExerciseMutableState
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.ui.components.AppTimer
@@ -369,7 +370,8 @@ private fun TrainingLogScreenPreview() {
     GymLogTheme {
         val viewModelFactory = object : ViewModelProvider.NewInstanceFactory() {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val repositoryImpl = TrainingRepositoryImpl(AppDataBase_Impl().trainingDao())
+                val repositoryImpl =
+                    TrainingRepositoryImpl(AppDataBase_Impl().trainingDao(), FireStoreClient())
                 return TrainingLogViewModel(repositoryImpl) as T
             }
         }

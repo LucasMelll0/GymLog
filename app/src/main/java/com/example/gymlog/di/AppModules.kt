@@ -46,7 +46,7 @@ val firebaseModule = module {
 
 val repositoryModule = module {
     single {
-        TrainingRepositoryImpl(get())
+        TrainingRepositoryImpl(get(), get())
     }
     single {
         BmiInfoRepositoryImpl(get(), get())

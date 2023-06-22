@@ -6,10 +6,12 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -62,6 +64,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
 import com.example.gymlog.data.AppDataBase_Impl
+import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepositoryImpl
@@ -69,6 +72,7 @@ import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.DefaultTextButton
 import com.example.gymlog.ui.components.DefaultOutlinedTextField
 import com.example.gymlog.ui.components.FilterChipList
+import com.example.gymlog.ui.components.LoadingDialog
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.BackPressHandler
@@ -87,9 +91,12 @@ fun TrainingFormScreen(
 ) {
 
     val scope = rememberCoroutineScope()
+    var isLoading by rememberSaveable { mutableStateOf(false) }
     trainingId?.let {
         LaunchedEffect(key1 = Unit) {
+            isLoading = true
             viewModel.getTrainingById(trainingId)
+            isLoading = false
         }
     }
 
@@ -111,18 +118,25 @@ fun TrainingFormScreen(
                     nameHasError = viewModel.trainingTitle.isEmpty()
                     if (!nameHasError) {
                         scope.launch {
+                            isLoading = true
                             val training = Training(
                                 title = viewModel.trainingTitle,
                                 filters = viewModel.filters,
                                 exercises = viewModel.exercises
                             )
-                            viewModel.saveTraining(training)
-                            onSaveTraining()
+                            try {
+                                viewModel.saveTraining(training)
+                            } finally {
+                                onSaveTraining()
+                            }
                         }
                     }
                 },
                 onNavIconClick = { showDismissDialog = true })
         }) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (isLoading) LoadingDialog(text = "Salvando")
+        }
         var showExerciseDialog: Boolean by rememberSaveable {
             mutableStateOf(false)
         }
@@ -378,7 +392,8 @@ private fun TrainingFormScreenPreview() {
     GymLogTheme {
         val viewModelFactory = object : ViewModelProvider.NewInstanceFactory() {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val repositoryImpl = TrainingRepositoryImpl(AppDataBase_Impl().trainingDao())
+                val repositoryImpl =
+                    TrainingRepositoryImpl(AppDataBase_Impl().trainingDao(), FireStoreClient())
                 return TrainingFormViewModel(repositoryImpl) as T
             }
         }

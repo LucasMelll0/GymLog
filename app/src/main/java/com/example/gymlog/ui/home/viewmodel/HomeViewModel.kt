@@ -6,7 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepository
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import java.lang.Exception
 
@@ -14,7 +17,11 @@ class HomeViewModel(private val repository: TrainingRepository) : ViewModel() {
 
     private val TAG = "HomeViewModel"
 
-    internal val trainings: Flow<List<Training>> = repository.getAll()
+    private val currentUser = Firebase.auth.currentUser
+
+    internal val trainings: Flow<List<Training>> = currentUser?.let {
+        repository.getAll(it.uid)
+    } ?: emptyFlow()
 
     private val _filters = mutableStateListOf<String>()
     internal val filters: List<String> get() = _filters
@@ -26,13 +33,21 @@ class HomeViewModel(private val repository: TrainingRepository) : ViewModel() {
 
     fun deleteTraining(trainingId: String) {
         viewModelScope.launch {
-            try {
-                repository.getById(trainingId)?.let {
-                    repository.remove(it)
+            currentUser?.let { currentUser ->
+                try {
+                    repository.getById(trainingId, currentUser.uid)?.let {
+                        repository.disable(it)
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "deleteTraining: ", e)
                 }
-            }catch (e: Exception) {
-                Log.w(TAG, "deleteTraining: ", e)
             }
+        }
+    }
+
+    suspend fun sync() {
+        currentUser?.let {
+            repository.sync(it.uid)
         }
     }
 

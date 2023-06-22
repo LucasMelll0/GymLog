@@ -10,6 +10,8 @@ import com.example.gymlog.model.ExerciseMutableState
 import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepository
 import com.example.gymlog.utils.Resource
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -18,6 +20,8 @@ class TrainingLogViewModel(private val repository: TrainingRepository) : ViewMod
     companion object {
         const val TAG = "trainingViewModel"
     }
+
+    private val currentUser = Firebase.auth.currentUser
 
     private var _title by mutableStateOf("")
     internal val title: String get() = _title
@@ -34,20 +38,23 @@ class TrainingLogViewModel(private val repository: TrainingRepository) : ViewMod
     fun setLoading() {
         _resource.value = Resource.Loading
     }
+
     suspend fun getTraining(id: String) {
         if (_resource.value !is Resource.Success) {
             _resource.value =
                 try {
-                    repository.getById(id)?.let { training ->
-                        _title = training.title
-                        _exercises.clear()
-                        _exercises.addAll(training.getExercisesWithMutableState())
-                        _filters.clear()
-                        _filters.addAll(training.filters)
-                        Resource.Success(training)
-                    } ?: run {
-                        Resource.Error("Error on get training: null pointer")
-                    }
+                    currentUser?.let {
+                        repository.getById(id, it.uid)?.let { training ->
+                            _title = training.title
+                            _exercises.clear()
+                            _exercises.addAll(training.getExercisesWithMutableState())
+                            _filters.clear()
+                            _filters.addAll(training.filters)
+                            Resource.Success(training)
+                        } ?: run {
+                            Resource.Error("Error on get training: null pointer")
+                        }
+                    } ?: Resource.Error("Error on get current user")
 
                 } catch (e: Exception) {
                     Log.w(TAG, "getTraining: ", e)
@@ -69,16 +76,20 @@ class TrainingLogViewModel(private val repository: TrainingRepository) : ViewMod
     }
 
     suspend fun removeTraining(trainingId: String) {
-        repository.getById(trainingId)?.let { training ->
-            this._resource.value = Resource.Loading
-            repository.remove(training)
+        currentUser?.let {
+            repository.getById(trainingId, it.uid)?.let { training ->
+                this._resource.value = Resource.Loading
+                repository.disable(training)
+            }
         }
     }
 
     suspend fun updateTraining(trainingId: String) {
-        repository.getById(trainingId)?.let { training ->
-            this._resource.value = Resource.Loading
-            repository.save(training.copy(exercises = exercises.map { it.toExercise() }))
+        currentUser?.let {
+            repository.getById(trainingId, it.uid)?.let { training ->
+                this._resource.value = Resource.Loading
+                repository.save(training.copy(exercises = exercises.map { it.toExercise() }))
+            }
         }
     }
 

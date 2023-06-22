@@ -1,6 +1,5 @@
 package com.example.gymlog.ui.bmi.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.User
@@ -58,9 +57,9 @@ class BmiHistoricViewModel(
 
     suspend fun disableBmiInfoRegister(bmiInfo: BmiInfo) {
         try {
-            bmiRepository.disable(bmiInfo.copy(isDisabled = true))
+            bmiRepository.disable(bmiInfo)
         } catch (e: Exception) {
-            Log.w("Error", "deleteBmiInfoRegister: ", e)
+            e.printStackTrace()
         }
     }
 }

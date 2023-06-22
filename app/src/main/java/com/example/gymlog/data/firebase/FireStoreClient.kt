@@ -1,11 +1,13 @@
 package com.example.gymlog.data.firebase
 
 import com.example.gymlog.model.BmiInfo
+import com.example.gymlog.model.Training
 import com.example.gymlog.model.User
 import com.example.gymlog.utils.Response
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeout
 
 class FireStoreClient {
 
@@ -71,6 +73,40 @@ class FireStoreClient {
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    suspend fun saveTraining(training: Training): Response {
+        return try {
+            withTimeout(5000) {
+                db.collection(USERS)
+                    .document(training.userId)
+                    .collection(TRAININGS)
+                    .document(training.trainingId)
+                    .set(training.copy(isSynchronized = true))
+                    .await()
+                Response(isSuccess = true)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Response(isSuccess = false)
+        }
+    }
+
+    suspend fun deleteTraining(training: Training): Response {
+        return try {
+            withTimeout(5000) {
+                db.collection(USERS)
+                    .document(training.userId)
+                    .collection(TRAININGS)
+                    .document(training.trainingId)
+                    .delete()
+                    .await()
+                Response(isSuccess = true)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Response(isSuccess = false)
         }
     }
 

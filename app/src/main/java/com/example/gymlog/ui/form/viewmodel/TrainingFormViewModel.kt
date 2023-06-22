@@ -8,8 +8,12 @@ import androidx.lifecycle.ViewModel
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepository
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class TrainingFormViewModel(private val repository: TrainingRepository) : ViewModel() {
+
+    private val currentUser = Firebase.auth.currentUser
 
     private var _trainingId: String? by mutableStateOf(null)
 
@@ -25,13 +29,15 @@ class TrainingFormViewModel(private val repository: TrainingRepository) : ViewMo
 
     suspend fun getTrainingById(trainingId: String) {
         _trainingId ?: run {
-            repository.getById(trainingId)?.let { training ->
-                _trainingId = training.trainingId
-                _trainingTitle = training.title
-                _exercises.clear()
-                _exercises.addAll(training.exercises)
-                _filters.clear()
-                _filters.addAll(training.filters)
+            currentUser?.let {
+                repository.getById(trainingId, it.uid)?.let { training ->
+                    _trainingId = training.trainingId
+                    _trainingTitle = training.title
+                    _exercises.clear()
+                    _exercises.addAll(training.exercises)
+                    _filters.clear()
+                    _filters.addAll(training.filters)
+                }
             }
         }
     }
@@ -58,10 +64,12 @@ class TrainingFormViewModel(private val repository: TrainingRepository) : ViewMo
     }
 
     suspend fun saveTraining(training: Training) {
-        _trainingId?.let {
-            repository.save(training.copy(trainingId = it))
-        } ?: run {
-            repository.save(training)
+        currentUser?.let {
+            _trainingId?.let {
+                repository.save(training.copy(trainingId = it))
+            } ?: run {
+                repository.save(training.copy(userId = it.uid))
+            }
         }
     }
 }

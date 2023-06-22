@@ -30,7 +30,7 @@ class BmiInfoRepositoryImpl(private val dao: BmiInfoDao, private val fireStore: 
 
     override suspend fun disable(bmiInfo: BmiInfo) {
         if (bmiInfo.userId.isNotEmpty()) {
-            dao.save(bmiInfo)
+            dao.save(bmiInfo.copy(isDisabled = true))
         }
     }
 
