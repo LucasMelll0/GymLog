@@ -54,6 +54,7 @@ fun DefaultOutlinedTextField(
         suffix = suffix,
         prefix = prefix,
         leadingIcon = leadingIcon,
+        shape = MaterialTheme.shapes.large,
         value = value,
         onValueChange = { newValue ->
             charLimit?.let {
@@ -132,7 +133,7 @@ fun DefaultTextField(
             }
         },
         onValueChange = onValueChange,
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = MaterialTheme.shapes.large,
         colors = TextFieldDefaults.colors(
             focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
             focusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
