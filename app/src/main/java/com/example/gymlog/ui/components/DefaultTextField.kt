@@ -202,7 +202,7 @@ fun DefaultPasswordTextField(
         },
         singleLine = true,
         onValueChange = onValueChange,
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = MaterialTheme.shapes.large,
         colors = TextFieldDefaults.colors(
             focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
             focusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,

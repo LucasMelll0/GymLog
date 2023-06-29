@@ -17,6 +17,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,13 +45,14 @@ import java.util.Date
 fun AppTimer(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var isRunning by rememberSaveable { mutableStateOf(false) }
-    var initialTimeInMillis by rememberSaveable { mutableStateOf(0L) }
-    var startTimeInMillis by rememberSaveable { mutableStateOf(0L) }
+    var startTimeInMillis by rememberSaveable { mutableStateOf(0f) }
     var currentTimeInMillis by rememberSaveable { mutableStateOf(startTimeInMillis) }
     val time = Calendar.getInstance().apply {
-        timeInMillis = if (isRunning) {
-            currentTimeInMillis
-        } else if (currentTimeInMillis != startTimeInMillis) currentTimeInMillis else startTimeInMillis
+        timeInMillis = if (isRunning || currentTimeInMillis != startTimeInMillis) {
+            currentTimeInMillis.toLong()
+        } else {
+            startTimeInMillis.toLong()
+        }
 
     }
     LaunchedEffect(currentTimeInMillis, isRunning) {
@@ -59,25 +61,28 @@ fun AppTimer(modifier: Modifier = Modifier) {
                 delay(1000 - Date().time % 1000)
                 currentTimeInMillis -= 1000
             }
-            isRunning = !isRunning
+            isRunning = false
+            currentTimeInMillis = startTimeInMillis
             context.vibrate()
         }
     }
+    val hour = time.get(Calendar.HOUR)
     val minutes = time.get(Calendar.MINUTE)
     val seconds = time.get(Calendar.SECOND)
-    val progress = if (startTimeInMillis > 0) ((currentTimeInMillis * 100) / startTimeInMillis).toFloat() else 100f
+    val progress =
+        if (startTimeInMillis > 0) ((currentTimeInMillis * 100) / startTimeInMillis) else 100f
     Column(
         modifier = modifier
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.Center
     ) {
         val formattedMinutes = if (minutes < 10) "0$minutes" else minutes.toString()
         val formattedSeconds = if (seconds < 10) "0$seconds" else seconds.toString()
         CustomCircularProgressbar(
             modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
             progress = progress,
-            text = "${formattedMinutes}m ${formattedSeconds}s",
+            text = "${hour}h ${formattedMinutes}m ${formattedSeconds}s",
         )
         Spacer(modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)))
         // Control buttons
@@ -88,10 +93,7 @@ fun AppTimer(modifier: Modifier = Modifier) {
         ) {
             Button(
                 onClick = {
-                    if (currentTimeInMillis > 0) {
-                        if (progress == 100f) {
-                            initialTimeInMillis = startTimeInMillis
-                        }
+                    if (currentTimeInMillis != 0f) {
                         isRunning = !isRunning
                     }
 
@@ -124,61 +126,72 @@ fun AppTimer(modifier: Modifier = Modifier) {
             }
             OutlinedButton(onClick = {
                 isRunning = false
-                if (currentTimeInMillis == initialTimeInMillis) {
-                    currentTimeInMillis = 0
-                    startTimeInMillis = 0
-                } else {
-                    currentTimeInMillis = initialTimeInMillis
-                    startTimeInMillis = initialTimeInMillis
-                }
+                 if (currentTimeInMillis == startTimeInMillis) {
+                     currentTimeInMillis = 0f
+                     startTimeInMillis = 0f
+                 } else {
+                     currentTimeInMillis = startTimeInMillis
+                 }
             }) {
                 Icon(imageVector = Icons.Rounded.Refresh, contentDescription = "refresh")
             }
 
         }
-        // time selection buttons
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
-        ) {
-            AnimatedVisibility(!isRunning) {
-                FilledTonalButton(onClick = {
-                    if (currentTimeInMillis != startTimeInMillis) {
-                        if (currentTimeInMillis >= 10000) {
-                            currentTimeInMillis -= 10000
-                        }
-                    } else if (startTimeInMillis >= 10000) {
-                        startTimeInMillis -= 10000
-                    }
-                }) {
-                    Text(text = "-10s")
-                }
-            }
-            AnimatedVisibility(!isRunning) {
-                FilledTonalButton(onClick = {
-                    if (currentTimeInMillis != startTimeInMillis) {
-                        if (currentTimeInMillis >= 5000) {
-                            currentTimeInMillis -= 5000
-                        }
-                    } else if (startTimeInMillis >= 5000) {
-                        startTimeInMillis -= 5000
-                    }
-                }) {
-                    Text(text = "-5s")
-                }
-            }
-            FilledTonalButton(onClick = {
-                currentTimeInMillis += 5000
-                startTimeInMillis += 5000
 
-            }) {
-                Text(text = "+5s")
-            }
-            FilledTonalButton(onClick = {
-                currentTimeInMillis += 10000
-                startTimeInMillis += 10000
-            }) {
-                Text(text = "+10s")
+        AnimatedVisibility(visible = (!isRunning && currentTimeInMillis == startTimeInMillis)) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(
+                    dimensionResource(id = R.dimen.large_padding)
+                )
+            ) {
+                Slider(
+                    value = startTimeInMillis,
+                    onValueChange = {
+                        startTimeInMillis = it
+                        currentTimeInMillis = startTimeInMillis
+                    },
+                    valueRange = 0f..3600000f,
+                    modifier = Modifier
+                        .fillMaxWidth()
+
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
+                ) {
+                    FilledTonalButton(onClick = {
+                        if (startTimeInMillis >= 10000) {
+                            startTimeInMillis -= 10000
+                            currentTimeInMillis = startTimeInMillis
+                        }
+                    }) {
+                        Text(text = "-10s")
+                    }
+                    FilledTonalButton(onClick = {
+                        if (startTimeInMillis >= 5000) {
+                            startTimeInMillis -= 5000
+                            currentTimeInMillis = startTimeInMillis
+                        }
+                    }) {
+                        Text(text = "-5s")
+                    }
+                    FilledTonalButton(onClick = {
+                        if (startTimeInMillis + 5000 <= 3600000) {
+                            startTimeInMillis += 5000
+                            currentTimeInMillis = startTimeInMillis
+                        }
+                    }) {
+                        Text(text = "+5s")
+                    }
+                    FilledTonalButton(onClick = {
+                        if (startTimeInMillis + 10000 <= 3600000) {
+                            startTimeInMillis += 10000
+                            currentTimeInMillis = startTimeInMillis
+                        }
+                    }) {
+                        Text(text = "+10s")
+                    }
+                }
             }
         }
     }
