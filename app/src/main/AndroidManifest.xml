@@ -16,6 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GymLog"
         tools:targetApi="31">
+        <service android:name=".services.TimerService" android:exported="false"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

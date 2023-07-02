@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             GymLogTheme {
-                GymLogApp()
+               GymLogApp()
             }
         }
     }

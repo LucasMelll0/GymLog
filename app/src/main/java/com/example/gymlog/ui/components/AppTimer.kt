@@ -1,5 +1,6 @@
 package com.example.gymlog.ui.components
 
+import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -20,11 +21,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -33,20 +30,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gymlog.R
-import com.example.gymlog.extensions.vibrate
+import com.example.gymlog.services.TimerService
 import com.example.gymlog.ui.theme.GymLogTheme
-import kotlinx.coroutines.delay
 import java.util.Calendar
-import java.util.Date
 
 
 @Composable
 fun AppTimer(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    var isRunning by rememberSaveable { mutableStateOf(false) }
-    var startTimeInMillis by rememberSaveable { mutableStateOf(0f) }
-    var currentTimeInMillis by rememberSaveable { mutableStateOf(startTimeInMillis) }
+    Intent(context, TimerService::class.java).also { intent ->
+        context.startService(intent)
+    }
+    val isRunning by TimerService.isRunning.collectAsStateWithLifecycle()
+    val startTimeInMillis by TimerService.startTimeInMillis.collectAsStateWithLifecycle()
+    val currentTimeInMillis by TimerService.currentTimeInMillis.collectAsStateWithLifecycle()
     val time = Calendar.getInstance().apply {
         timeInMillis = if (isRunning || currentTimeInMillis != startTimeInMillis) {
             currentTimeInMillis.toLong()
@@ -54,17 +53,6 @@ fun AppTimer(modifier: Modifier = Modifier) {
             startTimeInMillis.toLong()
         }
 
-    }
-    LaunchedEffect(currentTimeInMillis, isRunning) {
-        if (isRunning) {
-            while (currentTimeInMillis > 0) {
-                delay(1000 - Date().time % 1000)
-                currentTimeInMillis -= 1000
-            }
-            isRunning = false
-            currentTimeInMillis = startTimeInMillis
-            context.vibrate()
-        }
     }
     val hour = time.get(Calendar.HOUR)
     val minutes = time.get(Calendar.MINUTE)
@@ -94,7 +82,7 @@ fun AppTimer(modifier: Modifier = Modifier) {
             Button(
                 onClick = {
                     if (currentTimeInMillis != 0f) {
-                        isRunning = !isRunning
+                        if (isRunning) TimerService.pause() else TimerService.start(context = context)
                     }
 
                 }, modifier = Modifier.padding(
@@ -124,15 +112,7 @@ fun AppTimer(modifier: Modifier = Modifier) {
                     }
                 }
             }
-            OutlinedButton(onClick = {
-                isRunning = false
-                 if (currentTimeInMillis == startTimeInMillis) {
-                     currentTimeInMillis = 0f
-                     startTimeInMillis = 0f
-                 } else {
-                     currentTimeInMillis = startTimeInMillis
-                 }
-            }) {
+            OutlinedButton(onClick = { TimerService.reset() }) {
                 Icon(imageVector = Icons.Rounded.Refresh, contentDescription = "refresh")
             }
 
@@ -146,10 +126,7 @@ fun AppTimer(modifier: Modifier = Modifier) {
             ) {
                 Slider(
                     value = startTimeInMillis,
-                    onValueChange = {
-                        startTimeInMillis = it
-                        currentTimeInMillis = startTimeInMillis
-                    },
+                    onValueChange = { TimerService.setStartInMillis(it) },
                     valueRange = 0f..3600000f,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -159,36 +136,16 @@ fun AppTimer(modifier: Modifier = Modifier) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
                 ) {
-                    FilledTonalButton(onClick = {
-                        if (startTimeInMillis >= 10000) {
-                            startTimeInMillis -= 10000
-                            currentTimeInMillis = startTimeInMillis
-                        }
-                    }) {
+                    FilledTonalButton(onClick = { TimerService.decreaseTime(10000f) }) {
                         Text(text = "-10s")
                     }
-                    FilledTonalButton(onClick = {
-                        if (startTimeInMillis >= 5000) {
-                            startTimeInMillis -= 5000
-                            currentTimeInMillis = startTimeInMillis
-                        }
-                    }) {
+                    FilledTonalButton(onClick = { TimerService.decreaseTime(5000f) }) {
                         Text(text = "-5s")
                     }
-                    FilledTonalButton(onClick = {
-                        if (startTimeInMillis + 5000 <= 3600000) {
-                            startTimeInMillis += 5000
-                            currentTimeInMillis = startTimeInMillis
-                        }
-                    }) {
+                    FilledTonalButton(onClick = { TimerService.increaseTime(5000f) }) {
                         Text(text = "+5s")
                     }
-                    FilledTonalButton(onClick = {
-                        if (startTimeInMillis + 10000 <= 3600000) {
-                            startTimeInMillis += 10000
-                            currentTimeInMillis = startTimeInMillis
-                        }
-                    }) {
+                    FilledTonalButton(onClick = { TimerService.increaseTime(10000f) }) {
                         Text(text = "+10s")
                     }
                 }
@@ -202,7 +159,7 @@ fun AppTimer(modifier: Modifier = Modifier) {
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES, name = "Night")
 @Preview(showBackground = true)
 @Composable
-private fun TimePagerPreview() {
+private fun AppTimerPreview() {
     GymLogTheme {
         Card() {
             AppTimer(modifier = Modifier.padding(8.dp))
