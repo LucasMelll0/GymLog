@@ -1,20 +1,28 @@
 package com.example.gymlog.services
 
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.CountDownTimer
 import android.os.IBinder
+import androidx.core.app.NotificationCompat
+import com.example.gymlog.R
 import com.example.gymlog.extensions.vibrate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.util.Calendar
 
-class TimerService : Service() {
+class DropdownTimerService : Service() {
 
     companion object {
+
+        const val NOTIFICATION_ID = "dropdown_timer_notification"
+        const val NOTIFICATION_NAME = "dropdown timer"
+        private const val NOTIFICATION_INT_ID = 456
 
         private var countDownTimer: CountDownTimer? = null
 
@@ -31,29 +39,56 @@ class TimerService : Service() {
             countDownTimer = object : CountDownTimer(currentTimeInMillis.value.toLong(), 1000) {
                 override fun onTick(millisUntilFinished: Long) {
                     pCurrentTimeInMillis.value -= 1000
+                    createNotification(context = context)
                 }
 
                 override fun onFinish() {
                     context.vibrate()
-                    reset()
+                    reset(context)
                 }
             }.start()
             pIsRunning.value = true
         }
 
+        private fun createNotification(context: Context) {
+            val time = Calendar.getInstance().apply {
+                timeInMillis = currentTimeInMillis.value.toLong()
+            }
+            val hour = time.get(Calendar.HOUR)
+            val minutes = time.get(Calendar.MINUTE)
+            val seconds = time.get(Calendar.SECOND)
+            val formattedMinutes = if (minutes < 10) "0$minutes" else minutes.toString()
+            val formattedSeconds = if (seconds < 10) "0$seconds" else seconds.toString()
+            val notification = NotificationCompat.Builder(context, NOTIFICATION_ID)
+                .setSmallIcon(R.drawable.ic_timer)
+                .setContentTitle(
+                    context.getString(
+                        R.string.app_timer_title,
+                        "$hour:$formattedMinutes:$formattedSeconds"
+                    )
+                )
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
+                .setAutoCancel(false)
+                .build()
+            val notificationManager = context.getSystemService(NotificationManager::class.java)
+            notificationManager.notify(456, notification)
+        }
 
         fun pause() {
             countDownTimer?.cancel() ?: run { countDownTimer = null }
             pIsRunning.value = false
         }
 
-        fun reset() {
+        fun reset(context: Context) {
             pause()
             if (startTimeInMillis.value == currentTimeInMillis.value) {
                 setStartInMillis(0f)
             } else {
                 pCurrentTimeInMillis.value = startTimeInMillis.value
             }
+            val notificationManager = context.getSystemService(NotificationManager::class.java)
+            notificationManager.cancel(NOTIFICATION_INT_ID)
         }
 
         fun setStartInMillis(value: Float) {

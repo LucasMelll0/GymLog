@@ -84,6 +84,8 @@
     <!-- AppTimer -->
     <string name="app_timer_play_text">Começar</string>
     <string name="app_timer_pause_text">Pausar</string>
+    <string name="app_timer_notification_description">Mostra o temporizador</string>
+    <string name="app_timer_title">Tempo restante: %s</string>
 
     <!-- BmiCalculator -->
     <string name="bmi_calculator_title">Calcular Imc</string>

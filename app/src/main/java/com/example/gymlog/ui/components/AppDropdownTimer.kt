@@ -1,7 +1,9 @@
 package com.example.gymlog.ui.components
 
+import android.Manifest
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -32,20 +34,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gymlog.R
-import com.example.gymlog.services.TimerService
+import com.example.gymlog.services.DropdownTimerService
 import com.example.gymlog.ui.theme.GymLogTheme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import java.util.Calendar
 
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun AppTimer(modifier: Modifier = Modifier) {
+fun AppDropdownTimer(modifier: Modifier = Modifier) {
+    val notificationPermissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+    } else null
     val context = LocalContext.current
-    Intent(context, TimerService::class.java).also { intent ->
+    Intent(context, DropdownTimerService::class.java).also { intent ->
         context.startService(intent)
     }
-    val isRunning by TimerService.isRunning.collectAsStateWithLifecycle()
-    val startTimeInMillis by TimerService.startTimeInMillis.collectAsStateWithLifecycle()
-    val currentTimeInMillis by TimerService.currentTimeInMillis.collectAsStateWithLifecycle()
+    val isRunning by DropdownTimerService.isRunning.collectAsStateWithLifecycle()
+    val startTimeInMillis by DropdownTimerService.startTimeInMillis.collectAsStateWithLifecycle()
+    val currentTimeInMillis by DropdownTimerService.currentTimeInMillis.collectAsStateWithLifecycle()
     val time = Calendar.getInstance().apply {
         timeInMillis = if (isRunning || currentTimeInMillis != startTimeInMillis) {
             currentTimeInMillis.toLong()
@@ -81,9 +90,16 @@ fun AppTimer(modifier: Modifier = Modifier) {
         ) {
             Button(
                 onClick = {
-                    if (currentTimeInMillis != 0f) {
-                        if (isRunning) TimerService.pause() else TimerService.start(context = context)
+                    val playPauseFunction = {
+                        if (currentTimeInMillis != 0f) {
+                            if (isRunning) DropdownTimerService.pause() else DropdownTimerService.start(
+                                context = context
+                            )
+                        }
                     }
+                    notificationPermissionState?.let {
+                        if (!it.status.isGranted) it.launchPermissionRequest() else playPauseFunction()
+                    } ?: playPauseFunction()
 
                 }, modifier = Modifier.padding(
                     horizontal = dimensionResource(
@@ -112,7 +128,7 @@ fun AppTimer(modifier: Modifier = Modifier) {
                     }
                 }
             }
-            OutlinedButton(onClick = { TimerService.reset() }) {
+            OutlinedButton(onClick = { DropdownTimerService.reset(context) }) {
                 Icon(imageVector = Icons.Rounded.Refresh, contentDescription = "refresh")
             }
 
@@ -126,7 +142,7 @@ fun AppTimer(modifier: Modifier = Modifier) {
             ) {
                 Slider(
                     value = startTimeInMillis,
-                    onValueChange = { TimerService.setStartInMillis(it) },
+                    onValueChange = { DropdownTimerService.setStartInMillis(it) },
                     valueRange = 0f..3600000f,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -136,16 +152,16 @@ fun AppTimer(modifier: Modifier = Modifier) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
                 ) {
-                    FilledTonalButton(onClick = { TimerService.decreaseTime(10000f) }) {
+                    FilledTonalButton(onClick = { DropdownTimerService.decreaseTime(10000f) }) {
                         Text(text = "-10s")
                     }
-                    FilledTonalButton(onClick = { TimerService.decreaseTime(5000f) }) {
+                    FilledTonalButton(onClick = { DropdownTimerService.decreaseTime(5000f) }) {
                         Text(text = "-5s")
                     }
-                    FilledTonalButton(onClick = { TimerService.increaseTime(5000f) }) {
+                    FilledTonalButton(onClick = { DropdownTimerService.increaseTime(5000f) }) {
                         Text(text = "+5s")
                     }
-                    FilledTonalButton(onClick = { TimerService.increaseTime(10000f) }) {
+                    FilledTonalButton(onClick = { DropdownTimerService.increaseTime(10000f) }) {
                         Text(text = "+10s")
                     }
                 }
@@ -162,7 +178,7 @@ fun AppTimer(modifier: Modifier = Modifier) {
 private fun AppTimerPreview() {
     GymLogTheme {
         Card() {
-            AppTimer(modifier = Modifier.padding(8.dp))
+            AppDropdownTimer(modifier = Modifier.padding(8.dp))
         }
     }
 }

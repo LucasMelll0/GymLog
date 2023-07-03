@@ -19,19 +19,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             GymLogTheme {
-               GymLogApp()
+                GymLogApp()
             }
         }
     }
 }
 
+
+
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun GymLogApp() {
     GymLogTheme {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
             val navController = rememberAnimatedNavController()
             AppNavHost(navController = navController)
         }

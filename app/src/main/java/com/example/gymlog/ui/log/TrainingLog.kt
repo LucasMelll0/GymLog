@@ -59,7 +59,7 @@ import com.example.gymlog.data.AppDataBase_Impl
 import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.model.ExerciseMutableState
 import com.example.gymlog.repository.TrainingRepositoryImpl
-import com.example.gymlog.ui.components.AppTimer
+import com.example.gymlog.ui.components.AppDropdownTimer
 import com.example.gymlog.ui.components.CustomLinearProgressBar
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
@@ -218,7 +218,7 @@ fun TimerBottomSheet(onDismissRequest: () -> Unit) {
         onDismissRequest = onDismissRequest,
         sheetState = rememberModalBottomSheetState(true)
     ) {
-        AppTimer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
+        AppDropdownTimer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
     }
 }
 

@@ -13,13 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.gymlog.R
-import com.example.gymlog.ui.components.AppTimer
+import com.example.gymlog.ui.components.AppDropdownTimer
 import com.example.gymlog.ui.theme.GymLogTheme
 
 @Composable
 fun TimerScreen() {
     Scaffold(bottomBar = { TimerBottomBar(onNavIconClick = {}) }) { paddingValues ->
-        AppTimer(
+        AppDropdownTimer(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
