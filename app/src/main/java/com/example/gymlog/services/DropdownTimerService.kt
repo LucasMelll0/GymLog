@@ -67,6 +67,7 @@ class DropdownTimerService : Service() {
                         "$hour:$formattedMinutes:$formattedSeconds"
                     )
                 )
+                .setOngoing(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
                 .setAutoCancel(false)
