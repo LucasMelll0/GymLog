@@ -39,7 +39,6 @@ import com.example.gymlog.ui.theme.GymLogTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import java.util.Calendar
 
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -55,17 +54,15 @@ fun AppDropdownTimer(modifier: Modifier = Modifier) {
     val isRunning by DropdownTimerService.isRunning.collectAsStateWithLifecycle()
     val startTimeInMillis by DropdownTimerService.startTimeInMillis.collectAsStateWithLifecycle()
     val currentTimeInMillis by DropdownTimerService.currentTimeInMillis.collectAsStateWithLifecycle()
-    val time = Calendar.getInstance().apply {
-        timeInMillis = if (isRunning || currentTimeInMillis != startTimeInMillis) {
+    val time =
+        if (isRunning || currentTimeInMillis != startTimeInMillis) {
             currentTimeInMillis.toLong()
         } else {
             startTimeInMillis.toLong()
         }
 
-    }
-    val hour = time.get(Calendar.HOUR)
-    val minutes = time.get(Calendar.MINUTE)
-    val seconds = time.get(Calendar.SECOND)
+    val minutes = time / 1000 / 60
+    val seconds = time / 1000 % 60
     val progress =
         if (startTimeInMillis > 0) ((currentTimeInMillis * 100) / startTimeInMillis) else 100f
     Column(
@@ -79,7 +76,7 @@ fun AppDropdownTimer(modifier: Modifier = Modifier) {
         CustomCircularProgressbar(
             modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
             progress = progress,
-            text = "${hour}h ${formattedMinutes}m ${formattedSeconds}s",
+            text = "${formattedMinutes}m ${formattedSeconds}s",
         )
         Spacer(modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)))
         // Control buttons

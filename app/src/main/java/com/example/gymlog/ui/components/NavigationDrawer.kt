@@ -41,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.gymlog.R
 import com.example.gymlog.navigation.Bmi
 import com.example.gymlog.navigation.Destination
+import com.example.gymlog.navigation.DropdownTimer
 import com.example.gymlog.navigation.Home
 import com.example.gymlog.ui.auth.authclient.UserData
 import com.example.gymlog.ui.theme.GymLogTheme
@@ -165,7 +166,7 @@ fun AppNavigationDrawer(
     onClickExit: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    val destinations = listOf(Home, Bmi)
+    val destinations = listOf(Home, Bmi, DropdownTimer)
     ModalNavigationDrawer(
         gesturesEnabled = gesturesEnabled, drawerContent = {
             DrawerBody(

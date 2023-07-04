@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.util.Calendar
 
 class DropdownTimerService : Service() {
 
@@ -29,10 +28,10 @@ class DropdownTimerService : Service() {
         private val pIsRunning = MutableStateFlow(false)
         internal val isRunning: StateFlow<Boolean> get() = pIsRunning
 
-        private val pStartTimeInMillis = MutableStateFlow(0f)
+        private val pStartTimeInMillis = MutableStateFlow(0.0f)
         internal val startTimeInMillis: StateFlow<Float> get() = pStartTimeInMillis
 
-        private val pCurrentTimeInMillis = MutableStateFlow(0f)
+        private val pCurrentTimeInMillis = MutableStateFlow(0.0f)
         internal val currentTimeInMillis: StateFlow<Float> get() = pCurrentTimeInMillis
 
         fun start(context: Context) {
@@ -51,12 +50,8 @@ class DropdownTimerService : Service() {
         }
 
         private fun createNotification(context: Context) {
-            val time = Calendar.getInstance().apply {
-                timeInMillis = currentTimeInMillis.value.toLong()
-            }
-            val hour = time.get(Calendar.HOUR)
-            val minutes = time.get(Calendar.MINUTE)
-            val seconds = time.get(Calendar.SECOND)
+            val minutes = currentTimeInMillis.value.toLong() / 1000 / 60
+            val seconds = currentTimeInMillis.value.toLong() / 1000 % 60
             val formattedMinutes = if (minutes < 10) "0$minutes" else minutes.toString()
             val formattedSeconds = if (seconds < 10) "0$seconds" else seconds.toString()
             val notification = NotificationCompat.Builder(context, NOTIFICATION_ID)
@@ -64,7 +59,7 @@ class DropdownTimerService : Service() {
                 .setContentTitle(
                     context.getString(
                         R.string.app_timer_title,
-                        "$hour:$formattedMinutes:$formattedSeconds"
+                        "$formattedMinutes:$formattedSeconds"
                     )
                 )
                 .setOngoing(true)

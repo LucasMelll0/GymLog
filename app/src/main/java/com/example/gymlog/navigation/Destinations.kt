@@ -61,3 +61,9 @@ object Auth : Destination {
     override val title: Int? = null
     override val icon: Int? = null
 }
+
+object DropdownTimer : Destination {
+    override val route: String = "dropdown_timer"
+    override val title: Int = R.string.dropdown_timer_destination
+    override val icon: Int = R.drawable.ic_timer
+}

@@ -32,6 +32,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.gymlog.R
 import com.example.gymlog.navigation.Auth
 import com.example.gymlog.navigation.Bmi
+import com.example.gymlog.navigation.DropdownTimer
 import com.example.gymlog.navigation.Form
 import com.example.gymlog.navigation.Home
 import com.example.gymlog.navigation.Log
@@ -46,6 +47,7 @@ import com.example.gymlog.ui.bmi.BmiHistoricScreen
 import com.example.gymlog.ui.components.AppNavigationDrawer
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.LoadingDialog
+import com.example.gymlog.ui.dropdown_timer.DropdownTimerScreen
 import com.example.gymlog.ui.form.TrainingFormScreen
 import com.example.gymlog.ui.home.HomeScreen
 import com.example.gymlog.ui.log.TrainingLogScreen
@@ -321,6 +323,16 @@ fun AppNavHost(
                     },
                     onError = { navController.popBackStack() }
                 )
+            }
+            composable(DropdownTimer.route,
+                enterTransition = { fadeIn() },
+                exitTransition = { fadeOut() }
+            ) {
+                DropdownTimerScreen(onNavIconClick = {
+                    scope.launch {
+                        drawerState.open()
+                    }
+                })
             }
         }
     }

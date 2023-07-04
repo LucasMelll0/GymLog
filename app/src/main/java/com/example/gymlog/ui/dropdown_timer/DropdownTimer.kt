@@ -1,4 +1,4 @@
-package com.example.gymlog.ui.timer
+package com.example.gymlog.ui.dropdown_timer
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,8 +17,8 @@ import com.example.gymlog.ui.components.AppDropdownTimer
 import com.example.gymlog.ui.theme.GymLogTheme
 
 @Composable
-fun TimerScreen() {
-    Scaffold(bottomBar = { TimerBottomBar(onNavIconClick = {}) }) { paddingValues ->
+fun DropdownTimerScreen(onNavIconClick: () -> Unit) {
+    Scaffold(bottomBar = { DropdownTimerBottomBar(onNavIconClick = onNavIconClick) }) { paddingValues ->
         AppDropdownTimer(
             modifier = Modifier
                 .padding(paddingValues)
@@ -28,9 +28,9 @@ fun TimerScreen() {
 }
 
 @Composable
-fun TimerBottomBar(onNavIconClick: () -> Unit) {
+fun DropdownTimerBottomBar(onNavIconClick: () -> Unit) {
     BottomAppBar(actions = {
-        IconButton(onClick = { /*TODO*/ }) {
+        IconButton(onClick = onNavIconClick) {
             Icon(
                 imageVector = Icons.Rounded.Menu,
                 contentDescription = stringResource(id = R.string.common_open_navigation_drawer)
@@ -44,6 +44,6 @@ fun TimerBottomBar(onNavIconClick: () -> Unit) {
 @Composable
 fun TimerScreenPreview() {
     GymLogTheme {
-        TimerScreen()
+        DropdownTimerScreen(onNavIconClick = {})
     }
 }
