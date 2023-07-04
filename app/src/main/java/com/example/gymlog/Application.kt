@@ -24,9 +24,9 @@ class Application : Application() {
         val notificationChannel = NotificationChannel(
             DropdownTimerService.NOTIFICATION_ID,
             DropdownTimerService.NOTIFICATION_NAME,
-            NotificationManager.IMPORTANCE_LOW
+            NotificationManager.IMPORTANCE_DEFAULT
         )
-        notificationChannel.description = getString(R.string.app_timer_notification_description)
+        notificationChannel.description = getString(R.string.app_dropdown_timer_notification_description)
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(notificationChannel)
 

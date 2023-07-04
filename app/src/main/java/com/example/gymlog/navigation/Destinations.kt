@@ -2,6 +2,7 @@ package com.example.gymlog.navigation
 
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.example.gymlog.R
 
 interface Destination {
@@ -66,4 +67,7 @@ object DropdownTimer : Destination {
     override val route: String = "dropdown_timer"
     override val title: Int = R.string.dropdown_timer_destination
     override val icon: Int = R.drawable.ic_timer
+    val deepLinks = listOf(
+        navDeepLink { uriPattern = "gymlog://$route" }
+    )
 }

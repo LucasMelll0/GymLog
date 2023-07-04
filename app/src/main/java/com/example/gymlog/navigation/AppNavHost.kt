@@ -326,7 +326,8 @@ fun AppNavHost(
             }
             composable(DropdownTimer.route,
                 enterTransition = { fadeIn() },
-                exitTransition = { fadeOut() }
+                exitTransition = { fadeOut() },
+                deepLinks = DropdownTimer.deepLinks
             ) {
                 DropdownTimerScreen(onNavIconClick = {
                     scope.launch {
