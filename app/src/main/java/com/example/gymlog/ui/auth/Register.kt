@@ -158,9 +158,9 @@ fun RegisterScreen(
             Button(onClick = {
                 userNameHasError = userName.isEmpty()
                 emailHasError = email.isEmpty() || !isValidEmail(email)
-                passwordHasError = password.isEmpty() || password != passwordConfirmation
+                passwordHasError = password.isEmpty() || !isSamePasswords
                 passwordConfirmationHasError =
-                    passwordConfirmation.isEmpty() || password != passwordConfirmation
+                    passwordConfirmation.isEmpty() || !isSamePasswords
                 val hasError =
                     userNameHasError || emailHasError || passwordHasError || passwordConfirmationHasError
                 if (!hasError) {
