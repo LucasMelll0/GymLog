@@ -99,6 +99,7 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 value = userName,
                 onValueChange = { userName = it },
+                charLimit = 30,
                 singleLine = true,
                 label = {
                     Text(
