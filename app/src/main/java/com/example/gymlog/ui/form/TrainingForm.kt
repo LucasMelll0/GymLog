@@ -208,7 +208,11 @@ fun TrainingFormScreen(
                 }
                 AnimatedVisibility(viewModel.exercises.isNotEmpty()) {
                     Card(modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))) {
-                        FilterChipList(filterList = viewModel.filters)
+                        FilterChipList(
+                            filterList = viewModel.filters, modifier = Modifier.padding(
+                                dimensionResource(id = R.dimen.default_padding)
+                            )
+                        )
                     }
                 }
             }
