@@ -27,7 +27,9 @@ class FireStoreClient {
 
     suspend fun getUser(id: String): User? {
         return try {
-            db.collection(USERS).document(id).get().await().toObject(User::class.java)
+            withTimeout(5000) {
+                db.collection(USERS).document(id).get().await().toObject(User::class.java)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -36,12 +38,14 @@ class FireStoreClient {
 
     suspend fun saveBmiInfo(bmiInfo: BmiInfo) {
         try {
-            db.collection(BMI_INFO)
-                .document(bmiInfo.userId)
-                .collection(HISTORIC)
-                .document(bmiInfo.id)
-                .set(bmiInfo)
-                .await()
+            withTimeout(5000) {
+                db.collection(BMI_INFO)
+                    .document(bmiInfo.userId)
+                    .collection(HISTORIC)
+                    .document(bmiInfo.id)
+                    .set(bmiInfo)
+                    .await()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -64,12 +68,14 @@ class FireStoreClient {
 
     suspend fun getHistoric(userId: String): List<BmiInfo>? {
         return try {
-            db.collection(BMI_INFO)
-                .document(userId)
-                .collection(HISTORIC)
-                .get()
-                .await()
-                .toObjects(BmiInfo::class.java)
+            withTimeout(5000) {
+                db.collection(BMI_INFO)
+                    .document(userId)
+                    .collection(HISTORIC)
+                    .get()
+                    .await()
+                    .toObjects(BmiInfo::class.java)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             null

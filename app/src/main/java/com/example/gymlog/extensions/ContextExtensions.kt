@@ -1,10 +1,34 @@
 package com.example.gymlog.extensions
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+
+suspend fun Context.checkConnection(
+    onNotConnected: suspend () -> Unit = {},
+    onConnected: suspend () -> Unit
+) {
+    val connectivityManager =
+        getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+    val network = connectivityManager.activeNetwork
+
+    val activeNetwork = connectivityManager.getNetworkCapabilities(network)
+
+    activeNetwork?.let {
+        when {
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> onConnected()
+
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> onConnected()
+
+            else -> onNotConnected()
+        }
+    } ?: onNotConnected()
+}
 
 fun Context.vibrate(repetitions: Int = 5) {
     val timings = mutableListOf(0L).apply {

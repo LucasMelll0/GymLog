@@ -1,6 +1,7 @@
 package com.example.gymlog.ui.bmi
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -46,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -58,6 +60,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
 import com.example.gymlog.data.AppDataBase_Impl
 import com.example.gymlog.data.firebase.FireStoreClient
+import com.example.gymlog.extensions.checkConnection
 import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.User
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
@@ -88,6 +91,7 @@ fun BmiHistoricScreen(
     viewModel: BmiHistoricViewModel = koinViewModel(),
     onNavIconClick: () -> Unit
 ) {
+    val context = LocalContext.current
     var isLoading: Boolean by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val userResource = viewModel.userResource.collectAsState(Resource.Loading)
@@ -97,10 +101,18 @@ fun BmiHistoricScreen(
     var showBmiCalculatorDialog: Boolean by rememberSaveable { mutableStateOf(false) }
     var showDeleteRegisterDialog: Boolean by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        isLoading = true
-        viewModel.sync()
-        viewModel.getUser()
-        isLoading = false
+        context.checkConnection(onNotConnected = {
+            Log.d("TAG", "BmiHistoricScreen: Not Connected")
+            isLoading = true
+            viewModel.getUser()
+            isLoading = false
+        }) {
+            Log.d("TAG", "BmiHistoricScreen: Connected")
+            isLoading = true
+            viewModel.sync()
+            viewModel.getUser()
+            isLoading = false
+        }
     }
     when (userResource.value) {
         is Resource.Loading -> {

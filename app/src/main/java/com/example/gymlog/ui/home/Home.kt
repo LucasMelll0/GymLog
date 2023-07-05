@@ -52,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -62,9 +63,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
-import com.example.gymlog.data.Mock
 import com.example.gymlog.data.AppDataBase_Impl
+import com.example.gymlog.data.Mock
 import com.example.gymlog.data.firebase.FireStoreClient
+import com.example.gymlog.extensions.checkConnection
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepositoryImpl
@@ -89,6 +91,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel()
 ) {
+    val context = LocalContext.current
     var isLoading by rememberSaveable { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
@@ -98,9 +101,11 @@ fun HomeScreen(
     val training by viewModel.trainings.collectAsState(emptyList())
 
     LaunchedEffect(Unit) {
-        isLoading = true
-        viewModel.sync()
-        isLoading = false
+        context.checkConnection {
+            isLoading = true
+            viewModel.sync()
+            isLoading = false
+        }
     }
 
     Scaffold(bottomBar = {

@@ -1,7 +1,6 @@
 package com.example.gymlog.ui.bmi
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -73,100 +73,109 @@ fun BmiCalculatorDialog(
     var weightHasError by remember { mutableStateOf(false) }
     var classifier: BmiClassifier? by remember { mutableStateOf(null) }
     val scope = rememberCoroutineScope()
+    var isLoading: Boolean by rememberSaveable { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false),
         modifier = Modifier.wrapContentHeight()
     ) {
-        Card() {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(dimensionResource(id = R.dimen.default_padding))
-                    .verticalScroll(
-                        rememberScrollState()
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
-            ) {
-                Text(
-                    text = stringResource(id = R.string.bmi_calculator_title),
-                    style = MaterialTheme.typography.titleLarge
-                )
-                DefaultOutlinedTextField(
-                    value = weight,
-                    onValueChange = { weight = it },
-                    label = { Text(text = stringResource(id = R.string.bmi_calculator_weight_label)) },
-                    charLimit = 3,
-                    suffix = { Text(text = stringResource(id = R.string.common_kg_suffix)) },
-                    isError = weightHasError,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-                )
-                AnimatedVisibility(visible = classifier != null) {
-                    classifier?.let {
-                        ResultCard(
-                            classifier = it, modifier = Modifier.padding(
-                                dimensionResource(
-                                    id = R.dimen.default_padding
-                                )
-                            )
-                        )
-                    }
-                }
-                Row(
+
+        Card {
+            if (isLoading) {
+                LinearProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(dimensionResource(id = R.dimen.default_padding)),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        dimensionResource(id = R.dimen.default_padding)
-                    ),
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(dimensionResource(id = R.dimen.default_padding))
+                )
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(dimensionResource(id = R.dimen.default_padding))
+                        .verticalScroll(
+                            rememberScrollState()
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
                 ) {
-                    Button(
-                        onClick = {
-                            classifier?.let {
-                                scope.launch {
-                                    val bmiInfo = BmiInfo(
-                                        gender = it.gender,
-                                        weight = it.weight,
-                                        height = it.height,
-                                        age = it.age
+                    Text(
+                        text = stringResource(id = R.string.bmi_calculator_title),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    DefaultOutlinedTextField(
+                        value = weight,
+                        onValueChange = { weight = it },
+                        label = { Text(text = stringResource(id = R.string.bmi_calculator_weight_label)) },
+                        charLimit = 3,
+                        suffix = { Text(text = stringResource(id = R.string.common_kg_suffix)) },
+                        isError = weightHasError,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                    )
+                    AnimatedVisibility(visible = classifier != null) {
+                        classifier?.let {
+                            ResultCard(
+                                classifier = it, modifier = Modifier.padding(
+                                    dimensionResource(
+                                        id = R.dimen.default_padding
                                     )
-                                    try {
+                                )
+                            )
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(dimensionResource(id = R.dimen.default_padding)),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            dimensionResource(id = R.dimen.default_padding)
+                        ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = {
+                                classifier?.let {
+                                    scope.launch {
+                                        isLoading = true
+                                        val bmiInfo = BmiInfo(
+                                            gender = it.gender,
+                                            weight = it.weight,
+                                            height = it.height,
+                                            age = it.age
+                                        )
                                         viewModel.save(bmiInfo)
                                         onSaved()
-                                    } catch (e: Exception) {
-                                        Log.w("BmiCalculator", "BmiCalculatorScreen: ", e)
-                                    }
 
-                                }
-                            } ?: run {
-                                weightHasError = weight.isZeroOrEmpty()
-                                if (!weightHasError) {
-                                    if (weight.isDigitsOnly()) {
-                                        scope.launch {
-                                            classifier = BmiClassifier(
-                                                gender = user.gender ?: Gender.Male,
-                                                weight = weight.toFloat(),
-                                                height = user.height,
-                                                age = user.age
-                                            )
+                                    }
+                                } ?: run {
+                                    weightHasError = weight.isZeroOrEmpty()
+                                    if (!weightHasError) {
+                                        if (weight.isDigitsOnly()) {
+                                            scope.launch {
+                                                classifier = BmiClassifier(
+                                                    gender = user.gender ?: Gender.Male,
+                                                    weight = weight.toFloat(),
+                                                    height = user.height,
+                                                    age = user.age
+                                                )
+                                            }
                                         }
                                     }
                                 }
+                            }, modifier = Modifier.weight(0.7f)
+                        ) {
+                            val text = classifier?.let { stringResource(id = R.string.common_save) }
+                                ?: stringResource(id = R.string.common_calculate)
+                            Text(text = text)
+                        }
+                        AnimatedVisibility(visible = classifier != null) {
+                            Button(
+                                onClick = { classifier = null }, modifier = Modifier.weight(0.3f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Refresh,
+                                    contentDescription = stringResource(id = R.string.common_reset)
+                                )
                             }
-                        }, modifier = Modifier.weight(0.7f)
-                    ) {
-                        val text = classifier?.let { stringResource(id = R.string.common_save) }
-                            ?: stringResource(id = R.string.common_calculate)
-                        Text(text = text)
-                    }
-                    AnimatedVisibility(visible = classifier != null) {
-                        Button(onClick = { classifier = null }, modifier = Modifier.weight(0.3f)) {
-                            Icon(
-                                imageVector = Icons.Rounded.Refresh,
-                                contentDescription = stringResource(id = R.string.common_reset)
-                            )
                         }
                     }
                 }
@@ -232,12 +241,10 @@ private fun BmiCalculatorScreenPreview() {
             }
         }
         val viewModel: BmiCalculatorViewModel = viewModel(factory = viewModelFactory)
-        BmiCalculatorDialog(
-            onSaved = {},
+        BmiCalculatorDialog(onSaved = {},
             user = User(gender = Gender.Male, height = 176, age = 21),
             viewModel = viewModel,
-            onDismissRequest = {}
-        )
+            onDismissRequest = {})
     }
 }
 
