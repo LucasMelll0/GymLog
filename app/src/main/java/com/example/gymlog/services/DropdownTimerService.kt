@@ -2,6 +2,7 @@ package com.example.gymlog.services
 
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.Service
 import android.app.TaskStackBuilder
 import android.content.Context
@@ -75,7 +76,7 @@ class DropdownTimerService : Service() {
             )
             val clickPendingIntent: PendingIntent = TaskStackBuilder.create(context).run {
                 addNextIntentWithParentStack(clickIntent)
-                getPendingIntent(NOTIFICATION_INT_ID, 0)
+                getPendingIntent(NOTIFICATION_INT_ID, FLAG_IMMUTABLE)
             }
             val minutes = currentTimeInMillis.value.toLong() / 1000 / 60
             val seconds = currentTimeInMillis.value.toLong() / 1000 % 60
