@@ -43,6 +43,7 @@ import com.example.gymlog.navigation.Bmi
 import com.example.gymlog.navigation.Destination
 import com.example.gymlog.navigation.DropdownTimer
 import com.example.gymlog.navigation.Home
+import com.example.gymlog.navigation.UserProfile
 import com.example.gymlog.ui.auth.authclient.UserData
 import com.example.gymlog.ui.theme.GymLogTheme
 
@@ -166,7 +167,7 @@ fun AppNavigationDrawer(
     onClickExit: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    val destinations = listOf(Home, Bmi, DropdownTimer)
+    val destinations = listOf(Home, Bmi, DropdownTimer, UserProfile)
     ModalNavigationDrawer(
         gesturesEnabled = gesturesEnabled, drawerContent = {
             DrawerBody(

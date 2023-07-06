@@ -157,4 +157,15 @@
     <string name="auth_send_password_reset_email_bottom_sheet_message">Digite o endereço de email vinculado a sua conta para enviarmos um email com um link para a recuperação de senha:</string>
     <string name="auth_send_password_reset_email_success_message">"Enviamos um link para a redefinição de senha para seu email!"</string>
     <string name="auth_exit_confirmation_dialog_text">Ao confirmar você ira sair da sua conta!</string>
+
+    <!-- User Profile -->
+    <string name="user_profile_change_username_button">Alterar Nome de Usuário</string>
+    <string name="user_profile_change_password_button">Alterar Senha</string>
+    <string name="user_profile_delete_account_button">Excluir Conta</string>
+    <string name="user_profile_change_username_text_bottom_sheet">Insira o novo nome de usuário que você deseja:</string>
+    <string name="user_profile_title">Perfil</string>
+    <string name="user_profile_change_password_old_password_label">Senha Anterior</string>
+    <string name="user_profile_change_password_new_password_label">Nova Senha</string>
+    <string name="user_profile_delete_account_warning">Ao confirmar você irá apagar o usuário juntamente com todos os dados vinculados!</string>
+    <string name="user_profile_delete_account_password_request">Para confirmar você precisa inserir sua senha:</string>
 </resources>

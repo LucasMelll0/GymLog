@@ -71,3 +71,10 @@ object DropdownTimer : Destination {
         navDeepLink { uriPattern = "gymlog://$route" }
     )
 }
+
+object UserProfile : Destination {
+    override val route: String = "user_profile"
+    override val title: Int = R.string.user_profile_title
+    override val icon: Int = R.drawable.ic_person
+
+}

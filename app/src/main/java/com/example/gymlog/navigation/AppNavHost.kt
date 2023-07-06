@@ -38,6 +38,7 @@ import com.example.gymlog.navigation.Home
 import com.example.gymlog.navigation.Log
 import com.example.gymlog.navigation.Login
 import com.example.gymlog.navigation.Register
+import com.example.gymlog.navigation.UserProfile
 import com.example.gymlog.ui.auth.AuthenticationScreen
 import com.example.gymlog.ui.auth.LoginScreen
 import com.example.gymlog.ui.auth.RegisterScreen
@@ -51,6 +52,7 @@ import com.example.gymlog.ui.dropdown_timer.DropdownTimerScreen
 import com.example.gymlog.ui.form.TrainingFormScreen
 import com.example.gymlog.ui.home.HomeScreen
 import com.example.gymlog.ui.log.TrainingLogScreen
+import com.example.gymlog.ui.user.UserProfileScreen
 import com.example.gymlog.utils.BackPressHandler
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
@@ -324,12 +326,24 @@ fun AppNavHost(
                     onError = { navController.popBackStack() }
                 )
             }
-            composable(DropdownTimer.route,
+            composable(
+                DropdownTimer.route,
                 enterTransition = { fadeIn() },
                 exitTransition = { fadeOut() },
                 deepLinks = DropdownTimer.deepLinks
             ) {
                 DropdownTimerScreen(onNavIconClick = {
+                    scope.launch {
+                        drawerState.open()
+                    }
+                })
+            }
+            composable(
+                UserProfile.route,
+                enterTransition = { fadeIn() },
+                exitTransition = { fadeOut() },
+            ) {
+                UserProfileScreen(onNavIconClick = {
                     scope.launch {
                         drawerState.open()
                     }
