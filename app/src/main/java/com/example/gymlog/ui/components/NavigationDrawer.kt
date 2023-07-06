@@ -39,6 +39,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.gymlog.R
+import com.example.gymlog.extensions.capitalizeAllWords
 import com.example.gymlog.navigation.Bmi
 import com.example.gymlog.navigation.Destination
 import com.example.gymlog.navigation.DropdownTimer
@@ -76,9 +77,7 @@ fun DrawerBody(
                 user?.userName?.let { userName ->
                     Text(
                         text = stringResource(
-                            id = R.string.drawer_welcome_message, userName.split(" ").joinToString(
-                                separator = " ",
-                                transform = { it.replaceFirstChar { firstLetter -> firstLetter.uppercase() } })
+                            id = R.string.drawer_welcome_message, userName.capitalizeAllWords()
                         ),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
