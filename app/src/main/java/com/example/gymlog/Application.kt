@@ -11,6 +11,7 @@ import com.example.gymlog.di.homeModule
 import com.example.gymlog.di.logModule
 import com.example.gymlog.di.repositoryModule
 import com.example.gymlog.di.roomModule
+import com.example.gymlog.di.userProfileModule
 import com.example.gymlog.services.DropdownTimerService
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -41,7 +42,8 @@ class Application : Application() {
                 logModule,
                 bmiModule,
                 authModule,
-                firebaseModule
+                firebaseModule,
+                userProfileModule
             )
         }
     }

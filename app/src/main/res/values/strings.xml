@@ -64,6 +64,7 @@
     <string name="common_error_message">Ocorreu um erro</string>
     <string name="common_synchronizing">Sincronizando</string>
     <string name="common_saving">Salvando</string>
+    <string name="common_offline_message">Para fazer essa alteração você deve estar conectado a internet.</string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>
@@ -168,4 +169,5 @@
     <string name="user_profile_change_password_new_password_label">Nova Senha</string>
     <string name="user_profile_delete_account_warning">Ao confirmar você irá apagar o usuário juntamente com todos os dados vinculados!</string>
     <string name="user_profile_delete_account_password_request">Para confirmar você precisa inserir sua senha:</string>
+    <string name="user_profile_change_username_error">Ocorreu uma falha ao tentar mudar a nome de usuário. Tente novamente mais tarde!</string>
 </resources>

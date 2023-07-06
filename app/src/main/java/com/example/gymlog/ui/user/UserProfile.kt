@@ -2,6 +2,7 @@ package com.example.gymlog.ui.user
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,33 +21,75 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gymlog.R
+import com.example.gymlog.extensions.capitalizeAllWords
+import com.example.gymlog.extensions.checkConnection
 import com.example.gymlog.ui.components.DefaultPasswordTextField
 import com.example.gymlog.ui.components.DefaultTextField
+import com.example.gymlog.ui.components.LoadingDialog
 import com.example.gymlog.ui.theme.GymLogTheme
+import com.example.gymlog.ui.user.viewmodel.UserProfileViewModel
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun UserProfileScreen(onNavIconClick: () -> Unit) {
+fun UserProfileScreen(
+    viewModel: UserProfileViewModel = koinViewModel(),
+    onNavIconClick: () -> Unit,
+    onInvalidUser: () -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var isLoading by rememberSaveable { mutableStateOf(false) }
+    val snackBarHostState = remember { SnackbarHostState() }
+    val user by viewModel.user.collectAsStateWithLifecycle()
+    user ?: onInvalidUser()
     var showChangeUsernameBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showChangePasswordBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteAccountBottomSheet by rememberSaveable { mutableStateOf(false) }
-    Scaffold(bottomBar = { UserProfileBottomBar(onNavIconClick = onNavIconClick) }) { paddingValues ->
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+        bottomBar = { UserProfileBottomBar(onNavIconClick = onNavIconClick) }) { paddingValues ->
+        if (isLoading) Box(modifier = Modifier.fillMaxSize()) {
+            LoadingDialog()
+        }
         if (showChangeUsernameBottomSheet) ChangeUsernameBottomSheet(
             onConfirm = {
                 showChangeUsernameBottomSheet = false
+                scope.launch {
+                    context.checkConnection(onNotConnected = {
+                        snackBarHostState.showSnackbar(
+                            message = context.getString(R.string.common_offline_message),
+                            withDismissAction = true
+                        )
+                    }) {
+                        isLoading = true
+                        val response = viewModel.changeUsername(it)
+                        if (response.isSuccess) viewModel.reload() else snackBarHostState.showSnackbar(
+                            message = context.getString(R.string.user_profile_change_username_error),
+                            withDismissAction = true
+                        )
+                        isLoading = false
+                    }
+                }
             }, onDismissRequest = { showChangeUsernameBottomSheet = false })
 
         if (showChangePasswordBottomSheet) ChangePasswordBottomSheet(
@@ -68,40 +111,45 @@ fun UserProfileScreen(onNavIconClick: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            /* TODO get username */
-            Text(
-                text = "Lucas Mello",
-                style = MaterialTheme.typography.displaySmall,
-                modifier = Modifier.padding(
-                    dimensionResource(id = R.dimen.large_padding)
-                )
-            )
-            Column(
-                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(dimensionResource(id = R.dimen.extra_large_padding))
-            ) {
-                Button(
-                    onClick = { showChangeUsernameBottomSheet = true }, Modifier.fillMaxWidth()
-                ) {
-                    Text(text = stringResource(id = R.string.user_profile_change_username_button))
-                }
-                Button(
-                    onClick = { showChangePasswordBottomSheet = true }, Modifier.fillMaxWidth()
-                ) {
-                    Text(text = stringResource(id = R.string.user_profile_change_password_button))
-                }
-                OutlinedButton(
-                    onClick = { showDeleteAccountBottomSheet = true },
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            top = dimensionResource(
-                                id = R.dimen.large_padding
-                            )
+            user?.let { user ->
+                user.displayName?.let {
+                    Text(
+                        text = it.capitalizeAllWords(),
+                        style = MaterialTheme.typography.displaySmall,
+                        modifier = Modifier.padding(
+                            dimensionResource(id = R.dimen.large_padding)
                         )
+                    )
+                }
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(dimensionResource(id = R.dimen.extra_large_padding))
                 ) {
-                    Text(text = stringResource(id = R.string.user_profile_delete_account_button))
+                    Button(
+                        onClick = {
+                            showChangeUsernameBottomSheet = true
+                        }, Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = stringResource(id = R.string.user_profile_change_username_button))
+                    }
+                    Button(
+                        onClick = { showChangePasswordBottomSheet = true }, Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = stringResource(id = R.string.user_profile_change_password_button))
+                    }
+                    OutlinedButton(
+                        onClick = { showDeleteAccountBottomSheet = true },
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                top = dimensionResource(
+                                    id = R.dimen.large_padding
+                                )
+                            )
+                    ) {
+                        Text(text = stringResource(id = R.string.user_profile_delete_account_button))
+                    }
                 }
             }
         }
@@ -333,6 +381,6 @@ fun UserProfileBottomBar(onNavIconClick: () -> Unit) {
 @Composable
 fun UserProfileScreenPreview() {
     GymLogTheme {
-        UserProfileScreen(onNavIconClick = {})
+        UserProfileScreen(onNavIconClick = {}, onInvalidUser = {})
     }
 }

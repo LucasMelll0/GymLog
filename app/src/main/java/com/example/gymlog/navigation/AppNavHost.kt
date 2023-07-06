@@ -347,6 +347,8 @@ fun AppNavHost(
                     scope.launch {
                         drawerState.open()
                     }
+                }, onInvalidUser = {
+                    navController.popBackStack()
                 })
             }
         }

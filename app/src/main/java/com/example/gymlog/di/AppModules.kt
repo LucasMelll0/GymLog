@@ -4,6 +4,7 @@ import androidx.room.Room
 import com.example.gymlog.data.AppDataBase
 import com.example.gymlog.data.DATABASE_NAME
 import com.example.gymlog.data.firebase.FireStoreClient
+import com.example.gymlog.data.firebase.FirebaseUserClient
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.repository.UserRepositoryImpl
@@ -13,6 +14,7 @@ import com.example.gymlog.ui.bmi.viewmodel.BmiHistoricViewModel
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.home.viewmodel.HomeViewModel
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
+import com.example.gymlog.ui.user.viewmodel.UserProfileViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -41,6 +43,9 @@ val roomModule = module {
 val firebaseModule = module {
     single {
         FireStoreClient()
+    }
+    single {
+        FirebaseUserClient()
     }
 }
 
@@ -89,5 +94,11 @@ val bmiModule = module {
 val authModule = module {
     viewModel {
         AuthViewModel()
+    }
+}
+
+val userProfileModule = module {
+    viewModel {
+        UserProfileViewModel(get())
     }
 }
