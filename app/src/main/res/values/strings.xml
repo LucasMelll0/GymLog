@@ -170,4 +170,6 @@
     <string name="user_profile_delete_account_warning">Ao confirmar você irá apagar o usuário juntamente com todos os dados vinculados!</string>
     <string name="user_profile_delete_account_password_request">Para confirmar você precisa inserir sua senha:</string>
     <string name="user_profile_change_username_error">Ocorreu uma falha ao tentar mudar a nome de usuário. Tente novamente mais tarde!</string>
+    <string name="user_profile_change_password_success_message">Senha alterada com sucesso!</string>
+    <string name="user_profile_change_password_error">Ocorreu uma falha ao tentar mudar a senha, verifique suas credenciais!</string>
 </resources>

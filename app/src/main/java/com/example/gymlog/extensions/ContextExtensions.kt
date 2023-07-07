@@ -7,7 +7,11 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 
+val Context.datastore: DataStore<Preferences> by preferencesDataStore(name = "userInfo")
 suspend fun Context.checkConnection(
     onNotConnected: suspend () -> Unit = {},
     onConnected: suspend () -> Unit

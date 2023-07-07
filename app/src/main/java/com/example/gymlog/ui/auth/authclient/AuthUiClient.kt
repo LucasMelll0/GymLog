@@ -99,7 +99,8 @@ class AuthUiClient(
                     UserData(
                         userId = uid,
                         userName = displayName,
-                        profilePicture = photoUrl?.toString()
+                        profilePicture = photoUrl?.toString(),
+                        googleIdToken = googleIdToken
                     )
                 },
                 errorMessage = null
@@ -131,7 +132,7 @@ class AuthUiClient(
         UserData(
             userId = uid,
             userName = displayName,
-            profilePicture = photoUrl?.toString()
+            profilePicture = photoUrl?.toString(),
         )
     }
 

@@ -11,8 +11,21 @@ class UserProfileViewModel(private val userClient: FirebaseUserClient) : ViewMod
     private val _user = MutableStateFlow(userClient.user)
     internal val user: StateFlow<FirebaseUser?> get() = _user
 
+    internal val userProvider = userClient.userProvider
+
     suspend fun changeUsername(username: String) = userClient.changeUsername(username)
 
     suspend fun reload() = userClient.reload()
+
+    suspend fun changePassword(
+        oldPassword: String,
+        newPassword: String,
+        googleIdToken: String? = null
+    ) =
+        userClient.changePassword(
+            oldPassword = oldPassword.ifEmpty { null },
+            newPassword = newPassword,
+            googleIdToken = googleIdToken
+        )
 
 }

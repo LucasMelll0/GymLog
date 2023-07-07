@@ -1,6 +1,7 @@
 package com.example.gymlog.ui.user
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gymlog.R
+import com.example.gymlog.data.datastore.UserStore
 import com.example.gymlog.extensions.capitalizeAllWords
 import com.example.gymlog.extensions.checkConnection
 import com.example.gymlog.ui.components.DefaultPasswordTextField
@@ -47,6 +49,7 @@ import com.example.gymlog.ui.components.DefaultTextField
 import com.example.gymlog.ui.components.LoadingDialog
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.ui.user.viewmodel.UserProfileViewModel
+import com.google.firebase.auth.EmailAuthProvider
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -58,6 +61,7 @@ fun UserProfileScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val googleIdToken by UserStore(context).getAccessToken.collectAsStateWithLifecycle(null)
     var isLoading by rememberSaveable { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
     val user by viewModel.user.collectAsStateWithLifecycle()
@@ -65,6 +69,8 @@ fun UserProfileScreen(
     var showChangeUsernameBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showChangePasswordBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteAccountBottomSheet by rememberSaveable { mutableStateOf(false) }
+    val isEmailAuthProvider = viewModel.userProvider == EmailAuthProvider.PROVIDER_ID
+    Log.d("TAG", "UserProfileScreen: is email auth provider: $isEmailAuthProvider")
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         bottomBar = { UserProfileBottomBar(onNavIconClick = onNavIconClick) }) { paddingValues ->
@@ -93,11 +99,36 @@ fun UserProfileScreen(
             }, onDismissRequest = { showChangeUsernameBottomSheet = false })
 
         if (showChangePasswordBottomSheet) ChangePasswordBottomSheet(
+            isEmailAuthProvider,
             onConfirm = { oldPassword, newPassword ->
                 showChangePasswordBottomSheet = false
-            }, onDismissRequest = {
-                showChangePasswordBottomSheet = false
-            })
+                scope.launch {
+                    context.checkConnection(onNotConnected = {
+                        snackBarHostState.showSnackbar(
+                            message = context.getString(R.string.common_offline_message),
+                            withDismissAction = true
+                        )
+                    }) {
+                        isLoading = true
+                        val response =
+                            viewModel.changePassword(oldPassword, newPassword, googleIdToken)
+                        isLoading = false
+                        if (response.isSuccess) {
+                            snackBarHostState.showSnackbar(
+                                context.getString(R.string.user_profile_change_password_success_message),
+                                withDismissAction = true
+                            )
+                        } else {
+                            snackBarHostState.showSnackbar(
+                                context.getString(R.string.user_profile_change_password_error),
+                                withDismissAction = true
+                            )
+                        }
+                    }
+                }
+            }) {
+            showChangePasswordBottomSheet = false
+        }
 
         if (showDeleteAccountBottomSheet) DeleteAccountBottomSheet(
             onConfirm = {
@@ -159,7 +190,9 @@ fun UserProfileScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChangePasswordBottomSheet(
-    onConfirm: (oldPassword: String, newPassword: String) -> Unit, onDismissRequest: () -> Unit
+    needPasswordToReauthenticate: Boolean,
+    onConfirm: (oldPassword: String, newPassword: String) -> Unit,
+    onDismissRequest: () -> Unit
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -197,19 +230,26 @@ private fun ChangePasswordBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
         ) {
-            DefaultPasswordTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = oldPassword,
-                onValueChange = { oldPassword = it },
-                label = {
-                    Text(
-                        text = stringResource(id = R.string.user_profile_change_password_old_password_label)
-                    )
-                },
-                leadingIcon = { Icon(imageVector = Icons.Rounded.Lock, contentDescription = null) },
-                isError = oldPasswordHasError,
-                errorMessage = oldPasswordErrorMessage()
-            )
+            if (needPasswordToReauthenticate) {
+                DefaultPasswordTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = oldPassword,
+                    onValueChange = { oldPassword = it },
+                    label = {
+                        Text(
+                            text = stringResource(id = R.string.user_profile_change_password_old_password_label)
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Lock,
+                            contentDescription = null
+                        )
+                    },
+                    isError = oldPasswordHasError,
+                    errorMessage = oldPasswordErrorMessage()
+                )
+            }
             DefaultPasswordTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = newPassword,
@@ -243,7 +283,7 @@ private fun ChangePasswordBottomSheet(
                     newPasswordConfirmationHasError =
                         newPasswordConfirmation.isEmpty() || !isSamePasswords
                     val hasError =
-                        oldPasswordHasError || newPasswordHasError || newPasswordConfirmationHasError
+                        (oldPasswordHasError && needPasswordToReauthenticate) || newPasswordHasError || newPasswordConfirmationHasError
                     if (!hasError) {
                         onConfirm(oldPassword, newPassword)
                     }

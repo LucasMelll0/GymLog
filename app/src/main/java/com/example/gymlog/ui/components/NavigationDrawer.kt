@@ -191,7 +191,11 @@ fun AppNavigationDrawerPreview() {
             onItemClick = {},
             drawerState = rememberDrawerState(initialValue = DrawerValue.Open),
             onClickExit = {},
-            user = UserData(userId = "", userName = "Lucas Mello", profilePicture = null)
+            user = UserData(
+                userId = "",
+                userName = "Lucas Mello",
+                profilePicture = null,
+            )
         ) {
 
         }

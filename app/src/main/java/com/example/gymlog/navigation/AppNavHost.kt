@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.gymlog.R
+import com.example.gymlog.data.datastore.UserStore
 import com.example.gymlog.navigation.Auth
 import com.example.gymlog.navigation.Bmi
 import com.example.gymlog.navigation.DropdownTimer
@@ -67,12 +68,15 @@ fun AppNavHost(
     modifier: Modifier = Modifier
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val userStore = UserStore(context)
     var isLoading: Boolean by rememberSaveable { mutableStateOf(false) }
     var showExitConfirmationDialog: Boolean by remember { mutableStateOf(false) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val currentActivity = LocalContext.current as Activity
     val authViewModel: AuthViewModel = koinViewModel()
+
     val signInState by authViewModel.state.collectAsStateWithLifecycle()
     val authUiClient by lazy {
         AuthUiClient(
@@ -92,6 +96,9 @@ fun AppNavHost(
                             return@launch
                         }
                     )
+                    signInResult.data?.googleIdToken?.let {
+                        userStore.saveToken(it)
+                    }
                     authViewModel.onSignInResult(signInResult)
                 }
             }
