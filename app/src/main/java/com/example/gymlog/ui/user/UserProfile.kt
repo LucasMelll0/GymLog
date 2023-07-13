@@ -88,11 +88,12 @@ fun UserProfileScreen(
                         )
                     }) {
                         isLoading = true
-                        val response = viewModel.changeUsername(it)
-                        if (response.isSuccess) viewModel.reload() else snackBarHostState.showSnackbar(
-                            message = context.getString(R.string.user_profile_change_username_error),
-                            withDismissAction = true
-                        )
+                        viewModel.changeUsername(it) {
+                            snackBarHostState.showSnackbar(
+                                message = context.getString(R.string.user_profile_change_username_error),
+                                withDismissAction = true
+                            )
+                        }
                         isLoading = false
                     }
                 }

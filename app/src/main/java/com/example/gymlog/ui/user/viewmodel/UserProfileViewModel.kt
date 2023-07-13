@@ -13,9 +13,12 @@ class UserProfileViewModel(private val userClient: FirebaseUserClient) : ViewMod
 
     internal val userProvider = userClient.userProvider
 
-    suspend fun changeUsername(username: String) = userClient.changeUsername(username)
+    suspend fun changeUsername(username: String, onFailedListener: suspend () -> Unit = {}) {
+        val response = userClient.changeUsername(username)
+        if (response.isSuccess) reload() else onFailedListener()
+    }
 
-    suspend fun reload() = userClient.reload()
+    private suspend fun reload() = userClient.reload()
 
     suspend fun changePassword(
         oldPassword: String,

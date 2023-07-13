@@ -50,7 +50,11 @@ class FirebaseUserClient {
         }
     }
 
-    suspend fun changePassword(oldPassword: String?, newPassword: String, googleIdToken: String? = null): Response {
+    suspend fun changePassword(
+        oldPassword: String?,
+        newPassword: String,
+        googleIdToken: String? = null
+    ): Response {
         return user?.let {
             try {
                 reauthenticate(oldPassword, googleIdToken)
