@@ -76,7 +76,6 @@ fun AppNavHost(
     val currentRoute = navBackStackEntry?.destination?.route
     val currentActivity = LocalContext.current as Activity
     val authViewModel: AuthViewModel = koinViewModel()
-
     val signInState by authViewModel.state.collectAsStateWithLifecycle()
     val authUiClient by lazy {
         AuthUiClient(
@@ -214,7 +213,7 @@ fun AppNavHost(
             composable(Login.route) {
                 LoginScreen(
                     onGoogleSignInClick = { signInWithGoogle() },
-                    onClickRegister = { navController.navigateInclusive(Home.route) },
+                    onClickRegister = { navController.navigateInclusive(Register.route) },
                     onConventionalSignInClick = {
                         scope.launch {
                             isLoading = true
@@ -356,6 +355,15 @@ fun AppNavHost(
                     }
                 }, onInvalidUser = {
                     navController.popBackStack()
+                },
+                onDeleteUser = {
+                    scope.launch {
+                        isLoading = true
+                        authViewModel.resetState()
+                        userStore.cleanToken()
+                        navController.navigateInclusive(Auth.route)
+                        isLoading = false
+                    }
                 })
             }
         }

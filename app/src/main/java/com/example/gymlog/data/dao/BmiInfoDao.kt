@@ -23,6 +23,9 @@ interface BmiInfoDao {
     @Delete
     suspend fun delete(bmiInfo: BmiInfo)
 
+    @Query("UPDATE Training SET isDisabled = 1 WHERE userId = :userId")
+    suspend fun disableAll(userId: String)
+
     @Query("SELECT * FROM BmiInfo WHERE userId = :userId AND isDisabled = 1")
     suspend fun getAllDisabled(userId: String): List<BmiInfo>
 

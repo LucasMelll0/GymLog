@@ -67,6 +67,22 @@ class FirebaseUserClient {
         } ?: Response(isSuccess = false, errorMessage = "Invalid user!")
     }
 
+    suspend fun deleteUser(
+        password: String?,
+        googleIdToken: String?
+    ) : Response {
+        return user?.let {
+            try {
+                reauthenticate(password, googleIdToken)
+                it.delete().await()
+                Response(isSuccess = true)
+            }catch (e: Exception) {
+                e.printStackTrace()
+                Response(isSuccess = false, errorMessage = e.message)
+            }
+        } ?: Response(isSuccess = false, errorMessage = "Invalid user!")
+    }
+
     suspend fun changeUsername(username: String): Response {
         return user?.let {
             val profileUpdate = userProfileChangeRequest {

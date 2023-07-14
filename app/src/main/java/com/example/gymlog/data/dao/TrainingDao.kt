@@ -23,6 +23,9 @@ interface TrainingDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun save(training: Training)
 
+    @Query("UPDATE Training SET isDisabled = 1 WHERE userId = :userId")
+    suspend fun disableAll(userId: String)
+
     @Delete
     suspend fun delete(training: Training)
 

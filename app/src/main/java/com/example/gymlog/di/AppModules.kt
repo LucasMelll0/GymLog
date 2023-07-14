@@ -99,6 +99,11 @@ val authModule = module {
 
 val userProfileModule = module {
     viewModel {
-        UserProfileViewModel(get())
+        UserProfileViewModel(
+            userClient = get(),
+            trainingRepository = get<TrainingRepositoryImpl>(),
+            bmiInfoRepository = get<BmiInfoRepositoryImpl>(),
+            userRepository = get<UserRepositoryImpl>()
+        )
     }
 }

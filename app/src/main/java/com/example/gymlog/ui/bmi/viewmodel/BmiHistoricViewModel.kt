@@ -46,7 +46,7 @@ class BmiHistoricViewModel(
     suspend fun getUser() {
         if (_userResource.value !is Resource.Success) {
             try {
-                userRepository.getUser().collect { user ->
+                userRepository.getUser(currentUser!!.uid).collect { user ->
                     _userResource.value = Resource.Success(user)
                 }
             } catch (e: Exception) {

@@ -17,6 +17,8 @@ interface TrainingRepository {
 
     suspend fun disable(training: Training)
 
+    suspend fun disableAll(userId: String)
+
     suspend fun sync(userId: String)
 }
 
@@ -39,6 +41,10 @@ class TrainingRepositoryImpl(private val dao: TrainingDao, private val fireStore
         if (training.userId.isNotEmpty()) {
             dao.save(training.copy(isDisabled = true))
         }
+    }
+
+    override suspend fun disableAll(userId: String) {
+        if (userId.isNotEmpty()) dao.disableAll(userId)
     }
 
     override suspend fun sync(userId: String) {

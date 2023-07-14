@@ -132,4 +132,51 @@ class FireStoreClient {
         }
     }
 
+    suspend fun deleteAllUserData(userId: String): Response {
+        return try {
+            withTimeout(10000) {
+                db.collection(USERS)
+                    .document(userId)
+                    .collection(TRAININGS)
+                    .get()
+                    .await()
+                    .toObjects(Training::class.java)
+                    .forEach {
+                        db.collection(USERS)
+                            .document(userId)
+                            .collection(TRAININGS)
+                            .document(it.trainingId)
+                            .delete()
+                            .await()
+                    }
+                db.collection(USERS)
+                    .document(userId)
+                    .delete()
+                    .await()
+                db.collection(BMI_INFO)
+                    .document(userId)
+                    .collection(HISTORIC)
+                    .get()
+                    .await()
+                    .toObjects(BmiInfo::class.java)
+                    .forEach {
+                        db.collection(BMI_INFO)
+                            .document(userId)
+                            .collection(HISTORIC)
+                            .document(it.id)
+                            .delete()
+                            .await()
+                    }
+                db.collection(BMI_INFO)
+                    .document(userId)
+                    .delete()
+                    .await()
+                Response(isSuccess = true)
+            }
+        }catch (e: Exception) {
+            e.printStackTrace()
+            Response(isSuccess = false, errorMessage = e.message)
+        }
+    }
+
 }

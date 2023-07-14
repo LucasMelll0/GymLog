@@ -13,6 +13,8 @@ interface BmiInfoRepository {
 
     suspend fun disable(bmiInfo: BmiInfo)
 
+    suspend fun disableAll(userId: String)
+
     suspend fun sync(userId: String)
 
 }
@@ -32,6 +34,10 @@ class BmiInfoRepositoryImpl(private val dao: BmiInfoDao, private val fireStore: 
         if (bmiInfo.userId.isNotEmpty()) {
             dao.save(bmiInfo.copy(isDisabled = true))
         }
+    }
+
+    override suspend fun disableAll(userId: String) {
+        if (userId.isNotEmpty()) dao.disableAll(userId)
     }
 
     override suspend fun sync(userId: String) {

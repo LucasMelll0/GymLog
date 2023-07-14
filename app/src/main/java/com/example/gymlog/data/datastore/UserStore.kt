@@ -19,4 +19,10 @@ class UserStore(private val context: Context) {
             userInfo[GOOGLE_ID_TOKEN_KEY] = token
         }
     }
+
+    suspend fun cleanToken() {
+        context.datastore.edit { userInfo ->
+            userInfo[GOOGLE_ID_TOKEN_KEY] = ""
+        }
+    }
 }

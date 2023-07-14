@@ -10,8 +10,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface UserDao {
 
-    @Query("SELECT * FROM User LIMIT 1")
-    fun getUser(): Flow<User?>
+    @Query("SELECT * FROM User WHERE id = :userId")
+    fun getUser(userId: String): Flow<User?>
+
+    @Query("DELETE FROM User WHERE id = :userId")
+    fun delete(userId: String)
 
     @Query("SELECT * FROM User WHERE id = :id")
     suspend fun getUserById(id: String): User?

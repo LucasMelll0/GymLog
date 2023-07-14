@@ -1,7 +1,6 @@
 package com.example.gymlog.ui.user
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,7 +56,8 @@ import org.koin.androidx.compose.koinViewModel
 fun UserProfileScreen(
     viewModel: UserProfileViewModel = koinViewModel(),
     onNavIconClick: () -> Unit,
-    onInvalidUser: () -> Unit
+    onInvalidUser: () -> Unit,
+    onDeleteUser: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -70,7 +70,6 @@ fun UserProfileScreen(
     var showChangePasswordBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteAccountBottomSheet by rememberSaveable { mutableStateOf(false) }
     val isEmailAuthProvider = viewModel.userProvider == EmailAuthProvider.PROVIDER_ID
-    Log.d("TAG", "UserProfileScreen: is email auth provider: $isEmailAuthProvider")
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         bottomBar = { UserProfileBottomBar(onNavIconClick = onNavIconClick) }) { paddingValues ->
@@ -100,7 +99,7 @@ fun UserProfileScreen(
             }, onDismissRequest = { showChangeUsernameBottomSheet = false })
 
         if (showChangePasswordBottomSheet) ChangePasswordBottomSheet(
-            isEmailAuthProvider,
+            needPasswordToReauthenticate = isEmailAuthProvider,
             onConfirm = { oldPassword, newPassword ->
                 showChangePasswordBottomSheet = false
                 scope.launch {
@@ -132,8 +131,22 @@ fun UserProfileScreen(
         }
 
         if (showDeleteAccountBottomSheet) DeleteAccountBottomSheet(
+            needPasswordToReauthenticate = isEmailAuthProvider,
             onConfirm = {
                 showDeleteAccountBottomSheet = false
+                scope.launch {
+                    isLoading = true
+                    val response = viewModel.deleteUser(it, googleIdToken)
+                    if (response.isSuccess) {
+                        onDeleteUser()
+                    } else {
+                        snackBarHostState.showSnackbar(
+                            context.getString(R.string.user_profile_delete_user_error),
+                            withDismissAction = true
+                        )
+                    }
+                    isLoading = false
+                }
             }, onDismissRequest = { showDeleteAccountBottomSheet = false })
         Column(
             modifier = Modifier
@@ -299,10 +312,12 @@ private fun ChangePasswordBottomSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeleteAccountBottomSheet(
-    onConfirm: (password: String) -> Unit, onDismissRequest: () -> Unit
+    onConfirm: (password: String) -> Unit,
+    onDismissRequest: () -> Unit,
+    needPasswordToReauthenticate: Boolean
 ) {
     var password by rememberSaveable { mutableStateOf("") }
-    var passwordHasError by remember { mutableStateOf(false) }
+    var hasError by remember { mutableStateOf(false) }
     val passwordErrorMessage: @Composable () -> String = {
         if (password.isEmpty()) {
             stringResource(id = R.string.common_text_field_error_message)
@@ -328,27 +343,34 @@ private fun DeleteAccountBottomSheet(
                 modifier = Modifier.fillMaxWidth()
 
             )
-            Text(
-                text = stringResource(id = R.string.user_profile_delete_account_password_request),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.fillMaxWidth()
-            )
-            DefaultPasswordTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = {
-                    Text(
-                        text = stringResource(id = R.string.common_password)
-                    )
-                },
-                leadingIcon = { Icon(imageVector = Icons.Rounded.Lock, contentDescription = null) },
-                isError = passwordHasError,
-                errorMessage = passwordErrorMessage(),
-                modifier = Modifier.fillMaxWidth()
-            )
+            if (needPasswordToReauthenticate) {
+                Text(
+                    text = stringResource(id = R.string.user_profile_delete_account_password_request),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                DefaultPasswordTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = {
+                        Text(
+                            text = stringResource(id = R.string.common_password)
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Lock,
+                            contentDescription = null
+                        )
+                    },
+                    isError = hasError,
+                    errorMessage = passwordErrorMessage(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             Button(onClick = {
-                passwordHasError = password.isEmpty()
-                if (!passwordHasError) {
+                hasError = password.isEmpty() && needPasswordToReauthenticate
+                if (!hasError) {
                     onConfirm(password)
                 }
             }, modifier = Modifier.fillMaxWidth()) {
@@ -422,6 +444,6 @@ fun UserProfileBottomBar(onNavIconClick: () -> Unit) {
 @Composable
 fun UserProfileScreenPreview() {
     GymLogTheme {
-        UserProfileScreen(onNavIconClick = {}, onInvalidUser = {})
+        UserProfileScreen(onNavIconClick = {}, onInvalidUser = {}, onDeleteUser = {})
     }
 }
