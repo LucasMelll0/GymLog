@@ -98,6 +98,7 @@ class DropdownTimerService : Service() {
                 .setOngoing(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
+                .setOnlyAlertOnce(true)
                 .setAutoCancel(false)
                 .setContentIntent(clickPendingIntent)
                 .build()
