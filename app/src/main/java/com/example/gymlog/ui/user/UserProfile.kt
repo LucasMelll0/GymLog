@@ -1,6 +1,8 @@
 package com.example.gymlog.ui.user
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,8 +23,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +55,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -78,7 +84,6 @@ import org.koin.androidx.compose.koinViewModel
 import java.util.Date
 import java.util.UUID
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun UserProfileScreen(
     viewModel: UserProfileViewModel = koinViewModel<UserProfileViewModelImpl>(),
@@ -88,13 +93,14 @@ fun UserProfileScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-
     val googleIdToken by UserStore(context).getAccessToken.collectAsStateWithLifecycle(null)
     var isLoading by rememberSaveable { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
     val user by viewModel.user.collectAsStateWithLifecycle()
     user ?: onInvalidUser()
-    var userPhotoUri by rememberSaveable { mutableStateOf(user?.profilePicture) }
+    var selectedPhoto: String? by rememberSaveable { mutableStateOf(null) }
+    val userPhotoUri by rememberSaveable { mutableStateOf(user?.profilePicture) }
+    var showChangeUserPhotoDialog by rememberSaveable { mutableStateOf(false) }
     var showChangeUsernameBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showChangePasswordBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteAccountBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -104,6 +110,10 @@ fun UserProfileScreen(
         if (isLoading) Box(modifier = Modifier.fillMaxSize()) {
             LoadingDialog()
         }
+        if (showChangeUserPhotoDialog) ChangeUserPhotoDialog(
+            photoUri = selectedPhoto,
+            onConfirm = { showChangeUserPhotoDialog = false },
+            onDismissRequest = { showChangeUserPhotoDialog = false })
         if (showChangeUsernameBottomSheet) ChangeUsernameBottomSheet(onConfirm = {
             showChangeUsernameBottomSheet = false
             scope.launch {
@@ -174,26 +184,56 @@ fun UserProfileScreen(
                 }
             },
             onDismissRequest = { showDeleteAccountBottomSheet = false })
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            user?.let { user ->
-                BoxWithConstraints(
-                    modifier = Modifier
-                        .size(250.dp)
-                        .padding(dimensionResource(id = R.dimen.large_padding))
-                        .clip(MaterialTheme.shapes.extraLarge)
-                        .border(
-                            1.dp,
-                            MaterialTheme.colorScheme.primary.copy(0.5f),
-                            MaterialTheme.shapes.extraLarge
-                        )
-                ) {
+        UserProfileContent(
+            user = user,
+            userPhotoUri = userPhotoUri,
+            onSelectPhoto = {
+                selectedPhoto = it
+                showChangeUserPhotoDialog = true
+            },
+            onChangeUsernameClick = { showChangeUsernameBottomSheet = true },
+            onChangePasswordClick = { showChangePasswordBottomSheet = true },
+            onDeleteUserClick = { showDeleteAccountBottomSheet = true },
+            onInvalidUser = onInvalidUser,
+            context = context,
+            modifier = Modifier.padding(paddingValues)
+        )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalPermissionsApi::class)
+private fun UserProfileContent(
+    user: UserData?,
+    userPhotoUri: String?,
+    onSelectPhoto: (String) -> Unit,
+    onChangeUsernameClick: () -> Unit,
+    onChangePasswordClick: () -> Unit,
+    onDeleteUserClick: () -> Unit,
+    onInvalidUser: () -> Unit,
+    context: Context,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        user?.let { user ->
+            BoxWithConstraints(
+                modifier = Modifier
+                    .size(dimensionResource(id = R.dimen.user_profile_photo_size))
+                    .padding(dimensionResource(id = R.dimen.large_padding))
+                    .clip(MaterialTheme.shapes.extraLarge)
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.primary.copy(0.5f),
+                        MaterialTheme.shapes.extraLarge
+                    )
+            ) {
+                if (context is Activity) {
                     val galleryPermissionState =
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) rememberPermissionState(
                             permission = Manifest.permission.READ_MEDIA_IMAGES
@@ -201,7 +241,7 @@ fun UserProfileScreen(
                     val galleryLauncher = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent(),
                     ) { imageUri ->
-                        userPhotoUri = imageUri.toString()
+                        onSelectPhoto(imageUri.toString())
                     }
                     AsyncImage(model = ImageRequest.Builder(context).data(userPhotoUri)
                         .diskCacheKey("user_image_${Date().time}")
@@ -222,47 +262,41 @@ fun UserProfileScreen(
                                 }
                             })
                 }
-                user.userName?.let {
-                    Text(
-                        text = it.capitalizeAllWords(),
-                        style = MaterialTheme.typography.displaySmall,
-                        modifier = Modifier.padding(
-                            dimensionResource(id = R.dimen.large_padding)
-                        )
+            }
+            user.userName?.let {
+                Text(
+                    text = it.capitalizeAllWords(),
+                    style = MaterialTheme.typography.displaySmall,
+                    modifier = Modifier.padding(
+                        dimensionResource(id = R.dimen.large_padding)
                     )
+                )
+            }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.extra_large_padding))
+            ) {
+                Button(onClick = onChangeUsernameClick, Modifier.fillMaxWidth()) {
+                    Text(text = stringResource(id = R.string.user_profile_change_username_button))
                 }
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(dimensionResource(id = R.dimen.extra_large_padding))
-                ) {
-                    Button(
-                        onClick = {
-                            showChangeUsernameBottomSheet = true
-                        }, Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = stringResource(id = R.string.user_profile_change_username_button))
-                    }
-                    Button(
-                        onClick = { showChangePasswordBottomSheet = true }, Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = stringResource(id = R.string.user_profile_change_password_button))
-                    }
-                    OutlinedButton(
-                        onClick = { showDeleteAccountBottomSheet = true },
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                top = dimensionResource(
-                                    id = R.dimen.large_padding
-                                )
+                Button(onClick = onChangePasswordClick, Modifier.fillMaxWidth()) {
+                    Text(text = stringResource(id = R.string.user_profile_change_password_button))
+                }
+                OutlinedButton(
+                    onClick = onDeleteUserClick,
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            top = dimensionResource(
+                                id = R.dimen.large_padding
                             )
-                    ) {
-                        Text(text = stringResource(id = R.string.user_profile_delete_account_button))
-                    }
+                        )
+                ) {
+                    Text(text = stringResource(id = R.string.user_profile_delete_account_button))
                 }
-            } ?: onInvalidUser()
-        }
+            }
+        } ?: onInvalidUser()
     }
 }
 
@@ -413,7 +447,8 @@ private fun DeleteAccountBottomSheet(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.fillMaxWidth()
                 )
-                DefaultPasswordTextField(value = password,
+                DefaultPasswordTextField(
+                    value = password,
                     onValueChange = { password = it },
                     label = {
                         Text(
@@ -489,8 +524,74 @@ private fun ChangeUsernameBottomSheet(onConfirm: (String) -> Unit, onDismissRequ
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserProfileBottomBar(onNavIconClick: () -> Unit) {
+fun ChangeUserPhotoDialog(
+    photoUri: String?,
+    onConfirm: () -> Unit,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            dismissOnClickOutside = false,
+        ),
+        modifier = modifier
+    ) {
+        Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.extraLarge) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(dimensionResource(id = R.dimen.large_padding))
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context).data(photoUri)
+                        .diskCacheKey("user_image_${Date().time}")
+                        .networkCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.DISABLED)
+                        .memoryCachePolicy(CachePolicy.ENABLED).build(),
+                    error = painterResource(id = R.drawable.ic_person),
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.Center,
+                    contentDescription = stringResource(id = R.string.user_profile_photo_content_description),
+                    modifier = Modifier
+                        .size(dimensionResource(id = R.dimen.user_profile_photo_size))
+                        .padding(dimensionResource(id = R.dimen.large_padding))
+                        .clip(MaterialTheme.shapes.extraLarge)
+                )
+
+                Text(text = "Deseja usar essa imagem como foto de perfil?")
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedButton(onClick = onDismissRequest) {
+                        Text(text = stringResource(id = R.string.common_cancel))
+                    }
+                    Button(onClick = onConfirm) {
+                        Text(text = stringResource(id = R.string.common_confirm))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ChangeUserPhotoDialogPreview() {
+    GymLogTheme {
+        ChangeUserPhotoDialog(photoUri = "null", onDismissRequest = {}, onConfirm = {})
+    }
+}
+
+@Composable
+fun UserProfileBottomBar(onNavIconClick: () -> Unit, modifier: Modifier = Modifier) {
     BottomAppBar(actions = {
         IconButton(onClick = onNavIconClick) {
             Icon(
@@ -498,7 +599,7 @@ fun UserProfileBottomBar(onNavIconClick: () -> Unit) {
                 contentDescription = stringResource(id = R.string.common_open_navigation_drawer)
             )
         }
-    })
+    }, modifier = modifier)
 }
 
 @Preview(uiMode = UI_MODE_NIGHT_YES)
@@ -535,7 +636,8 @@ fun UserProfileScreenPreview() {
             }
 
         }
-        UserProfileScreen(onNavIconClick = {},
+        UserProfileScreen(
+            onNavIconClick = {},
             onInvalidUser = {},
             onDeleteUser = {},
             viewModel = viewModel
