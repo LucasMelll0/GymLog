@@ -38,23 +38,30 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gymlog.R
 import com.example.gymlog.data.datastore.UserStore
 import com.example.gymlog.extensions.capitalizeAllWords
 import com.example.gymlog.extensions.checkConnection
+import com.example.gymlog.ui.auth.authclient.UserData
 import com.example.gymlog.ui.components.DefaultPasswordTextField
 import com.example.gymlog.ui.components.DefaultTextField
 import com.example.gymlog.ui.components.LoadingDialog
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.ui.user.viewmodel.UserProfileViewModel
+import com.example.gymlog.ui.user.viewmodel.UserProfileViewModelImpl
+import com.example.gymlog.utils.Response
 import com.google.firebase.auth.EmailAuthProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import java.util.UUID
 
 @Composable
 fun UserProfileScreen(
-    viewModel: UserProfileViewModel = koinViewModel(),
+    viewModel: UserProfileViewModel = koinViewModel<UserProfileViewModelImpl>(),
     onNavIconClick: () -> Unit,
     onInvalidUser: () -> Unit,
     onDeleteUser: () -> Unit
@@ -157,7 +164,7 @@ fun UserProfileScreen(
             verticalArrangement = Arrangement.Center
         ) {
             user?.let { user ->
-                user.displayName?.let {
+                user.userName?.let {
                     Text(
                         text = it.capitalizeAllWords(),
                         style = MaterialTheme.typography.displaySmall,
@@ -196,7 +203,7 @@ fun UserProfileScreen(
                         Text(text = stringResource(id = R.string.user_profile_delete_account_button))
                     }
                 }
-            }
+            } ?: onInvalidUser()
         }
     }
 }
@@ -443,7 +450,45 @@ fun UserProfileBottomBar(onNavIconClick: () -> Unit) {
 @Preview
 @Composable
 fun UserProfileScreenPreview() {
+
+    val user =
+        UserData(
+            uid = UUID.randomUUID().toString(),
+            userName = "Lucas Mello",
+            profilePicture = "https://lh3.googleusercontent.com/a/AAcHTtdAXtc4cK3p7aYBgQHfi585k0d7_s2ZkLZwXwsTb-qZRQ=s288-c-no",
+        )
     GymLogTheme {
-        UserProfileScreen(onNavIconClick = {}, onInvalidUser = {}, onDeleteUser = {})
+        val viewModel = object : UserProfileViewModel, ViewModel() {
+            override val user: StateFlow<UserData?>
+                get() = MutableStateFlow(user)
+            override val userProvider: String?
+                get() = null
+
+            override suspend fun changeUsername(
+                username: String,
+                onFailedListener: suspend () -> Unit
+            ) {
+                TODO("Not yet implemented")
+            }
+
+            override suspend fun changePassword(
+                oldPassword: String,
+                newPassword: String,
+                googleIdToken: String?
+            ): Response {
+                TODO("Not yet implemented")
+            }
+
+            override suspend fun deleteUser(password: String, googleIdToken: String?): Response {
+                TODO("Not yet implemented")
+            }
+
+        }
+        UserProfileScreen(
+            onNavIconClick = {},
+            onInvalidUser = {},
+            onDeleteUser = {},
+            viewModel = viewModel
+        )
     }
 }

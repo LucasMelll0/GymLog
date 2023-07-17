@@ -36,7 +36,7 @@ class AuthUiClient(
             SignInResult(
                 data = userData?.run {
                     UserData(
-                        userId = uid,
+                        uid = uid,
                         userName = displayName,
                         profilePicture = photoUrl?.toString()
                     )
@@ -61,7 +61,7 @@ class AuthUiClient(
             SignInResult(
                 data = userData?.run {
                     UserData(
-                        userId = uid,
+                        uid = uid,
                         userName = displayName,
                         profilePicture = photoUrl?.toString()
                     )
@@ -97,7 +97,7 @@ class AuthUiClient(
             SignInResult(
                 data = userData?.run {
                     UserData(
-                        userId = uid,
+                        uid = uid,
                         userName = displayName,
                         profilePicture = photoUrl?.toString(),
                         googleIdToken = googleIdToken
@@ -130,7 +130,7 @@ class AuthUiClient(
 
     fun getSignedInUser(): UserData? = auth.currentUser?.run {
         UserData(
-            userId = uid,
+            uid = uid,
             userName = displayName,
             profilePicture = photoUrl?.toString(),
         )

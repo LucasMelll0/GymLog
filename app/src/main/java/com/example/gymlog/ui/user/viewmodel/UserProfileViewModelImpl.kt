@@ -2,37 +2,61 @@ package com.example.gymlog.ui.user.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.example.gymlog.data.firebase.FirebaseUserClient
+import com.example.gymlog.extensions.toUserData
 import com.example.gymlog.repository.BmiInfoRepository
 import com.example.gymlog.repository.TrainingRepository
 import com.example.gymlog.repository.UserRepository
+import com.example.gymlog.ui.auth.authclient.UserData
 import com.example.gymlog.utils.Response
-import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class UserProfileViewModel(
+
+interface UserProfileViewModel {
+    val user: StateFlow<UserData?>
+    val userProvider: String?
+
+    suspend fun changeUsername(username: String, onFailedListener: suspend () -> Unit = {})
+
+    suspend fun changePassword(
+        oldPassword: String,
+        newPassword: String,
+        googleIdToken: String? = null,
+    ): Response
+
+    suspend fun deleteUser(
+        password: String,
+        googleIdToken: String? = null,
+    ) : Response
+
+}
+
+class UserProfileViewModelImpl(
     private val userClient: FirebaseUserClient,
     private val trainingRepository: TrainingRepository,
     private val bmiInfoRepository: BmiInfoRepository,
     private val userRepository: UserRepository
-) : ViewModel() {
+) : UserProfileViewModel, ViewModel() {
 
-    private val _user = MutableStateFlow(userClient.user)
-    internal val user: StateFlow<FirebaseUser?> get() = _user
+    private val _user = MutableStateFlow(userClient.user?.toUserData())
+    override val user: StateFlow<UserData?> get() = _user
 
-    internal val userProvider = userClient.userProvider
+    override val userProvider = userClient.userProvider
 
-    suspend fun changeUsername(username: String, onFailedListener: suspend () -> Unit = {}) {
+    override suspend fun changeUsername(
+        username: String,
+        onFailedListener: suspend () -> Unit
+    ) {
         val response = userClient.changeUsername(username)
         if (response.isSuccess) reload() else onFailedListener()
     }
 
     private suspend fun reload() = userClient.reload()
 
-    suspend fun changePassword(
+    override suspend fun changePassword(
         oldPassword: String,
         newPassword: String,
-        googleIdToken: String? = null,
+        googleIdToken: String?,
     ) =
         userClient.changePassword(
             oldPassword = oldPassword.ifEmpty { null },
@@ -40,10 +64,10 @@ class UserProfileViewModel(
             googleIdToken = googleIdToken
         )
 
-    suspend fun deleteUser(
+    override suspend fun deleteUser(
         password: String,
-        googleIdToken: String? = null,
-    ) : Response {
+        googleIdToken: String?
+    ): Response {
         return user.value?.let {
             val response = userClient.deleteUser(password.ifEmpty { null }, googleIdToken)
             if (response.isSuccess) {
@@ -54,6 +78,4 @@ class UserProfileViewModel(
             response
         } ?: Response(isSuccess = false, errorMessage = "Invalid User")
     }
-
-
 }
