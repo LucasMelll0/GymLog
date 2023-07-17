@@ -1,12 +1,20 @@
 package com.example.gymlog.ui.user
 
+import android.Manifest
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -34,12 +42,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.example.gymlog.R
 import com.example.gymlog.data.datastore.UserStore
 import com.example.gymlog.extensions.capitalizeAllWords
@@ -52,13 +67,18 @@ import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.ui.user.viewmodel.UserProfileViewModel
 import com.example.gymlog.ui.user.viewmodel.UserProfileViewModelImpl
 import com.example.gymlog.utils.Response
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.auth.EmailAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import java.util.Date
 import java.util.UUID
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun UserProfileScreen(
     viewModel: UserProfileViewModel = koinViewModel<UserProfileViewModelImpl>(),
@@ -68,45 +88,44 @@ fun UserProfileScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
     val googleIdToken by UserStore(context).getAccessToken.collectAsStateWithLifecycle(null)
     var isLoading by rememberSaveable { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
     val user by viewModel.user.collectAsStateWithLifecycle()
     user ?: onInvalidUser()
+    var userPhotoUri by rememberSaveable { mutableStateOf(user?.profilePicture) }
     var showChangeUsernameBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showChangePasswordBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteAccountBottomSheet by rememberSaveable { mutableStateOf(false) }
     val isEmailAuthProvider = viewModel.userProvider == EmailAuthProvider.PROVIDER_ID
-    Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+    Scaffold(snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         bottomBar = { UserProfileBottomBar(onNavIconClick = onNavIconClick) }) { paddingValues ->
         if (isLoading) Box(modifier = Modifier.fillMaxSize()) {
             LoadingDialog()
         }
-        if (showChangeUsernameBottomSheet) ChangeUsernameBottomSheet(
-            onConfirm = {
-                showChangeUsernameBottomSheet = false
-                scope.launch {
-                    context.checkConnection(onNotConnected = {
+        if (showChangeUsernameBottomSheet) ChangeUsernameBottomSheet(onConfirm = {
+            showChangeUsernameBottomSheet = false
+            scope.launch {
+                context.checkConnection(onNotConnected = {
+                    snackBarHostState.showSnackbar(
+                        message = context.getString(R.string.common_offline_message),
+                        withDismissAction = true
+                    )
+                }) {
+                    isLoading = true
+                    viewModel.changeUsername(it) {
                         snackBarHostState.showSnackbar(
-                            message = context.getString(R.string.common_offline_message),
+                            message = context.getString(R.string.user_profile_change_username_error),
                             withDismissAction = true
                         )
-                    }) {
-                        isLoading = true
-                        viewModel.changeUsername(it) {
-                            snackBarHostState.showSnackbar(
-                                message = context.getString(R.string.user_profile_change_username_error),
-                                withDismissAction = true
-                            )
-                        }
-                        isLoading = false
                     }
+                    isLoading = false
                 }
-            }, onDismissRequest = { showChangeUsernameBottomSheet = false })
+            }
+        }, onDismissRequest = { showChangeUsernameBottomSheet = false })
 
-        if (showChangePasswordBottomSheet) ChangePasswordBottomSheet(
-            needPasswordToReauthenticate = isEmailAuthProvider,
+        if (showChangePasswordBottomSheet) ChangePasswordBottomSheet(needPasswordToReauthenticate = isEmailAuthProvider,
             onConfirm = { oldPassword, newPassword ->
                 showChangePasswordBottomSheet = false
                 scope.launch {
@@ -137,8 +156,7 @@ fun UserProfileScreen(
             showChangePasswordBottomSheet = false
         }
 
-        if (showDeleteAccountBottomSheet) DeleteAccountBottomSheet(
-            needPasswordToReauthenticate = isEmailAuthProvider,
+        if (showDeleteAccountBottomSheet) DeleteAccountBottomSheet(needPasswordToReauthenticate = isEmailAuthProvider,
             onConfirm = {
                 showDeleteAccountBottomSheet = false
                 scope.launch {
@@ -154,7 +172,8 @@ fun UserProfileScreen(
                     }
                     isLoading = false
                 }
-            }, onDismissRequest = { showDeleteAccountBottomSheet = false })
+            },
+            onDismissRequest = { showDeleteAccountBottomSheet = false })
         Column(
             modifier = Modifier
                 .padding(paddingValues)
@@ -164,6 +183,45 @@ fun UserProfileScreen(
             verticalArrangement = Arrangement.Center
         ) {
             user?.let { user ->
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .size(250.dp)
+                        .padding(dimensionResource(id = R.dimen.large_padding))
+                        .clip(MaterialTheme.shapes.extraLarge)
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.primary.copy(0.5f),
+                            MaterialTheme.shapes.extraLarge
+                        )
+                ) {
+                    val galleryPermissionState =
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) rememberPermissionState(
+                            permission = Manifest.permission.READ_MEDIA_IMAGES
+                        ) else rememberPermissionState(permission = Manifest.permission.READ_EXTERNAL_STORAGE)
+                    val galleryLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.GetContent(),
+                    ) { imageUri ->
+                        userPhotoUri = imageUri.toString()
+                    }
+                    AsyncImage(model = ImageRequest.Builder(context).data(userPhotoUri)
+                        .diskCacheKey("user_image_${Date().time}")
+                        .networkCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.DISABLED)
+                        .memoryCachePolicy(CachePolicy.ENABLED).build(),
+                        error = painterResource(id = R.drawable.ic_person),
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center,
+                        contentDescription = stringResource(id = R.string.user_profile_photo_content_description),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable {
+                                galleryPermissionState.let {
+                                    if (!it.status.isGranted) it.launchPermissionRequest() else {
+                                        galleryLauncher.launch("image/*")
+                                    }
+                                }
+                            })
+                }
                 user.userName?.let {
                     Text(
                         text = it.capitalizeAllWords(),
@@ -263,8 +321,7 @@ private fun ChangePasswordBottomSheet(
                     },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Rounded.Lock,
-                            contentDescription = null
+                            imageVector = Icons.Rounded.Lock, contentDescription = null
                         )
                     },
                     isError = oldPasswordHasError,
@@ -356,8 +413,7 @@ private fun DeleteAccountBottomSheet(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.fillMaxWidth()
                 )
-                DefaultPasswordTextField(
-                    value = password,
+                DefaultPasswordTextField(value = password,
                     onValueChange = { password = it },
                     label = {
                         Text(
@@ -366,8 +422,7 @@ private fun DeleteAccountBottomSheet(
                     },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Rounded.Lock,
-                            contentDescription = null
+                            imageVector = Icons.Rounded.Lock, contentDescription = null
                         )
                     },
                     isError = hasError,
@@ -451,12 +506,11 @@ fun UserProfileBottomBar(onNavIconClick: () -> Unit) {
 @Composable
 fun UserProfileScreenPreview() {
 
-    val user =
-        UserData(
-            uid = UUID.randomUUID().toString(),
-            userName = "Lucas Mello",
-            profilePicture = "https://lh3.googleusercontent.com/a/AAcHTtdAXtc4cK3p7aYBgQHfi585k0d7_s2ZkLZwXwsTb-qZRQ=s288-c-no",
-        )
+    val user = UserData(
+        uid = UUID.randomUUID().toString(),
+        userName = "Lucas Mello",
+        profilePicture = "https://lh3.googleusercontent.com/a/AAcHTtdAXtc4cK3p7aYBgQHfi585k0d7_s2ZkLZwXwsTb-qZRQ=s288-c-no",
+    )
     GymLogTheme {
         val viewModel = object : UserProfileViewModel, ViewModel() {
             override val user: StateFlow<UserData?>
@@ -465,16 +519,13 @@ fun UserProfileScreenPreview() {
                 get() = null
 
             override suspend fun changeUsername(
-                username: String,
-                onFailedListener: suspend () -> Unit
+                username: String, onFailedListener: suspend () -> Unit
             ) {
                 TODO("Not yet implemented")
             }
 
             override suspend fun changePassword(
-                oldPassword: String,
-                newPassword: String,
-                googleIdToken: String?
+                oldPassword: String, newPassword: String, googleIdToken: String?
             ): Response {
                 TODO("Not yet implemented")
             }
@@ -484,8 +535,7 @@ fun UserProfileScreenPreview() {
             }
 
         }
-        UserProfileScreen(
-            onNavIconClick = {},
+        UserProfileScreen(onNavIconClick = {},
             onInvalidUser = {},
             onDeleteUser = {},
             viewModel = viewModel

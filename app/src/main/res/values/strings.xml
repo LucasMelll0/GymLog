@@ -173,4 +173,5 @@
     <string name="user_profile_change_password_success_message">Senha alterada com sucesso!</string>
     <string name="user_profile_change_password_error">Ocorreu uma falha ao tentar mudar a senha, verifique suas credenciais!</string>
     <string name="user_profile_delete_user_error">Ocorreu uma falha ao tentar excluir seu usuário!</string>
+    <string name="user_profile_photo_content_description">User photo</string>
 </resources>
