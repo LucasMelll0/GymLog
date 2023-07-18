@@ -65,7 +65,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:20.6.0'
 
     // Firestore
-    implementation 'com.google.firebase:firebase-firestore-ktx:24.6.1'
+    implementation 'com.google.firebase:firebase-firestore-ktx:24.7.0'
 
     // Storage (for user photo)
     implementation 'com.google.firebase:firebase-storage-ktx:20.2.1'
