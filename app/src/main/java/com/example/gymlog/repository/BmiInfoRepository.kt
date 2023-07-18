@@ -57,7 +57,7 @@ class BmiInfoRepositoryImpl(private val dao: BmiInfoDao, private val fireStore: 
             }
         } else {
             allCloud?.forEach {
-                dao.save(it)
+                allDisabled.find { disabled -> disabled.id == it.id } ?: dao.save(it)
             }
         }
     }
