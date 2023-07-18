@@ -5,6 +5,7 @@ import com.example.gymlog.data.AppDataBase
 import com.example.gymlog.data.DATABASE_NAME
 import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.data.firebase.FirebaseUserClient
+import com.example.gymlog.data.firebase.StorageClient
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.repository.UserRepositoryImpl
@@ -45,7 +46,10 @@ val firebaseModule = module {
         FireStoreClient()
     }
     single {
-        FirebaseUserClient()
+        FirebaseUserClient(get())
+    }
+    single {
+        StorageClient()
     }
 }
 

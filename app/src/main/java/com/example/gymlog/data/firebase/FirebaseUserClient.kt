@@ -1,6 +1,8 @@
 package com.example.gymlog.data.firebase
 
+import android.net.Uri
 import com.example.gymlog.extensions.capitalizeAllWords
+import com.example.gymlog.utils.Resource
 import com.example.gymlog.utils.Response
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
@@ -10,7 +12,9 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 
-class FirebaseUserClient {
+class FirebaseUserClient(
+    private val storageClient: StorageClient
+) {
 
     private val firebaseAuth = Firebase.auth
     val user = firebaseAuth.currentUser
@@ -96,6 +100,29 @@ class FirebaseUserClient {
             } catch (e: Exception) {
                 e.printStackTrace()
                 Response(isSuccess = false, errorMessage = e.message)
+            }
+        } ?: Response(isSuccess = false, errorMessage = "Invalid User")
+    }
+
+    suspend fun changeUserPhoto(photo: Uri): Response {
+        return user?.let {
+            try {
+                return when(val resource = storageClient.savePhoto(photo, it.uid)) {
+                    is Resource.Success -> {
+                        val downloadUri = resource.data
+                        val profileUpdate = userProfileChangeRequest {
+                            photoUri = downloadUri
+                        }
+                        it.updateProfile(profileUpdate).await()
+                        Response(isSuccess = true)
+                    }
+                    else -> throw Exception("Error on upload image")
+                }
+
+
+            }catch (e: Exception) {
+                e.printStackTrace()
+                Response(isSuccess = false, errorMessage = e.message ?: "Unknown Error")
             }
         } ?: Response(isSuccess = false, errorMessage = "Invalid User")
     }

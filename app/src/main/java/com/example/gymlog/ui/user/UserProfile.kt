@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -98,7 +99,7 @@ fun UserProfileScreen(
     val snackBarHostState = remember { SnackbarHostState() }
     val user by viewModel.user.collectAsStateWithLifecycle()
     user ?: onInvalidUser()
-    var selectedPhoto: String? by rememberSaveable { mutableStateOf(null) }
+    var selectedPhoto: Uri? by rememberSaveable { mutableStateOf(null) }
     val userPhotoUri by rememberSaveable { mutableStateOf(user?.profilePicture) }
     var showChangeUserPhotoDialog by rememberSaveable { mutableStateOf(false) }
     var showChangeUsernameBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -112,7 +113,30 @@ fun UserProfileScreen(
         }
         if (showChangeUserPhotoDialog) ChangeUserPhotoDialog(
             photoUri = selectedPhoto,
-            onConfirm = { showChangeUserPhotoDialog = false },
+            onConfirm = {
+                scope.launch {
+                    context.checkConnection(onNotConnected = {
+                        showChangeUserPhotoDialog = false
+                        snackBarHostState.showSnackbar(
+                            message = context.getString(R.string.common_offline_message),
+                            withDismissAction = true
+                        )
+                    }) {
+                        selectedPhoto?.let {
+                            showChangeUserPhotoDialog = false
+                            isLoading = true
+                            viewModel.changeUserPhoto(it) {
+                                isLoading = false
+                                snackBarHostState.showSnackbar(
+                                    context.getString(R.string.user_profile_change_photo_error),
+                                    withDismissAction = true
+                                )
+                            }
+                            isLoading = false
+                        }
+                    }
+                }
+            },
             onDismissRequest = { showChangeUserPhotoDialog = false })
         if (showChangeUsernameBottomSheet) ChangeUsernameBottomSheet(onConfirm = {
             showChangeUsernameBottomSheet = false
@@ -188,8 +212,15 @@ fun UserProfileScreen(
             user = user,
             userPhotoUri = userPhotoUri,
             onSelectPhoto = {
-                selectedPhoto = it
-                showChangeUserPhotoDialog = true
+                it?.let {
+                    selectedPhoto = it
+                    showChangeUserPhotoDialog = true
+                } ?: scope.launch {
+                    snackBarHostState.showSnackbar(
+                        context.getString(R.string.user_profile_photo_selection_error),
+                        withDismissAction = true
+                    )
+                }
             },
             onChangeUsernameClick = { showChangeUsernameBottomSheet = true },
             onChangePasswordClick = { showChangePasswordBottomSheet = true },
@@ -206,7 +237,7 @@ fun UserProfileScreen(
 private fun UserProfileContent(
     user: UserData?,
     userPhotoUri: String?,
-    onSelectPhoto: (String) -> Unit,
+    onSelectPhoto: (Uri?) -> Unit,
     onChangeUsernameClick: () -> Unit,
     onChangePasswordClick: () -> Unit,
     onDeleteUserClick: () -> Unit,
@@ -241,7 +272,7 @@ private fun UserProfileContent(
                     val galleryLauncher = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent(),
                     ) { imageUri ->
-                        onSelectPhoto(imageUri.toString())
+                        onSelectPhoto(imageUri)
                     }
                     AsyncImage(model = ImageRequest.Builder(context).data(userPhotoUri)
                         .diskCacheKey("user_image_${Date().time}")
@@ -527,7 +558,7 @@ private fun ChangeUsernameBottomSheet(onConfirm: (String) -> Unit, onDismissRequ
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangeUserPhotoDialog(
-    photoUri: String?,
+    photoUri: Uri?,
     onConfirm: () -> Unit,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier
@@ -586,7 +617,7 @@ fun ChangeUserPhotoDialog(
 @Composable
 fun ChangeUserPhotoDialogPreview() {
     GymLogTheme {
-        ChangeUserPhotoDialog(photoUri = "null", onDismissRequest = {}, onConfirm = {})
+        ChangeUserPhotoDialog(photoUri = null, onDismissRequest = {}, onConfirm = {})
     }
 }
 
@@ -622,6 +653,10 @@ fun UserProfileScreenPreview() {
             override suspend fun changeUsername(
                 username: String, onFailedListener: suspend () -> Unit
             ) {
+                TODO("Not yet implemented")
+            }
+
+            override suspend fun changeUserPhoto(uri: Uri, onFailedListener: suspend () -> Unit) {
                 TODO("Not yet implemented")
             }
 

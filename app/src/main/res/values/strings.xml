@@ -174,4 +174,6 @@
     <string name="user_profile_change_password_error">Ocorreu uma falha ao tentar mudar a senha, verifique suas credenciais!</string>
     <string name="user_profile_delete_user_error">Ocorreu uma falha ao tentar excluir seu usuário!</string>
     <string name="user_profile_photo_content_description">User photo</string>
+    <string name="user_profile_photo_selection_error">Falha ao carregar imagem!</string>
+    <string name="user_profile_change_photo_error">Ocorreu uma falha ao tentar mudar sua imagem!</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.example.gymlog.ui.user.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import com.example.gymlog.data.firebase.FirebaseUserClient
 import com.example.gymlog.extensions.toUserData
@@ -10,6 +11,7 @@ import com.example.gymlog.ui.auth.authclient.UserData
 import com.example.gymlog.utils.Response
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 
 interface UserProfileViewModel {
@@ -17,6 +19,8 @@ interface UserProfileViewModel {
     val userProvider: String?
 
     suspend fun changeUsername(username: String, onFailedListener: suspend () -> Unit = {})
+
+    suspend fun changeUserPhoto(uri: Uri, onFailedListener: suspend () -> Unit = {})
 
     suspend fun changePassword(
         oldPassword: String,
@@ -27,7 +31,7 @@ interface UserProfileViewModel {
     suspend fun deleteUser(
         password: String,
         googleIdToken: String? = null,
-    ) : Response
+    ): Response
 
 }
 
@@ -51,7 +55,18 @@ class UserProfileViewModelImpl(
         if (response.isSuccess) reload() else onFailedListener()
     }
 
-    private suspend fun reload() = userClient.reload()
+    override suspend fun changeUserPhoto(
+        uri: Uri,
+        onFailedListener: suspend () -> Unit
+    ) {
+        val response = userClient.changeUserPhoto(uri)
+        if (response.isSuccess) reload() else onFailedListener()
+    }
+
+    private suspend fun reload() {
+        userClient.reload()
+        _user.update { userClient.user?.toUserData() }
+    }
 
     override suspend fun changePassword(
         oldPassword: String,
