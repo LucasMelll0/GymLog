@@ -67,6 +67,9 @@ dependencies {
     // Firestore
     implementation 'com.google.firebase:firebase-firestore-ktx:24.6.1'
 
+    // Storage (for user photo)
+    implementation 'com.google.firebase:firebase-storage-ktx:20.2.1'
+
     // ViewModel
     def lifecycle_version = "2.6.1"
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
