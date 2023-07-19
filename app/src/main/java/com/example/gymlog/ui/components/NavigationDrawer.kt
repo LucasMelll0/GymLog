@@ -36,15 +36,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import coil.compose.AsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
 import com.example.gymlog.R
 import com.example.gymlog.extensions.capitalizeAllWords
 import com.example.gymlog.navigation.Bmi
@@ -66,7 +61,6 @@ fun DrawerBody(
     onClickExit: () -> Unit,
     user: UserData?
 ) {
-    val context = LocalContext.current
     val bigCornerSize = dimensionResource(id = R.dimen.large_corner_size)
     AnimatedVisibility(visible = isOpen, enter = slideInHorizontally { -it / 2 }) {
         Column(
@@ -82,19 +76,11 @@ fun DrawerBody(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
                 ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context).data(user?.profilePicture)
-                            .diskCacheKey("user_image_${Date().time}")
-                            .diskCachePolicy(CachePolicy.DISABLED)
-                            .networkCachePolicy(CachePolicy.ENABLED)
-                            .memoryCachePolicy(CachePolicy.ENABLED)
-                            .build(),
+                    DefaultAsyncImage(
+                        data = user?.profilePicture,
+                        diskCacheKey = "user_image_${Date().time}",
                         error = painterResource(id = R.drawable.ic_person),
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.Center,
-                        contentDescription = stringResource(
-                            id = R.string.user_profile_photo_content_description
-                        ),
+                        contentDescription = stringResource(id = R.string.user_profile_photo_content_description),
                         modifier = Modifier
                             .size(dimensionResource(id = R.dimen.navigation_drawer_user_photo_size))
                             .background(MaterialTheme.colorScheme.surface)

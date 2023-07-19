@@ -50,7 +50,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -60,14 +59,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
 import com.example.gymlog.R
 import com.example.gymlog.data.datastore.UserStore
 import com.example.gymlog.extensions.capitalizeAllWords
 import com.example.gymlog.extensions.checkConnection
 import com.example.gymlog.ui.auth.authclient.UserData
+import com.example.gymlog.ui.components.DefaultAsyncImage
 import com.example.gymlog.ui.components.DefaultPasswordTextField
 import com.example.gymlog.ui.components.DefaultTextField
 import com.example.gymlog.ui.components.LoadingDialog
@@ -277,14 +274,10 @@ private fun UserProfileContent(
                     ) { imageUri ->
                         onSelectPhoto(imageUri)
                     }
-                    AsyncImage(model = ImageRequest.Builder(context).data(userPhotoUri)
-                        .diskCacheKey("user_image_${Date().time}")
-                        .networkCachePolicy(CachePolicy.ENABLED)
-                        .diskCachePolicy(CachePolicy.DISABLED)
-                        .memoryCachePolicy(CachePolicy.ENABLED).build(),
+                    DefaultAsyncImage(
+                        data = userPhotoUri,
+                        diskCacheKey = "user_image_${Date().time}",
                         error = painterResource(id = R.drawable.ic_person),
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.Center,
                         contentDescription = stringResource(id = R.string.user_profile_photo_content_description),
                         modifier = Modifier
                             .fillMaxSize()
@@ -294,7 +287,8 @@ private fun UserProfileContent(
                                         galleryLauncher.launch("image/*")
                                     }
                                 }
-                            })
+                            }
+                    )
                 }
             }
             user.userName?.let {
@@ -566,7 +560,6 @@ fun ChangeUserPhotoDialog(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     AlertDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
@@ -583,22 +576,16 @@ fun ChangeUserPhotoDialog(
                     .padding(dimensionResource(id = R.dimen.large_padding))
                     .verticalScroll(rememberScrollState())
             ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context).data(photoUri)
-                        .diskCacheKey("user_image_${Date().time}")
-                        .networkCachePolicy(CachePolicy.ENABLED)
-                        .diskCachePolicy(CachePolicy.DISABLED)
-                        .memoryCachePolicy(CachePolicy.ENABLED).build(),
+                DefaultAsyncImage(
+                    data = photoUri,
+                    diskCacheKey = "user_image_selection_${Date().time}",
                     error = painterResource(id = R.drawable.ic_person),
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
                     contentDescription = stringResource(id = R.string.user_profile_photo_content_description),
                     modifier = Modifier
                         .size(dimensionResource(id = R.dimen.user_profile_photo_size))
                         .padding(dimensionResource(id = R.dimen.large_padding))
                         .clip(MaterialTheme.shapes.extraLarge)
                 )
-
                 Text(text = "Deseja usar essa imagem como foto de perfil?")
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
