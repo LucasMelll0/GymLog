@@ -84,13 +84,10 @@ class UserProfileViewModelImpl(
         googleIdToken: String?
     ): Response {
         return user.value?.let {
-            val response = userClient.deleteUser(password.ifEmpty { null }, googleIdToken)
-            if (response.isSuccess) {
-                trainingRepository.disableAll(it.uid)
-                bmiInfoRepository.disableAll(it.uid)
-                userRepository.delete(it.uid)
-            }
-            response
+            trainingRepository.disableAll(it.uid)
+            bmiInfoRepository.disableAll(it.uid)
+            userRepository.delete(it.uid)
+            userClient.deleteUser(password.ifEmpty { null }, googleIdToken)
         } ?: Response(isSuccess = false, errorMessage = "Invalid User")
     }
 }

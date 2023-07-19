@@ -74,13 +74,15 @@ class FirebaseUserClient(
     suspend fun deleteUser(
         password: String?,
         googleIdToken: String?
-    ) : Response {
+    ): Response {
         return user?.let {
             try {
                 reauthenticate(password, googleIdToken)
+                storageClient.deletePhoto(it.uid)
                 it.delete().await()
+                reload()
                 Response(isSuccess = true)
-            }catch (e: Exception) {
+            } catch (e: Exception) {
                 e.printStackTrace()
                 Response(isSuccess = false, errorMessage = e.message)
             }
@@ -107,7 +109,7 @@ class FirebaseUserClient(
     suspend fun changeUserPhoto(photo: Uri): Response {
         return user?.let {
             try {
-                return when(val resource = storageClient.savePhoto(photo, it.uid)) {
+                return when (val resource = storageClient.savePhoto(photo, it.uid)) {
                     is Resource.Success -> {
                         val downloadUri = resource.data
                         val profileUpdate = userProfileChangeRequest {
@@ -116,11 +118,12 @@ class FirebaseUserClient(
                         it.updateProfile(profileUpdate).await()
                         Response(isSuccess = true)
                     }
+
                     else -> throw Exception("Error on upload image")
                 }
 
 
-            }catch (e: Exception) {
+            } catch (e: Exception) {
                 e.printStackTrace()
                 Response(isSuccess = false, errorMessage = e.message ?: "Unknown Error")
             }
