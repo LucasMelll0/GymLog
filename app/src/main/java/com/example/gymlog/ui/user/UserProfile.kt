@@ -581,6 +581,7 @@ fun ChangeUserPhotoDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(dimensionResource(id = R.dimen.large_padding))
+                    .verticalScroll(rememberScrollState())
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(context).data(photoUri)
