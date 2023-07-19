@@ -40,6 +40,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -98,9 +99,11 @@ fun UserProfileScreen(
     var isLoading by rememberSaveable { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
     val user by viewModel.user.collectAsStateWithLifecycle()
-    user ?: onInvalidUser()
+    LaunchedEffect(key1 = user) {
+        user ?: onInvalidUser()
+    }
     var selectedPhoto: Uri? by rememberSaveable { mutableStateOf(null) }
-    val userPhotoUri by rememberSaveable { mutableStateOf(user?.profilePicture) }
+    val userPhotoUri = user?.profilePicture
     var showChangeUserPhotoDialog by rememberSaveable { mutableStateOf(false) }
     var showChangeUsernameBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showChangePasswordBottomSheet by rememberSaveable { mutableStateOf(false) }
