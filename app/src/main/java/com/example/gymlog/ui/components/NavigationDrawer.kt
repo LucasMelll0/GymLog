@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ExitToApp
@@ -34,10 +36,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.example.gymlog.R
 import com.example.gymlog.extensions.capitalizeAllWords
 import com.example.gymlog.navigation.Bmi
@@ -47,6 +54,7 @@ import com.example.gymlog.navigation.Home
 import com.example.gymlog.navigation.UserProfile
 import com.example.gymlog.ui.auth.authclient.UserData
 import com.example.gymlog.ui.theme.GymLogTheme
+import java.util.Date
 
 @Composable
 fun DrawerBody(
@@ -58,6 +66,7 @@ fun DrawerBody(
     onClickExit: () -> Unit,
     user: UserData?
 ) {
+    val context = LocalContext.current
     val bigCornerSize = dimensionResource(id = R.dimen.large_corner_size)
     AnimatedVisibility(visible = isOpen, enter = slideInHorizontally { -it / 2 }) {
         Column(
@@ -69,20 +78,50 @@ fun DrawerBody(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))) {
-                Text(
-                    text = stringResource(id = R.string.app_name),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                user?.userName?.let { userName ->
-                    Text(
-                        text = stringResource(
-                            id = R.string.drawer_welcome_message, userName.capitalizeAllWords()
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context).data(user?.profilePicture)
+                            .diskCacheKey("user_image_${Date().time}")
+                            .diskCachePolicy(CachePolicy.DISABLED)
+                            .networkCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
+                            .build(),
+                        error = painterResource(id = R.drawable.ic_person),
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center,
+                        contentDescription = stringResource(
+                            id = R.string.user_profile_photo_content_description
                         ),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        modifier = Modifier
+                            .size(dimensionResource(id = R.dimen.navigation_drawer_user_photo_size))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .clip(CircleShape)
+                            .weight(0.25f)
                     )
-                    Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
+                    Column(
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier.weight(0.75f)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.app_name),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        user?.userName?.let { userName ->
+                            Text(
+                                text = stringResource(
+                                    id = R.string.drawer_welcome_message,
+                                    userName.capitalizeAllWords()
+                                ),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
+                        }
+                    }
                 }
                 Divider()
                 Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))

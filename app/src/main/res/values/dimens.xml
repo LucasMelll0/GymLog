@@ -14,4 +14,5 @@
     <dimen name="height_selector_height">70dp</dimen>
     <dimen name="extra_large_corner_size">32dp</dimen>
     |<dimen name="user_profile_photo_size">250dp</dimen>
+    <dimen name="navigation_drawer_user_photo_size">64dp</dimen>
 </resources>
