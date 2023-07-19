@@ -30,11 +30,7 @@ class TrainingRepositoryImpl(private val dao: TrainingDao, private val fireStore
     override suspend fun getById(id: String, userId: String): Training? = dao.getById(id, userId)
 
     override suspend fun save(training: Training) {
-        if (fireStore.saveTraining(training).isSuccess) {
-            dao.save(training.copy(isSynchronized = true))
-        } else {
-            dao.save(training)
-        }
+        dao.save(training.copy(isSynchronized = fireStore.saveTraining(training).isSuccess))
     }
 
     override suspend fun disable(training: Training) {
