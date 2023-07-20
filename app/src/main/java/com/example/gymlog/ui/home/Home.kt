@@ -20,9 +20,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Menu
@@ -31,6 +35,7 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +49,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -59,26 +65,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
-import com.example.gymlog.data.AppDataBase_Impl
 import com.example.gymlog.data.Mock
-import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.extensions.checkConnection
 import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
-import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.DefaultSearchBar
 import com.example.gymlog.ui.components.FilterChipList
 import com.example.gymlog.ui.components.FilterChipSelectionList
 import com.example.gymlog.ui.components.LoadingDialog
 import com.example.gymlog.ui.home.viewmodel.HomeViewModel
+import com.example.gymlog.ui.home.viewmodel.HomeViewModelImpl
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.BackPressHandler
 import com.example.gymlog.utils.TrainingTypes
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -89,11 +95,11 @@ fun HomeScreen(
     onButtonAddClick: () -> Unit,
     onNavIconClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = koinViewModel()
+    viewModel: HomeViewModel = koinViewModel<HomeViewModelImpl>()
 ) {
     val context = LocalContext.current
     var isLoading by rememberSaveable { mutableStateOf(false) }
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showFiltersBottomSheet by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
     var showDeleteTrainingDialog by remember { mutableStateOf(false) }
     var trainingIdForDelete: String? by rememberSaveable { mutableStateOf(null) }
@@ -111,87 +117,134 @@ fun HomeScreen(
     Scaffold(bottomBar = {
         HomeBottomBar(
             onButtonSearchClick = { showSearchBar = !showSearchBar },
-            onButtonFiltersClick = { showBottomSheet = !showBottomSheet },
+            onButtonFiltersClick = { showFiltersBottomSheet = !showFiltersBottomSheet },
             onFabClick = onButtonAddClick,
             onNavIconClick = onNavIconClick
         )
-    }) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (isLoading) LoadingDialog(text = stringResource(id = R.string.common_synchronizing))
-        }
-        Surface(
-            modifier = modifier
+    }, modifier = modifier) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(paddingValues)
-                .fillMaxWidth()
         ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
-            ) {
-                if (showDeleteTrainingDialog) {
-                    trainingIdForDelete?.let {
-                        DeleteTrainingDialog(
-                            trainingId = trainingIdForDelete!!,
-                            onConfirm = {
-                                viewModel.deleteTraining(trainingIdForDelete!!)
-                                showDeleteTrainingDialog = false
-                            },
-                            onDismissRequest = { showDeleteTrainingDialog = false })
-                    }
-                }
-                var query by remember { mutableStateOf("") }
-                if (!showSearchBar) {
-                    query = ""
-                }
-                AnimatedVisibility(showSearchBar) {
-                    BackPressHandler {
-                        showSearchBar = false
-                    }
-                    DefaultSearchBar(
-                        focusRequester = focusRequester,
-                        value = query,
-                        onClickBackButton = {
-                            showSearchBar = false
+            if (isLoading) LoadingDialog(text = stringResource(id = R.string.common_synchronizing))
+            if (showDeleteTrainingDialog) {
+                trainingIdForDelete?.let {
+                    DeleteTrainingDialog(
+                        trainingId = trainingIdForDelete!!,
+                        onConfirm = {
+                            viewModel.deleteTraining(trainingIdForDelete!!)
+                            showDeleteTrainingDialog = false
                         },
-                        onClickClearText = { query = "" },
-                        onValueChanged = { query = it }
-                    )
-
+                        onDismissRequest = { showDeleteTrainingDialog = false })
                 }
-                TrainingList(
-                    onClickDelete = {
-                        trainingIdForDelete = it
-                        showDeleteTrainingDialog = true
-                    },
-                    onClickEdit = onClickEdit,
-                    onItemClickListener = { training -> onItemClickListener(training.trainingId) },
-                    trainingWithExercises = training.filter {
-                        if (query.isNotEmpty()) {
-                            it.title.contains(query, true)
-                        } else {
-                            it.filters.containsAll(viewModel.filters)
-                        }
-                    },
-                    modifier = Modifier
-                        .padding(
-                            vertical = dimensionResource(id = R.dimen.default_padding)
-                        )
-                        .fillMaxHeight()
-                )
             }
-            if (showBottomSheet) {
-                FiltersBottomSheet(
-                    selectedList = viewModel.filters,
-                    filterList = TrainingTypes.values()
-                        .map { stringResource(id = it.stringRes()) },
-                    onFilterClick = { filter -> viewModel.manageFilters(filter) },
-                    onDismissRequest = { showBottomSheet = false }
-                )
+            ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+                val (column, disposableFilters) = createRefs()
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
+                    modifier = Modifier
+                        .constrainAs(column) {
+                            top.linkTo(parent.top)
+                            bottom.linkTo(disposableFilters.top)
+                            height = Dimension.preferredWrapContent
+                        }
+                        .fillMaxWidth(),
+                ) {
+                    var query by remember { mutableStateOf("") }
+                    if (!showSearchBar) {
+                        query = ""
+                    }
+                    AnimatedVisibility(showSearchBar) {
+                        BackPressHandler {
+                            showSearchBar = false
+                        }
+                        DefaultSearchBar(
+                            focusRequester = focusRequester,
+                            value = query,
+                            onClickBackButton = {
+                                showSearchBar = false
+                            },
+                            onClickClearText = { query = "" },
+                            onValueChanged = { query = it }
+                        )
+
+                    }
+                    TrainingList(
+                        onClickDelete = {
+                            trainingIdForDelete = it
+                            showDeleteTrainingDialog = true
+                        },
+                        onClickEdit = onClickEdit,
+                        onItemClickListener = { training -> onItemClickListener(training.trainingId) },
+                        trainingWithExercises = training.filter {
+                            if (query.isNotEmpty()) {
+                                it.title.contains(query, true)
+                            } else {
+                                it.filters.containsAll(viewModel.filters)
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(
+                                vertical = dimensionResource(id = R.dimen.default_padding)
+                            )
+                            .fillMaxHeight()
+                    )
+                }
+                AnimatedVisibility(
+                    viewModel.filters.isNotEmpty(),
+                    modifier = Modifier.constrainAs(disposableFilters) {
+                        bottom.linkTo(parent.bottom)
+                    }) {
+                    DisposableFiltersList(
+                        filters = viewModel.filters,
+                        onClick = { viewModel.manageFilters(it) }
+                    )
+                }
+
             }
         }
+        if (showFiltersBottomSheet) FiltersBottomSheet(
+            selectedList = viewModel.filters,
+            filterList = TrainingTypes.values()
+                .map { stringResource(id = it.stringRes()) },
+            onFilterClick = { filter -> viewModel.manageFilters(filter) },
+            onDismissRequest = { showFiltersBottomSheet = false }
+        )
 
 
     }
 
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun DisposableFiltersList(
+    filters: List<String>,
+    onClick: (filter: String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyHorizontalStaggeredGrid(
+        rows = StaggeredGridCells.Fixed(2),
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(max = dimensionResource(id = R.dimen.filter_chip_list_max_height))
+    ) {
+        items(filters) { filter ->
+            FilterChip(
+                onClick = { onClick(filter) },
+                selected = true,
+                label = { Text(text = filter) },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = null
+                    )
+                },
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -208,7 +261,9 @@ fun FiltersBottomSheet(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(vertical = dimensionResource(id = R.dimen.large_padding))
         ) {
             Text(text = "Filtrar por tipo de treino", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
@@ -216,7 +271,9 @@ fun FiltersBottomSheet(
                 selectedList = selectedList,
                 filterList = filterList,
                 onClick = onFilterClick,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(dimensionResource(id = R.dimen.default_padding))
             )
         }
     }
@@ -475,20 +532,32 @@ private fun ExerciseTrainingItem(exercise: Exercise, modifier: Modifier = Modifi
     }
 }
 
-@Suppress("UNCHECKED_CAST")
 @Preview(uiMode = UI_MODE_NIGHT_YES)
 @Preview
 @Composable
 private fun HomeScreenPreview() {
     GymLogTheme {
-        val viewModelFactory = object : ViewModelProvider.NewInstanceFactory() {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val repositoryImpl =
-                    TrainingRepositoryImpl(AppDataBase_Impl().trainingDao(), FireStoreClient())
-                return HomeViewModel(repositoryImpl) as T
+        val trainings = Mock.getTrainings()
+        val viewModel = object : HomeViewModel, ViewModel() {
+            private val _trainings: MutableStateFlow<List<Training>> = MutableStateFlow(trainings)
+            override val trainings: Flow<List<Training>> get() = _trainings
+
+            private val _filters: MutableList<String> = remember { mutableStateListOf() }
+            override val filters: List<String>
+                get() = _filters
+
+            override fun manageFilters(filter: String) {
+                if (!filters.contains(filter)) _filters.add(filter) else _filters.remove(filter)
+            }
+
+            override fun deleteTraining(trainingId: String) {
+                TODO("Not yet implemented")
+            }
+
+            override suspend fun sync() {
+                TODO("Not yet implemented")
             }
         }
-        val viewModel: HomeViewModel = viewModel(factory = viewModelFactory)
         HomeScreen(
             onItemClickListener = {},
             viewModel = viewModel,

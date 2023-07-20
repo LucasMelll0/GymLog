@@ -1,6 +1,5 @@
 package com.example.gymlog.ui.home.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,27 +10,35 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
-import java.lang.Exception
 
-class HomeViewModel(private val repository: TrainingRepository) : ViewModel() {
+interface HomeViewModel {
 
-    private val TAG = "HomeViewModel"
+    val trainings: Flow<List<Training>>
+    val filters: List<String>
+
+    fun manageFilters(filter: String)
+
+    fun deleteTraining(trainingId: String)
+    suspend fun sync()
+}
+
+class HomeViewModelImpl(private val repository: TrainingRepository) : HomeViewModel, ViewModel() {
 
     private val currentUser = Firebase.auth.currentUser
 
-    internal val trainings: Flow<List<Training>> = currentUser?.let {
+    override val trainings: Flow<List<Training>> = currentUser?.let {
         repository.getAll(it.uid)
     } ?: emptyFlow()
 
     private val _filters = mutableStateListOf<String>()
-    internal val filters: List<String> get() = _filters
+    override val filters: List<String> get() = _filters
 
 
-    fun manageFilters(filter: String) {
+    override fun manageFilters(filter: String) {
         if (!filters.contains(filter)) _filters.add(filter) else _filters.remove(filter)
     }
 
-    fun deleteTraining(trainingId: String) {
+    override fun deleteTraining(trainingId: String) {
         viewModelScope.launch {
             currentUser?.let { currentUser ->
                 try {
@@ -39,13 +46,13 @@ class HomeViewModel(private val repository: TrainingRepository) : ViewModel() {
                         repository.disable(it)
                     }
                 } catch (e: Exception) {
-                    Log.w(TAG, "deleteTraining: ", e)
+                    e.printStackTrace()
                 }
             }
         }
     }
 
-    suspend fun sync() {
+    override suspend fun sync() {
         currentUser?.let {
             repository.sync(it.uid)
         }
