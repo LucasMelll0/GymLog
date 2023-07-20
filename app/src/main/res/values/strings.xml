@@ -78,6 +78,11 @@
     <string name="home_button_add_content_description">Adicionar treino</string>
     <string name="home_button_search_content_description">Buscar treino</string>
     <string name="home_button_filter_content_description">Filtrar treinos</string>
+    <string name="home_filters_bottom_sheet_title">Filtrar por tipo de treino</string>
+    <string name="home_training_menu_bottom_sheet_title">Oque deseja fazer com o treino?</string>
+    <string name="home_training_item_exercises_count_place_holder">%d exercícios</string>
+    <string name="home_training_item_estimated_time_place_holder">Tempo estimado: %d minutos</string>
+    <string name="home_training_item_empty_exercises_message">Este treino ainda não possui exercícios!</string>
 
     <!-- Log -->
     <string name="training_log_reset_dialog_text">Ao confirmar você irá desmarcar todos os exercícios…</string>

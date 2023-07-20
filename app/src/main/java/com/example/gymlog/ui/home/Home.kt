@@ -257,7 +257,10 @@ fun FiltersBottomSheet(
                 .fillMaxWidth()
                 .padding(vertical = dimensionResource(id = R.dimen.large_padding))
         ) {
-            Text(text = "Filtrar por tipo de treino", style = MaterialTheme.typography.titleLarge)
+            Text(
+                text = stringResource(id = R.string.home_filters_bottom_sheet_title),
+                style = MaterialTheme.typography.titleLarge
+            )
             Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
             FilterChipSelectionList(
                 selectedList = selectedList,
@@ -288,7 +291,7 @@ fun TrainingMenuBottomSheet(
                 .padding(dimensionResource(id = R.dimen.large_padding))
         ) {
             Text(
-                text = "Oquer deseja fazer com o treino?",
+                text = stringResource(id = R.string.home_training_menu_bottom_sheet_title),
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
@@ -408,11 +411,19 @@ fun TrainingItem(
             ProvideTextStyle(value = MaterialTheme.typography.bodyLarge) {
                 if (training.exercises.isNotEmpty()) {
                     Text(
-                        text = "${training.exercises.size} exercícios",
+                        text = stringResource(
+                            id = R.string.home_training_item_exercises_count_place_holder,
+                            training.exercises.size
+                        ),
                     )
-                    Text(text = "Tempo estimado: ${training.getEstimatedTime()} minutos")
+                    Text(
+                        text = stringResource(
+                            id = R.string.home_training_item_estimated_time_place_holder,
+                            training.getEstimatedTime()
+                        )
+                    )
                 } else {
-                    Text(text = "Este treino ainda não possui exercícios!")
+                    Text(text = stringResource(id = R.string.home_training_item_empty_exercises_message))
                 }
             }
 
