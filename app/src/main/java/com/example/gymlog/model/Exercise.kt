@@ -2,6 +2,7 @@ package com.example.gymlog.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.firebase.firestore.Exclude
 import java.util.UUID
 
 @Entity
@@ -15,6 +16,10 @@ data class Exercise(
     val filters: List<String> = emptyList(),
     val isChecked: Boolean = false,
 ) {
+
+    @Exclude
+    fun getEstimatedTime() = (this.series * (this.repetitions * 0.03)) + (this.series * 2)
+
     override fun equals(other: Any?): Boolean {
         return if (other is Exercise) {
             val otherTitle = other.title

@@ -2,16 +2,11 @@ package com.example.gymlog.ui.home
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,13 +20,12 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,10 +35,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -56,7 +50,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
@@ -71,7 +64,6 @@ import androidx.lifecycle.ViewModel
 import com.example.gymlog.R
 import com.example.gymlog.data.Mock
 import com.example.gymlog.extensions.checkConnection
-import com.example.gymlog.model.Exercise
 import com.example.gymlog.model.Training
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.DefaultSearchBar
@@ -101,8 +93,9 @@ fun HomeScreen(
     var isLoading by rememberSaveable { mutableStateOf(false) }
     var showFiltersBottomSheet by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
-    var showDeleteTrainingDialog by remember { mutableStateOf(false) }
-    var trainingIdForDelete: String? by rememberSaveable { mutableStateOf(null) }
+    var bottomSheetMenuTraining: Training? by remember { mutableStateOf(null) }
+    var showTrainingDeleteDialog: Boolean by remember { mutableStateOf(false) }
+    val trainingIdForDelete: String? = bottomSheetMenuTraining?.trainingId
     val focusRequester = remember { FocusRequester() }
     val training by viewModel.trainings.collectAsState(emptyList())
 
@@ -128,16 +121,13 @@ fun HomeScreen(
                 .padding(paddingValues)
         ) {
             if (isLoading) LoadingDialog(text = stringResource(id = R.string.common_synchronizing))
-            if (showDeleteTrainingDialog) {
-                trainingIdForDelete?.let {
-                    DeleteTrainingDialog(
-                        trainingId = trainingIdForDelete!!,
-                        onConfirm = {
-                            viewModel.deleteTraining(trainingIdForDelete!!)
-                            showDeleteTrainingDialog = false
-                        },
-                        onDismissRequest = { showDeleteTrainingDialog = false })
-                }
+            trainingIdForDelete?.let {
+                if (showTrainingDeleteDialog) DeleteTrainingDialog(
+                    onConfirm = {
+                        viewModel.deleteTraining(it)
+                        bottomSheetMenuTraining = null
+                    },
+                    onDismissRequest = { showTrainingDeleteDialog = false })
             }
             ConstraintLayout(modifier = Modifier.fillMaxSize()) {
                 val (column, disposableFilters) = createRefs()
@@ -171,12 +161,8 @@ fun HomeScreen(
 
                     }
                     TrainingList(
-                        onClickDelete = {
-                            trainingIdForDelete = it
-                            showDeleteTrainingDialog = true
-                        },
-                        onClickEdit = onClickEdit,
-                        onItemClickListener = { training -> onItemClickListener(training.trainingId) },
+                        onLongClickListener = { bottomSheetMenuTraining = it },
+                        onClickListener = { training -> onItemClickListener(training.trainingId) },
                         trainingWithExercises = training.filter {
                             if (query.isNotEmpty()) {
                                 it.title.contains(query, true)
@@ -203,6 +189,12 @@ fun HomeScreen(
                 }
 
             }
+        }
+        bottomSheetMenuTraining?.let {
+            TrainingMenuBottomSheet(
+                onClickEdit = { onClickEdit(it.trainingId) },
+                onClickDelete = { showTrainingDeleteDialog = true },
+                onDismissRequest = { bottomSheetMenuTraining = null })
         }
         if (showFiltersBottomSheet) FiltersBottomSheet(
             selectedList = viewModel.filters,
@@ -280,10 +272,39 @@ fun FiltersBottomSheet(
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TrainingMenuBottomSheet(
+    onClickEdit: () -> Unit,
+    onClickDelete: () -> Unit,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ModalBottomSheet(onDismissRequest = onDismissRequest) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(id = R.dimen.large_padding))
+        ) {
+            Text(
+                text = "Oquer deseja fazer com o treino?",
+                style = MaterialTheme.typography.titleLarge
+            )
+            Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
+            Button(onClick = onClickEdit, modifier = Modifier.fillMaxWidth()) {
+                Text(text = stringResource(id = R.string.common_edit))
+            }
+            OutlinedButton(onClick = onClickDelete, modifier = Modifier.fillMaxWidth()) {
+                Text(text = stringResource(id = R.string.common_delete))
+            }
+        }
+    }
+}
+
 @Composable
 private fun DeleteTrainingDialog(
-    trainingId: String,
-    onConfirm: (trainingId: String) -> Unit,
+    onConfirm: () -> Unit,
     onDismissRequest: () -> Unit
 ) {
     DefaultAlertDialog(
@@ -291,7 +312,7 @@ private fun DeleteTrainingDialog(
         text = stringResource(id = R.string.common_training_delete_dialog_text),
         icon = { Icon(imageVector = Icons.Rounded.Delete, contentDescription = null) },
         onDismissRequest = onDismissRequest,
-        onConfirm = { onConfirm(trainingId) }
+        onConfirm = onConfirm
     )
 }
 
@@ -334,9 +355,8 @@ fun HomeBottomBar(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TrainingList(
-    onClickDelete: (trainingId: String) -> Unit,
-    onClickEdit: (trainingId: String) -> Unit,
-    onItemClickListener: (Training) -> Unit,
+    onLongClickListener: (Training) -> Unit,
+    onClickListener: (Training) -> Unit,
     trainingWithExercises: List<Training>,
     modifier: Modifier = Modifier
 ) {
@@ -349,9 +369,8 @@ fun TrainingList(
             key = { training -> training.trainingId }
         ) { training ->
             TrainingItem(
-                onClick = { onItemClickListener(training) },
-                onClickEdit = { onClickEdit(training.trainingId) },
-                onClickDelete = { onClickDelete(training.trainingId) },
+                onClick = { onClickListener(training) },
+                onLongClick = { onLongClickListener(training) },
                 training = training,
                 modifier = Modifier
                     .padding(dimensionResource(id = R.dimen.small_padding))
@@ -361,124 +380,57 @@ fun TrainingList(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TrainingItem(
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     training: Training,
-    modifier: Modifier = Modifier,
-    onClickDelete: () -> Unit,
-    onClickEdit: () -> Unit
+    modifier: Modifier = Modifier
 ) {
-    var isExpanded by rememberSaveable { mutableStateOf(false) }
     Card(
-        modifier = modifier
-            .clickable {
-                onClick()
-            }
-            .fillMaxWidth()
-            .animateContentSize(animationSpec = spring(Spring.DampingRatioLowBouncy)),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        modifier = modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
     ) {
-        Card(colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = dimensionResource(id = R.dimen.default_padding))
-
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(
-                            min = dimensionResource(
-                                id = R.dimen.minimum_training_item_height
-                            )
-                        ),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+        Column(
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
+            modifier = Modifier
+                .padding(dimensionResource(id = R.dimen.large_padding))
+                .fillMaxWidth()
+                .heightIn(
+                    min = dimensionResource(
+                        id = R.dimen.minimum_training_item_height
+                    )
+                )
+        ) {
+            Text(text = training.title, style = MaterialTheme.typography.titleLarge)
+            ProvideTextStyle(value = MaterialTheme.typography.bodyLarge) {
+                if (training.exercises.isNotEmpty()) {
                     Text(
-                        text = training.title,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(
-                            start = dimensionResource(
+                        text = "${training.exercises.size} exercícios",
+                    )
+                    Text(text = "Tempo estimado: ${training.getEstimatedTime()} minutos")
+                } else {
+                    Text(text = "Este treino ainda não possui exercícios!")
+                }
+            }
+
+            if (training.filters.isNotEmpty()) {
+                val filtersSize = training.filters.size
+                FilterChipList(
+                    rows = if (filtersSize < 4) 1 else 2,
+                    filterList = training.filters,
+                    modifier = Modifier
+                        .padding(
+                            vertical = dimensionResource(
                                 id = R.dimen.default_padding
                             )
                         )
-                    )
-                    val angle: Float by animateFloatAsState(if (isExpanded) 180f else 0f)
-                    IconButton(onClick = { isExpanded = !isExpanded }) {
-                        Icon(
-                            imageVector = Icons.Rounded.ArrowDropDown,
-                            contentDescription = null,
-                            modifier = Modifier.rotate(angle)
-                        )
-                    }
-
-                }
-                if (training.filters.isNotEmpty()) {
-                    val filtersSize = training.filters.size
-                    FilterChipList(
-                        rows = if (filtersSize < 4) 1 else 2,
-                        filterList = training.filters,
-                        modifier = Modifier
-                            .padding(
-                                vertical = dimensionResource(
-                                    id = R.dimen.default_padding
-                                )
-                            )
-                            .heightIn(max = if (filtersSize < 4) 40.dp else 80.dp)
-                    )
-                }
-
-            }
-        }
-        if (isExpanded) {
-            if (training.exercises.isNotEmpty()) {
-                ExerciseListTrainingItem(
-                    exercises = training.exercises,
-                    modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding))
+                        .heightIn(max = if (filtersSize < 4) 40.dp else 80.dp)
                 )
             }
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = dimensionResource(id = R.dimen.default_padding)),
-                color = MaterialTheme.colorScheme.surfaceVariant
-            ) {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    TextButton(
-                        onClick = onClickEdit,
-                        Modifier.weight(1f),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Edit, contentDescription = stringResource(
-                                id = R.string.common_edit
-                            )
-                        )
-                        Text(
-                            text = stringResource(id = R.string.common_edit),
-                            modifier = Modifier.padding(
-                                start = dimensionResource(
-                                    id = R.dimen.small_padding
-                                )
-                            )
-                        )
-                    }
-                    TextButton(onClick = onClickDelete, modifier = Modifier.weight(1f)) {
-                        Icon(
-                            imageVector = Icons.Rounded.Delete, contentDescription = stringResource(
-                                id = R.string.common_edit
-                            )
-                        )
-                        Text(
-                            text = stringResource(id = R.string.common_delete),
-                            modifier = Modifier.padding(start = dimensionResource(id = R.dimen.small_padding))
-                        )
-                    }
-                }
-            }
+
         }
     }
 }
@@ -490,45 +442,7 @@ private fun TrainingItemPreview() {
         TrainingItem(
             onClick = { },
             training = Mock.getTrainings().random(),
-            onClickEdit = {},
-            onClickDelete = {})
-    }
-}
-
-@Composable
-private fun ExerciseListTrainingItem(exercises: List<Exercise>, modifier: Modifier = Modifier) {
-    LazyColumn(modifier = modifier.heightIn(max = 200.dp)) {
-        items(exercises) { exercise ->
-            ExerciseTrainingItem(
-                exercise = exercise, modifier = Modifier.padding(
-                    dimensionResource(id = R.dimen.small_padding)
-                )
-            )
-        }
-    }
-}
-
-@Composable
-private fun ExerciseTrainingItem(exercise: Exercise, modifier: Modifier = Modifier) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = dimensionResource(
-                    id = R.dimen.small_padding
-                )
-            ),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = exercise.title,
-            style = MaterialTheme.typography.bodySmall,
-        )
-        Text(
-            text = "${exercise.repetitions}X${exercise.series}",
-            style = MaterialTheme.typography.bodySmall
-        )
+            onLongClick = {})
     }
 }
 

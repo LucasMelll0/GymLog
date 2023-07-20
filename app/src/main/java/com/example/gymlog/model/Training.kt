@@ -29,4 +29,10 @@ data class Training(
         )
     }
 
+    @Exclude
+    fun getEstimatedTime(): Int {
+        val exercisesEstimatedTime = exercises.map { it.getEstimatedTime() }
+        return exercisesEstimatedTime.sum().toInt()
+    }
+
 }
