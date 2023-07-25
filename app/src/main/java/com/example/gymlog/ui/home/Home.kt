@@ -513,7 +513,7 @@ private fun EmptyListHomeMessage(modifier: Modifier = Modifier) {
         }
         Spacer(modifier = Modifier.padding(dimensionResource(id = R.dimen.large_padding)))
         Text(
-            text = "Oops! Você ainda não possui treinos. Adicione um para começar!",
+            text = stringResource(id = R.string.home_empty_list_message),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.large_padding))

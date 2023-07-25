@@ -83,6 +83,7 @@
     <string name="home_training_item_exercises_count_place_holder">%d exercícios</string>
     <string name="home_training_item_estimated_time_place_holder">Tempo estimado: %d minutos</string>
     <string name="home_training_item_empty_exercises_message">Este treino ainda não possui exercícios!</string>
+    <string name="home_empty_list_message">Ops, parece que a lista está vazia. Que tal adicionar seu primeiro treino?</string>
 
     <!-- Log -->
     <string name="training_log_reset_dialog_text">Ao confirmar você irá desmarcar todos os exercícios…</string>
