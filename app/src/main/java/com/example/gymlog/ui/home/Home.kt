@@ -122,7 +122,7 @@ fun HomeScreen(
                 .padding(paddingValues)
         ) {
             if (isLoading) LoadingDialog(text = stringResource(id = R.string.common_synchronizing))
-            if (trainings.isEmpty()) EmptyListHomeMessage()
+            if (trainings.isEmpty()) HomeEmptyListMessage()
             trainingIdForDelete?.let {
                 if (showTrainingDeleteDialog) DeleteTrainingDialog(
                     onConfirm = {
@@ -496,7 +496,7 @@ private fun HomeScreenPreview() {
 }
 
 @Composable
-private fun EmptyListHomeMessage(modifier: Modifier = Modifier) {
+private fun HomeEmptyListMessage(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -523,8 +523,8 @@ private fun EmptyListHomeMessage(modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-private fun EmptyListHomeMessagePreview() {
+private fun HomeEmptyListMessagePreview() {
     GymLogTheme {
-        EmptyListHomeMessage()
+        HomeEmptyListMessage()
     }
 }

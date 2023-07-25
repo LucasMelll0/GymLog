@@ -11,7 +11,7 @@ import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.repository.UserRepositoryImpl
 import com.example.gymlog.ui.auth.viewmodel.AuthViewModel
 import com.example.gymlog.ui.bmi.viewmodel.BmiCalculatorViewModel
-import com.example.gymlog.ui.bmi.viewmodel.BmiHistoricViewModel
+import com.example.gymlog.ui.bmi.viewmodel.BmiHistoricViewModelImpl
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.home.viewmodel.HomeViewModelImpl
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
@@ -88,7 +88,7 @@ val bmiModule = module {
         BmiCalculatorViewModel(get<BmiInfoRepositoryImpl>())
     }
     viewModel {
-        BmiHistoricViewModel(
+        BmiHistoricViewModelImpl(
             userRepository = get<UserRepositoryImpl>(),
             bmiRepository = get<BmiInfoRepositoryImpl>()
         )

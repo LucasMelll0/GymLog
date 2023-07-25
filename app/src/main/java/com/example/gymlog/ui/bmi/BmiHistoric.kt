@@ -32,7 +32,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,18 +53,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
-import com.example.gymlog.data.AppDataBase_Impl
-import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.extensions.checkConnection
 import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.User
-import com.example.gymlog.repository.BmiInfoRepositoryImpl
-import com.example.gymlog.repository.UserRepositoryImpl
+import com.example.gymlog.ui.auth.authclient.UserData
 import com.example.gymlog.ui.bmi.viewmodel.BmiHistoricViewModel
+import com.example.gymlog.ui.bmi.viewmodel.BmiHistoricViewModelImpl
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.InfoCard
 import com.example.gymlog.ui.components.LoadingDialog
@@ -78,17 +72,19 @@ import com.example.gymlog.utils.BmiRating
 import com.example.gymlog.utils.Gender
 import com.example.gymlog.utils.Month
 import com.example.gymlog.utils.Resource
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.util.Calendar
-import java.util.Date
 import java.util.TimeZone
 
 
 @Composable
 fun BmiHistoricScreen(
     onError: () -> Unit,
-    viewModel: BmiHistoricViewModel = koinViewModel(),
+    viewModel: BmiHistoricViewModel = koinViewModel<BmiHistoricViewModelImpl>(),
     onNavIconClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -415,88 +411,49 @@ fun BmiInfoItem(
     }
 }
 
-@Preview(uiMode = UI_MODE_NIGHT_YES)
-@Preview
-@Composable
-private fun BmiInfoListPreview() {
-    GymLogTheme {
-        val list = listOf(
-            BmiInfo(
-                gender = Gender.Male,
-                weight = 66f,
-                height = 176,
-                age = 21,
-                dateInMillis = Date().time
-            ), BmiInfo(
-                gender = Gender.Male,
-                weight = 66f,
-                height = 176,
-                age = 21,
-                dateInMillis = 1686020400000
-            ), BmiInfo(
-                gender = Gender.Male,
-                weight = 55f,
-                height = 176,
-                age = 21,
-                dateInMillis = 1677639600000
-            ), BmiInfo(
-                gender = Gender.Male,
-                weight = 55f,
-                height = 176,
-                age = 21,
-                dateInMillis = 1677726000000
-            )
-        )
-        Surface() {
-            BmiInfoList(bmiInfoList = list, onLongClickListener = {})
-        }
-    }
-}
-
-@Preview(uiMode = UI_MODE_NIGHT_YES)
-@Preview()
-@Composable
-private fun BmiHistoricItemPreview() {
-    GymLogTheme {
-        Surface(color = MaterialTheme.colorScheme.surface) {
-            val bmiInfo = BmiInfo(
-                gender = Gender.Male,
-                weight = 66f,
-                height = 176,
-                age = 21,
-                dateInMillis = Date().time
-            )
-            BmiInfoItem(bmiInfo = bmiInfo, onLongClickListener = {})
-        }
-    }
-}
-
-@Preview(uiMode = UI_MODE_NIGHT_YES)
-@Preview
-@Composable
-private fun BmiHistoricHeaderPreview() {
-    GymLogTheme {
-        val person = User(gender = Gender.Male, height = 176, age = 21)
-        BmiHistoricHeader(user = person, onClickEdit = {})
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
 @Preview(uiMode = UI_MODE_NIGHT_YES, showSystemUi = true)
 @Preview(showSystemUi = true)
 @Composable
 private fun BmiHistoricScreenPreview() {
     GymLogTheme {
-        val viewModelFactory = object : ViewModelProvider.NewInstanceFactory() {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val userRepositoryImpl =
-                    UserRepositoryImpl(AppDataBase_Impl().userDao(), FireStoreClient())
-                val bmiRepositoryImpl =
-                    BmiInfoRepositoryImpl(AppDataBase_Impl().bmiInfoDao(), FireStoreClient())
-                return BmiHistoricViewModel(userRepositoryImpl, bmiRepositoryImpl) as T
+        val viewModel = object : BmiHistoricViewModel {
+            override val userResource: Flow<Resource<User?>> = flow {
+                emit(
+                    Resource.Success(
+                        User(
+                            gender = Gender.Male,
+                            height = 176,
+                            age = 21
+                        )
+                    )
+                )
+
+            }
+            override val currentUser: UserData =
+                UserData(uid = "", userName = "Lucas Mello", profilePicture = null)
+            override val getHistoric: Flow<List<BmiInfo>>
+                get() = emptyFlow()
+
+            override fun setLoading() {
+                TODO("Not yet implemented")
+            }
+
+            override suspend fun saveUser(user: User) {
+                TODO("Not yet implemented")
+            }
+
+            override suspend fun sync() {
+                TODO("Not yet implemented")
+            }
+
+            override suspend fun getUser() {
+                TODO("Not yet implemented")
+            }
+
+            override suspend fun disableBmiInfoRegister(bmiInfo: BmiInfo) {
+                TODO("Not yet implemented")
             }
         }
-        val viewModel: BmiHistoricViewModel = viewModel(factory = viewModelFactory)
         BmiHistoricScreen(
             onNavIconClick = {},
             onError = {},
