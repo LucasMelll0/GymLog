@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
@@ -97,7 +98,7 @@ fun HomeScreen(
     var showTrainingDeleteDialog: Boolean by remember { mutableStateOf(false) }
     val trainingIdForDelete: String? = bottomSheetMenuTraining?.trainingId
     val focusRequester = remember { FocusRequester() }
-    val training by viewModel.trainings.collectAsState(emptyList())
+    val trainings by viewModel.trainings.collectAsState(emptyList())
 
     LaunchedEffect(Unit) {
         context.checkConnection {
@@ -121,6 +122,7 @@ fun HomeScreen(
                 .padding(paddingValues)
         ) {
             if (isLoading) LoadingDialog(text = stringResource(id = R.string.common_synchronizing))
+            if (trainings.isEmpty()) EmptyListHomeMessage()
             trainingIdForDelete?.let {
                 if (showTrainingDeleteDialog) DeleteTrainingDialog(
                     onConfirm = {
@@ -163,7 +165,7 @@ fun HomeScreen(
                     TrainingList(
                         onLongClickListener = { bottomSheetMenuTraining = it },
                         onClickListener = { training -> onItemClickListener(training.trainingId) },
-                        trainingWithExercises = training.filter {
+                        trainingWithExercises = trainings.filter {
                             if (query.isNotEmpty()) {
                                 it.title.contains(query, true)
                             } else {
@@ -500,10 +502,21 @@ private fun EmptyListHomeMessage(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Card(shape = MaterialTheme.shapes.extraLarge) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_empty),
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(dimensionResource(id = R.dimen.large_padding))
+                    .size(dimensionResource(id = R.dimen.empty_list_icon_size))
+            )
+        }
+        Spacer(modifier = Modifier.padding(dimensionResource(id = R.dimen.large_padding)))
         Text(
             text = "Oops! Você ainda não possui treinos. Adicione um para começar!",
             style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.large_padding))
         )
     }
 }

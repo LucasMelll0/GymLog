@@ -16,4 +16,5 @@
     |<dimen name="user_profile_photo_size">250dp</dimen>
     <dimen name="navigation_drawer_user_photo_size">64dp</dimen>
     <dimen name="filter_chip_list_max_height">80dp</dimen>
+    <dimen name="empty_list_icon_size">100dp</dimen>
 </resources>
