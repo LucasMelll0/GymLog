@@ -10,10 +10,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -53,6 +56,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import com.example.gymlog.R
 import com.example.gymlog.extensions.checkConnection
 import com.example.gymlog.model.BmiInfo
@@ -166,32 +171,51 @@ fun BmiHistoricScreen(
             }, userToUpdate = user
             )
             if (isLoading) LoadingDialog()
-            Column(
+            ConstraintLayout(
                 modifier = Modifier
                     .padding(paddingValues)
+                    .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                user?.let {
-                    BmiHistoricHeader(
-                        user = it,
-                        onClickEdit = { showUserCreatorDialog = true },
+                val (header, historic) = createRefs()
+                Column(
+                    modifier = Modifier
+                        .constrainAs(header) {
+                            top.linkTo(parent.top)
+                        }
+                ) {
+                    user?.let {
+                        BmiHistoricHeader(
+                            user = it,
+                            onClickEdit = { showUserCreatorDialog = true },
+                            modifier = Modifier.padding(
+                                dimensionResource(id = R.dimen.default_padding)
+                            )
+                        )
+                    }
+                    InfoCard(
+                        text = stringResource(id = R.string.bmi_historic_information),
                         modifier = Modifier.padding(
                             dimensionResource(id = R.dimen.default_padding)
                         )
                     )
                 }
-                InfoCard(
-                    text = stringResource(id = R.string.bmi_historic_information),
-                    modifier = Modifier.padding(
-                        dimensionResource(id = R.dimen.default_padding)
-                    )
-                )
-                BmiInfoList(
+                if (bmiInfoList.isNotEmpty()) BmiInfoList(
                     bmiInfoList = bmiInfoList, onLongClickListener = {
                         registerToDelete = it
                         showDeleteRegisterDialog = true
-                    }, modifier = Modifier.heightIn(max = 500.dp)
-                )
+                    }, modifier = Modifier
+                        .constrainAs(historic) {
+                            top.linkTo(header.bottom)
+                            bottom.linkTo(parent.bottom)
+                            height = Dimension.fillToConstraints
+                        }
+                        .heightIn(max = dimensionResource(id = R.dimen.default_max_list_height))
+                ) else BmiHistoricEmptyListMessage(modifier = Modifier.constrainAs(historic) {
+                    top.linkTo(header.bottom)
+                    bottom.linkTo(parent.bottom)
+                    height = Dimension.preferredWrapContent
+                })
             }
         }
     }
@@ -408,6 +432,30 @@ fun BmiInfoItem(
                     })
             }
         }
+    }
+}
+
+@Composable
+private fun BmiHistoricEmptyListMessage(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Card(shape = MaterialTheme.shapes.extraLarge) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_history),
+                contentDescription = null,
+                modifier = Modifier.size(dimensionResource(id = R.dimen.empty_list_icon_size))
+            )
+        }
+        Spacer(modifier = Modifier.padding(dimensionResource(id = R.dimen.large_padding)))
+        Text(
+            text = "O Histórico esta vazio!",
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.large_padding))
+        )
     }
 }
 

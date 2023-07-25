@@ -194,7 +194,7 @@ fun TrainingLogScreen(
                                 .padding(dimensionResource(id = R.dimen.default_padding))
                                 .heightIn(
                                     max = dimensionResource(
-                                        id = R.dimen.max_exercise_list_height
+                                        id = R.dimen.default_max_list_height
                                     )
                                 ),
                             exercises = viewModel.exercises,
