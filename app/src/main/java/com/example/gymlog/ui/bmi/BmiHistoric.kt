@@ -58,6 +58,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gymlog.R
 import com.example.gymlog.extensions.checkConnection
 import com.example.gymlog.model.BmiInfo
@@ -95,40 +96,39 @@ fun BmiHistoricScreen(
     val context = LocalContext.current
     var isLoading: Boolean by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val userResource = viewModel.userResource.collectAsState(Resource.Loading)
-    var user: User? by remember { mutableStateOf(null) }
+    val userResource by viewModel.userResource.collectAsStateWithLifecycle(Resource.Loading)
+    val user: User? by viewModel.user.collectAsStateWithLifecycle(null)
     var registerToDelete: BmiInfo? by remember { mutableStateOf(null) }
     var showUserCreatorDialog: Boolean by rememberSaveable { mutableStateOf(false) }
     var showBmiCalculatorDialog: Boolean by rememberSaveable { mutableStateOf(false) }
     var showDeleteRegisterDialog: Boolean by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         context.checkConnection(onNotConnected = {
-            Log.d("TAG", "BmiHistoricScreen: Not Connected")
             isLoading = true
-            viewModel.getUser()
+            user ?: viewModel.getUser()
             isLoading = false
         }) {
-            Log.d("TAG", "BmiHistoricScreen: Connected")
             isLoading = true
             viewModel.sync()
-            viewModel.getUser()
+            user ?: viewModel.getUser()
             isLoading = false
         }
     }
-    when (userResource.value) {
+    when (userResource) {
         is Resource.Loading -> {
             isLoading = true
         }
 
         is Resource.Success -> {
-            (userResource.value as Resource.Success<User?>).data?.let {
-                user = it
+            (userResource as Resource.Success<User?>).data?.let {
+                viewModel.setUser(it)
                 isLoading = false
             } ?: run { showUserCreatorDialog = true }
 
         }
 
         else -> {
+            Log.i("on Error", "BmiHistoricScreen: error")
             onError()
         }
     }
@@ -477,12 +477,18 @@ private fun BmiHistoricScreenPreview() {
                 )
 
             }
+            override val user: Flow<User?>
+                get() = TODO("Not yet implemented")
             override val currentUser: UserData =
                 UserData(uid = "", userName = "Lucas Mello", profilePicture = null)
             override val getHistoric: Flow<List<BmiInfo>>
                 get() = emptyFlow()
 
             override fun setLoading() {
+                TODO("Not yet implemented")
+            }
+
+            override fun setUser(user: User) {
                 TODO("Not yet implemented")
             }
 
