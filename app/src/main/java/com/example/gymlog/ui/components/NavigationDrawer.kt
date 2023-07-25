@@ -40,6 +40,8 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import com.example.gymlog.R
 import com.example.gymlog.extensions.capitalizeAllWords
 import com.example.gymlog.navigation.Bmi
@@ -63,15 +65,21 @@ fun DrawerBody(
 ) {
     val bigCornerSize = dimensionResource(id = R.dimen.large_corner_size)
     AnimatedVisibility(visible = isOpen, enter = slideInHorizontally { -it / 2 }) {
-        Column(
+        ConstraintLayout(
             modifier
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(topEnd = bigCornerSize, bottomEnd = bigCornerSize))
                 .background(MaterialTheme.colorScheme.surface)
-                .fillMaxWidth(0.8f),
-            verticalArrangement = Arrangement.SpaceBetween
+                .fillMaxWidth(0.8f)
         ) {
-            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))) {
+            val (content, exitButton) = createRefs()
+            Column(
+                modifier = Modifier
+                    .padding(dimensionResource(id = R.dimen.default_padding))
+                    .constrainAs(content) {
+                        linkTo(parent.top, exitButton.top, bias = 0f)
+                        height = Dimension.fillToConstraints
+                    }) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
@@ -124,7 +132,10 @@ fun DrawerBody(
                 onClick = onClickExit,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = dimensionResource(id = R.dimen.default_padding)),
+                    .padding(vertical = dimensionResource(id = R.dimen.default_padding))
+                    .constrainAs(exitButton) {
+                        linkTo(top = content.bottom, bottom = parent.bottom, bias = 0f)
+                    },
 
                 ) {
                 Row(
