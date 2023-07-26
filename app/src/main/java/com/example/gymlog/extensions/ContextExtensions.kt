@@ -47,7 +47,8 @@ fun Context.vibrate(repetitions: Int = 5) {
                 .createWaveform(timings, -1)
         )
     } else {
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+        @Suppress("DEPRECATION") val vibrator =
+            getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
         vibrator?.vibrate(
             VibrationEffect
                 .createWaveform(timings, -1)
