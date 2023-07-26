@@ -1,11 +1,11 @@
 package com.example.gymlog.ui.log.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.example.gymlog.extensions.toUserData
 import com.example.gymlog.model.ExerciseMutableState
 import com.example.gymlog.model.Training
 import com.example.gymlog.repository.TrainingRepository
@@ -15,31 +15,41 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class TrainingLogViewModel(private val repository: TrainingRepository) : ViewModel() {
+interface TrainingLogViewModel {
+    val title: String
+    val exercises: List<ExerciseMutableState>
+    val filters: List<String>
+    val resource: Flow<Resource<Training>>
+    fun setLoading()
+    suspend fun getTraining(id: String)
+    fun updateExercise(exerciseId: String, isChecked: Boolean)
+    fun resetExercises()
+    suspend fun removeTraining(trainingId: String)
+    suspend fun updateTraining(trainingId: String)
+}
 
-    companion object {
-        const val TAG = "trainingViewModel"
-    }
+class TrainingLogViewModelImpl(private val repository: TrainingRepository) : TrainingLogViewModel,
+    ViewModel() {
 
-    private val currentUser = Firebase.auth.currentUser
+    private val currentUser = Firebase.auth.currentUser?.toUserData()
 
     private var _title by mutableStateOf("")
-    internal val title: String get() = _title
+    override val title: String get() = _title
 
     private val _exercises = mutableStateListOf<ExerciseMutableState>()
-    val exercises: List<ExerciseMutableState> get() = _exercises
+    override val exercises: List<ExerciseMutableState> get() = _exercises
     private val _filters = mutableStateListOf<String>()
-    val filters: List<String> get() = _filters
+    override val filters: List<String> get() = _filters
 
     private val _resource: MutableStateFlow<Resource<Training>> = MutableStateFlow(Resource.Loading)
-    internal val resource: Flow<Resource<Training>> = _resource
+    override val resource: Flow<Resource<Training>> = _resource
 
 
-    fun setLoading() {
+    override fun setLoading() {
         _resource.value = Resource.Loading
     }
 
-    suspend fun getTraining(id: String) {
+    override suspend fun getTraining(id: String) {
         if (_resource.value !is Resource.Success) {
             _resource.value =
                 try {
@@ -57,25 +67,24 @@ class TrainingLogViewModel(private val repository: TrainingRepository) : ViewMod
                     } ?: Resource.Error("Error on get current user")
 
                 } catch (e: Exception) {
-                    Log.w(TAG, "getTraining: ", e)
                     Resource.Error("Error on get training")
                 }
         }
     }
 
-    fun updateExercise(exerciseId: String, isChecked: Boolean) {
+    override fun updateExercise(exerciseId: String, isChecked: Boolean) {
         _exercises.find { it.id == exerciseId }?.let {
             it.isChecked = isChecked
         }
     }
 
-    fun resetExercises() {
+    override fun resetExercises() {
         _exercises.forEach {
             it.isChecked = false
         }
     }
 
-    suspend fun removeTraining(trainingId: String) {
+    override suspend fun removeTraining(trainingId: String) {
         currentUser?.let {
             repository.getById(trainingId, it.uid)?.let { training ->
                 this._resource.value = Resource.Loading
@@ -84,9 +93,9 @@ class TrainingLogViewModel(private val repository: TrainingRepository) : ViewMod
         }
     }
 
-    suspend fun updateTraining(trainingId: String) {
-        currentUser?.let {
-            repository.getById(trainingId, it.uid)?.let { training ->
+    override suspend fun updateTraining(trainingId: String) {
+        currentUser?.let { currentUser ->
+            repository.getById(trainingId, currentUser.uid)?.let { training ->
                 this._resource.value = Resource.Loading
                 repository.save(
                     training.copy(

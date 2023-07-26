@@ -52,20 +52,20 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymlog.R
-import com.example.gymlog.data.AppDataBase_Impl
-import com.example.gymlog.data.firebase.FireStoreClient
+import com.example.gymlog.data.Mock
 import com.example.gymlog.model.ExerciseMutableState
-import com.example.gymlog.repository.TrainingRepositoryImpl
+import com.example.gymlog.model.Training
 import com.example.gymlog.ui.components.AppDropdownTimer
 import com.example.gymlog.ui.components.CustomLinearProgressBar
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
+import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModelImpl
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.BackPressHandler
 import com.example.gymlog.utils.Resource
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -78,7 +78,7 @@ fun TrainingLogScreen(
     onClickDelete: () -> Unit,
     trainingId: String,
     modifier: Modifier = Modifier,
-    viewModel: TrainingLogViewModel = koinViewModel()
+    viewModel: TrainingLogViewModel = koinViewModel<TrainingLogViewModelImpl>()
 ) {
     var isLoading: Boolean by remember { mutableStateOf(false) }
     var showResetDialog: Boolean by remember { mutableStateOf(false) }
@@ -96,24 +96,21 @@ fun TrainingLogScreen(
         }
     }
 
-    Scaffold(
-        bottomBar = {
-            TrainingLogBottomAppBar(
-                onNavIconClick = {
-                    scope.launch {
-                        viewModel.updateTraining(trainingId)
-                        onNavIconClick()
-                    }
-                },
-                onClickDelete = { showDeleteDialog = true },
-                onClickReset = { showResetDialog = true },
-                onClickEdit = {
-                    onClickEdit(trainingId)
-                    viewModel.setLoading()
-                },
-                onClickTimer = { showTimerBottomSheet = true }
-            )
-        }) { paddingValues ->
+    Scaffold(bottomBar = {
+        TrainingLogBottomAppBar(onNavIconClick = {
+            scope.launch {
+                viewModel.updateTraining(trainingId)
+                onNavIconClick()
+            }
+        },
+            onClickDelete = { showDeleteDialog = true },
+            onClickReset = { showResetDialog = true },
+            onClickEdit = {
+                onClickEdit(trainingId)
+                viewModel.setLoading()
+            },
+            onClickTimer = { showTimerBottomSheet = true })
+    }) { paddingValues ->
         if (showDeleteDialog) {
             DeleteDialog(onConfirm = {
                 scope.launch {
@@ -123,13 +120,10 @@ fun TrainingLogScreen(
             }, onDismiss = { showDeleteDialog = false })
         }
         if (showResetDialog) {
-            ResetExercisesDialog(
-                onConfirm = {
-                    viewModel.resetExercises()
-                    showResetDialog = false
-                },
-                onDismiss = { showResetDialog = false }
-            )
+            ResetExercisesDialog(onConfirm = {
+                viewModel.resetExercises()
+                showResetDialog = false
+            }, onDismiss = { showResetDialog = false })
         }
         val resource = viewModel.resource.collectAsState(Resource.Loading)
         when (resource.value) {
@@ -176,8 +170,7 @@ fun TrainingLogScreen(
                     ) {
                         val tips = stringArrayResource(id = R.array.training_tips).toList()
                         TipCard(
-                            tips = tips,
-                            modifier = Modifier.padding(
+                            tips = tips, modifier = Modifier.padding(
                                 horizontal = dimensionResource(
                                     id = R.dimen.default_padding
                                 )
@@ -189,14 +182,13 @@ fun TrainingLogScreen(
                             )
                         )
 
-                        ExerciseList(
-                            modifier = modifier
-                                .padding(dimensionResource(id = R.dimen.default_padding))
-                                .heightIn(
-                                    max = dimensionResource(
-                                        id = R.dimen.default_max_list_height
-                                    )
-                                ),
+                        ExerciseList(modifier = modifier
+                            .padding(dimensionResource(id = R.dimen.default_padding))
+                            .heightIn(
+                                max = dimensionResource(
+                                    id = R.dimen.default_max_list_height
+                                )
+                            ),
                             exercises = viewModel.exercises,
                             onCheckedChange = { exercise, isChecked ->
                                 viewModel.updateExercise(exercise.id, isChecked)
@@ -215,8 +207,7 @@ fun TrainingLogScreen(
 @Composable
 fun TimerBottomSheet(onDismissRequest: () -> Unit) {
     ModalBottomSheet(
-        onDismissRequest = onDismissRequest,
-        sheetState = rememberModalBottomSheetState(true)
+        onDismissRequest = onDismissRequest, sheetState = rememberModalBottomSheetState(true)
     ) {
         AppDropdownTimer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
     }
@@ -224,24 +215,18 @@ fun TimerBottomSheet(onDismissRequest: () -> Unit) {
 
 @Composable
 private fun TrainingProgressBar(
-    exercises: List<ExerciseMutableState>,
-    modifier: Modifier = Modifier
+    exercises: List<ExerciseMutableState>, modifier: Modifier = Modifier
 ) {
-    val percent by
-    animateFloatAsState(
+    val percent by animateFloatAsState(
         exercises.filter { it.isChecked }.size.toFloat() / exercises.size.toFloat(),
         animationSpec = tween(
-            durationMillis = 600,
-            easing = LinearOutSlowInEasing,
-            delayMillis = 50
-        )
+            durationMillis = 600, easing = LinearOutSlowInEasing, delayMillis = 50
+        ),
+        label = ""
     )
     CustomLinearProgressBar(
-        modifier = modifier,
-        percent = percent,
-        text = stringResource(
-            id = R.string.training_log_exercise_list_percent_place_holder,
-            (percent * 100).toInt()
+        modifier = modifier, percent = percent, text = stringResource(
+            id = R.string.training_log_exercise_list_percent_place_holder, (percent * 100).toInt()
         )
     )
 }
@@ -271,21 +256,10 @@ fun TipCard(tips: List<String>, modifier: Modifier = Modifier) {
     }
 }
 
-@Preview(uiMode = UI_MODE_NIGHT_YES)
-@Preview
-@Composable
-private fun TipCardPreview() {
-    GymLogTheme {
-        val tips = stringArrayResource(id = R.array.training_tips)
-        TipCard(tips.toList())
-    }
-}
 
 @Composable
 private fun DeleteDialog(
-    modifier: Modifier = Modifier,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    modifier: Modifier = Modifier, onConfirm: () -> Unit, onDismiss: () -> Unit
 ) {
     DefaultAlertDialog(
         modifier = modifier,
@@ -299,9 +273,7 @@ private fun DeleteDialog(
 
 @Composable
 private fun ResetExercisesDialog(
-    modifier: Modifier = Modifier,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    modifier: Modifier = Modifier, onConfirm: () -> Unit, onDismiss: () -> Unit
 ) {
     DefaultAlertDialog(
         modifier = modifier,
@@ -322,90 +294,76 @@ private fun TrainingLogBottomAppBar(
     onClickTimer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    BottomAppBar(
-        modifier = modifier,
-        floatingActionButton = {
-            FloatingActionButton(onClick = onClickEdit) {
-                Icon(
-                    imageVector = Icons.Rounded.Edit,
-                    contentDescription = stringResource(id = R.string.common_edit)
-                )
-            }
-        },
-        actions = {
-            IconButton(onClick = onNavIconClick) {
-                Icon(
-                    imageVector = Icons.Rounded.ArrowBack,
-                    contentDescription = stringResource(id = R.string.common_go_to_back)
-                )
-            }
-            IconButton(onClick = onClickDelete) {
-                Icon(
-                    imageVector = Icons.Rounded.Delete,
-                    contentDescription = stringResource(id = R.string.common_delete)
-                )
-            }
-            IconButton(onClick = onClickReset) {
-                Icon(
-                    imageVector = Icons.Rounded.Refresh,
-                    contentDescription = stringResource(id = R.string.common_reset)
-                )
-            }
-            IconButton(onClick = onClickTimer) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_timer),
-                    contentDescription = stringResource(
-                        id = R.string.common_timer
-                    )
-                )
-            }
+    BottomAppBar(modifier = modifier, floatingActionButton = {
+        FloatingActionButton(onClick = onClickEdit) {
+            Icon(
+                imageVector = Icons.Rounded.Edit,
+                contentDescription = stringResource(id = R.string.common_edit)
+            )
         }
-    )
+    }, actions = {
+        IconButton(onClick = onNavIconClick) {
+            Icon(
+                imageVector = Icons.Rounded.ArrowBack,
+                contentDescription = stringResource(id = R.string.common_go_to_back)
+            )
+        }
+        IconButton(onClick = onClickDelete) {
+            Icon(
+                imageVector = Icons.Rounded.Delete,
+                contentDescription = stringResource(id = R.string.common_delete)
+            )
+        }
+        IconButton(onClick = onClickReset) {
+            Icon(
+                imageVector = Icons.Rounded.Refresh,
+                contentDescription = stringResource(id = R.string.common_reset)
+            )
+        }
+        IconButton(onClick = onClickTimer) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_timer),
+                contentDescription = stringResource(
+                    id = R.string.common_timer
+                )
+            )
+        }
+    })
 }
 
-@Suppress("UNCHECKED_CAST")
+@Preview(uiMode = UI_MODE_NIGHT_YES)
 @Preview
 @Composable
 private fun TrainingLogScreenPreview() {
     GymLogTheme {
-        val viewModelFactory = object : ViewModelProvider.NewInstanceFactory() {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val repositoryImpl =
-                    TrainingRepositoryImpl(AppDataBase_Impl().trainingDao(), FireStoreClient())
-                return TrainingLogViewModel(repositoryImpl) as T
-            }
+        val training = Mock.getTrainings()[0]
+        val viewModel = object : TrainingLogViewModel, ViewModel() {
+            override val title: String = training.title
+            override val exercises: List<ExerciseMutableState> = emptyList()
+            override val filters: List<String> = training.filters
+            override val resource: Flow<Resource<Training>> =
+                flow { emit(Resource.Success(training)) }
+
+            override fun setLoading() {}
+
+            override suspend fun getTraining(id: String) {}
+
+            override fun updateExercise(exerciseId: String, isChecked: Boolean) {}
+
+            override fun resetExercises() {}
+
+            override suspend fun removeTraining(trainingId: String) {}
+
+            override suspend fun updateTraining(trainingId: String) {}
+
         }
-        val viewModel: TrainingLogViewModel = viewModel(factory = viewModelFactory)
-        TrainingLogScreen(
-            onNavIconClick = {},
+        TrainingLogScreen(onNavIconClick = {},
             trainingId = "",
             viewModel = viewModel,
             onError = {},
             onClickDelete = {},
             onBackPressed = {},
-            onClickEdit = {}
-        )
+            onClickEdit = {})
     }
 }
 
-@Preview
-@Composable
-private fun TrainingLogBottomAppBarPreview() {
-    GymLogTheme {
-        TrainingLogBottomAppBar(
-            onNavIconClick = {},
-            onClickDelete = {},
-            onClickReset = {},
-            onClickEdit = {},
-            onClickTimer = {}
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun TimerBottomSheetPreview() {
-    GymLogTheme {
-        TimerBottomSheet(onDismissRequest = { /*TODO*/ })
-    }
-}

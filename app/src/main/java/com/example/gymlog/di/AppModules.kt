@@ -14,7 +14,7 @@ import com.example.gymlog.ui.bmi.viewmodel.BmiCalculatorViewModel
 import com.example.gymlog.ui.bmi.viewmodel.BmiHistoricViewModelImpl
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.home.viewmodel.HomeViewModelImpl
-import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
+import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModelImpl
 import com.example.gymlog.ui.user.viewmodel.UserProfileViewModelImpl
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -79,7 +79,7 @@ val formModule = module {
 
 val logModule = module {
     viewModel {
-        TrainingLogViewModel(get<TrainingRepositoryImpl>())
+        TrainingLogViewModelImpl(get<TrainingRepositoryImpl>())
     }
 }
 
