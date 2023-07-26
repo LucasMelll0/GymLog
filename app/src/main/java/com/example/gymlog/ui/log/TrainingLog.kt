@@ -4,14 +4,16 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -26,16 +28,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,9 +48,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gymlog.R
 import com.example.gymlog.data.Mock
 import com.example.gymlog.model.ExerciseMutableState
@@ -59,6 +61,7 @@ import com.example.gymlog.model.Training
 import com.example.gymlog.ui.components.AppDropdownTimer
 import com.example.gymlog.ui.components.CustomLinearProgressBar
 import com.example.gymlog.ui.components.DefaultAlertDialog
+import com.example.gymlog.ui.components.LoadingDialog
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModel
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModelImpl
 import com.example.gymlog.ui.theme.GymLogTheme
@@ -80,7 +83,8 @@ fun TrainingLogScreen(
     modifier: Modifier = Modifier,
     viewModel: TrainingLogViewModel = koinViewModel<TrainingLogViewModelImpl>()
 ) {
-    var isLoading: Boolean by remember { mutableStateOf(false) }
+    val resource by viewModel.resource.collectAsStateWithLifecycle(Resource.Loading)
+    var isLoading: Boolean = resource is Resource.Loading
     var showResetDialog: Boolean by remember { mutableStateOf(false) }
     var showDeleteDialog: Boolean by remember { mutableStateOf(false) }
     var showTimerBottomSheet: Boolean by rememberSaveable { mutableStateOf(false) }
@@ -125,8 +129,7 @@ fun TrainingLogScreen(
                 showResetDialog = false
             }, onDismiss = { showResetDialog = false })
         }
-        val resource = viewModel.resource.collectAsState(Resource.Loading)
-        when (resource.value) {
+        when (resource) {
             is Resource.Loading -> {
                 isLoading = true
             }
@@ -137,64 +140,67 @@ fun TrainingLogScreen(
 
             else -> onError()
         }
-        if (isLoading) {
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(15.dp),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primary.copy(0.1f)
-            )
-        }
-        if (resource.value is Resource.Success) {
-            Surface(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                Column(
-                    modifier
-                        .fillMaxSize()
-                        .padding(top = dimensionResource(id = R.dimen.default_padding))
-                        .verticalScroll(
-                            rememberScrollState()
-                        ),
-                    verticalArrangement = Arrangement.SpaceBetween,
+        if (isLoading) LoadingDialog()
 
-                    ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(
+        if (resource is Resource.Success) {
+            ConstraintLayout(
+                modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(paddingValues)
+                    .verticalScroll(
+                        rememberScrollState()
+                    )
+            ) {
+                val (header, exercises, emptyListMessage) = createRefs()
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
+                    modifier = Modifier
+                        .constrainAs(header) {
+                            top.linkTo(parent.top)
+                            height = Dimension.wrapContent
+                        }
+                        .padding(vertical = dimensionResource(id = R.dimen.default_padding))
+                ) {
+                    val tips = stringArrayResource(id = R.array.training_tips).toList()
+                    TipCard(
+                        tips = tips, modifier = Modifier.padding(
+                            horizontal = dimensionResource(
+                                id = R.dimen.default_padding
+                            )
+                        )
+                    )
+                    TrainingProgressBar(
+                        exercises = viewModel.exercises, modifier = Modifier.padding(
                             dimensionResource(id = R.dimen.default_padding)
                         )
-                    ) {
-                        val tips = stringArrayResource(id = R.array.training_tips).toList()
-                        TipCard(
-                            tips = tips, modifier = Modifier.padding(
-                                horizontal = dimensionResource(
-                                    id = R.dimen.default_padding
-                                )
-                            )
-                        )
-                        TrainingProgressBar(
-                            exercises = viewModel.exercises, modifier = Modifier.padding(
-                                dimensionResource(id = R.dimen.default_padding)
-                            )
-                        )
-
-                        ExerciseList(modifier = modifier
-                            .padding(dimensionResource(id = R.dimen.default_padding))
-                            .heightIn(
-                                max = dimensionResource(
-                                    id = R.dimen.default_max_list_height
-                                )
-                            ),
-                            exercises = viewModel.exercises,
-                            onCheckedChange = { exercise, isChecked ->
-                                viewModel.updateExercise(exercise.id, isChecked)
-                            })
-                    }
+                    )
                 }
+                if (viewModel.exercises.isNotEmpty()) ExerciseList(modifier = modifier
+                    .constrainAs(
+                        exercises
+                    ) {
+                        linkTo(header.bottom, parent.bottom, bias = 0f)
+                        height = Dimension.fillToConstraints
+                    }
+                    .padding(dimensionResource(id = R.dimen.default_padding))
+                    .heightIn(
+                        max = dimensionResource(
+                            id = R.dimen.default_max_list_height
+                        )
+                    ),
+                    exercises = viewModel.exercises,
+                    onCheckedChange = { exercise, isChecked ->
+                        viewModel.updateExercise(exercise.id, isChecked)
+                    }) else TrainingLogEmptyListMessage(
+                    modifier = Modifier.constrainAs(
+                        emptyListMessage
+                    ) {
+                        top.linkTo(header.bottom)
+                        height = Dimension.wrapContent
+                    }
+                )
             }
         }
         if (showTimerBottomSheet) {
@@ -283,6 +289,31 @@ private fun ResetExercisesDialog(
         onDismissRequest = onDismiss,
         onConfirm = onConfirm
     )
+}
+
+@Composable
+private fun TrainingLogEmptyListMessage(modifier: Modifier = Modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Card(shape = MaterialTheme.shapes.extraLarge) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_empty),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(dimensionResource(id = R.dimen.empty_list_icon_size))
+            )
+        }
+        Spacer(modifier = Modifier.padding(dimensionResource(id = R.dimen.large_padding)))
+        Text(
+            text = stringResource(id = R.string.training_log_empty_list_message),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.large_padding))
+        )
+    }
 }
 
 @Composable
