@@ -71,12 +71,10 @@ fun AppDropdownTimer(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        val formattedMinutes = if (minutes < 10) "0$minutes" else minutes.toString()
-        val formattedSeconds = if (seconds < 10) "0$seconds" else seconds.toString()
         CustomCircularProgressbar(
             modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
             progress = progress,
-            text = "${formattedMinutes}m ${formattedSeconds}s",
+            text = stringResource(id = R.string.app_dropdown_time_format, minutes, seconds),
         )
         Spacer(modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)))
         // Control buttons
@@ -104,29 +102,34 @@ fun AppDropdownTimer(modifier: Modifier = Modifier) {
                     )
                 )
             ) {
-                Crossfade(targetState = isRunning, animationSpec = tween(200)) {
-                    if (it) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_pause),
-                            contentDescription = null
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_play),
-                            contentDescription = null
-                        )
-                    }
-                }
-                Crossfade(targetState = isRunning, animationSpec = tween(200)) {
-                    if (it) {
-                        Text(text = stringResource(id = R.string.app_timer_pause_text))
-                    } else {
-                        Text(text = stringResource(id = R.string.app_timer_play_text))
-                    }
+                Crossfade(
+                    targetState = isRunning,
+                    animationSpec = tween(200),
+                    label = "Play/Pause Button Crossfade"
+                ) {
+                    if (it) TextWithIcon(
+                        text = stringResource(id = R.string.common_pause_text),
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_pause),
+                                contentDescription = null
+                            )
+                        }) else TextWithIcon(
+                        text = stringResource(id = R.string.common_play_text),
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_play),
+                                contentDescription = null
+                            )
+                        },
+                    )
                 }
             }
             OutlinedButton(onClick = { DropdownTimerService.reset(context) }) {
-                Icon(imageVector = Icons.Rounded.Refresh, contentDescription = "refresh")
+                Icon(
+                    imageVector = Icons.Rounded.Refresh,
+                    contentDescription = stringResource(id = R.string.common_reset)
+                )
             }
 
         }

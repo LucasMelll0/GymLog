@@ -65,6 +65,8 @@
     <string name="common_synchronizing">Sincronizando</string>
     <string name="common_saving">Salvando</string>
     <string name="common_offline_message">Para fazer essa alteração você deve estar conectado a internet.</string>
+    <string name="common_play_text">Começar</string>
+    <string name="common_pause_text">Pausar</string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>
@@ -91,11 +93,13 @@
     <string name="training_log_empty_list_message">Você não adicionou ainda exercicíos a este treino!</string>
 
     <!-- AppDropdownTimer -->
-    <string name="app_timer_play_text">Começar</string>
-    <string name="app_timer_pause_text">Pausar</string>
     <string name="app_dropdown_timer_notification_description">Mostra o temporizador</string>
     <string name="app_dropdown_timer_notification_title">Tempo restante: %s</string>
     <string name="app_dropdown_timer_notification_text">Continue Treinando</string>
+    <string name="app_dropdown_time_format">%02dm%02ds</string>
+
+    <!-- StopWatch -->
+    <string name="stopwatch_face_time_format">%02d:%02d:%03d</string>
 
     <!-- BmiCalculator -->
     <string name="bmi_calculator_title">Calcular Imc</string>
