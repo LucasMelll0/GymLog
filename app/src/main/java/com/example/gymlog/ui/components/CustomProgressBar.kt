@@ -79,7 +79,9 @@ fun CustomCircularProgressbar(progress: Float, text: String, modifier: Modifier 
     val indicatorThickness = 20.dp
     val progressBackgroundColor = MaterialTheme.colorScheme.primary.copy(0.1f)
     val progressColor = MaterialTheme.colorScheme.primary
-    val animateNumber by animateFloatAsState(targetValue = progress, animationSpec = tween())
+    val animateNumber by animateFloatAsState(targetValue = progress, animationSpec = tween(),
+        label = "circular progressbar animation"
+    )
     Box(contentAlignment = Alignment.Center, modifier = modifier.size(size)) {
         Canvas(modifier = Modifier.size(size)) {
             drawCircle(
