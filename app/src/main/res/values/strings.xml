@@ -10,6 +10,7 @@
     <string name="login_destination">Entrar</string>
     <string name="register_destination">Registrar</string>
     <string name="dropdown_timer_destination">Temporizador</string>
+    <string name="stopwatch_destination">Cronômetro</string>
 
     <!-- Exercise Item -->
     <string name="exercise_repetions_place_holder">%d séries de\n%d repetições</string>

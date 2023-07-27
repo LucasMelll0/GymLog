@@ -58,7 +58,7 @@ class DropdownTimerService : Service() {
 
         private fun createOnFinishNotification(context: Context) {
             val notification = NotificationCompat.Builder(context, NOTIFICATION_ID)
-                .setSmallIcon(R.drawable.ic_timer)
+                .setSmallIcon(R.drawable.ic_stop_watch)
                 .setContentTitle("O Tempo Acabou")
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.DEFAULT_VIBRATE)
@@ -83,7 +83,7 @@ class DropdownTimerService : Service() {
             val formattedMinutes = if (minutes < 10) "0$minutes" else minutes.toString()
             val formattedSeconds = if (seconds < 10) "0$seconds" else seconds.toString()
             val notification = NotificationCompat.Builder(context, NOTIFICATION_ID)
-                .setSmallIcon(R.drawable.ic_timer)
+                .setSmallIcon(R.drawable.ic_stop_watch)
                 .setContentTitle(
                     context.getString(
                         R.string.app_dropdown_timer_notification_title,

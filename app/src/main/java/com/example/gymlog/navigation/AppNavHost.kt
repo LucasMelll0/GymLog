@@ -39,6 +39,7 @@ import com.example.gymlog.navigation.Home
 import com.example.gymlog.navigation.Log
 import com.example.gymlog.navigation.Login
 import com.example.gymlog.navigation.Register
+import com.example.gymlog.navigation.Stopwatch
 import com.example.gymlog.navigation.UserProfile
 import com.example.gymlog.ui.auth.AuthenticationScreen
 import com.example.gymlog.ui.auth.LoginScreen
@@ -53,6 +54,7 @@ import com.example.gymlog.ui.dropdown_timer.DropdownTimerScreen
 import com.example.gymlog.ui.form.TrainingFormScreen
 import com.example.gymlog.ui.home.HomeScreen
 import com.example.gymlog.ui.log.TrainingLogScreen
+import com.example.gymlog.ui.stopwatch.StopwatchScreen
 import com.example.gymlog.ui.user.UserProfileScreen
 import com.example.gymlog.utils.BackPressHandler
 import com.google.accompanist.navigation.animation.AnimatedNavHost
@@ -345,6 +347,17 @@ fun AppNavHost(
                 })
             }
             composable(
+                Stopwatch.route,
+                enterTransition = { fadeIn() },
+                exitTransition = { fadeOut() },
+            ) {
+                StopwatchScreen(onNavIconClick = {
+                    scope.launch {
+                        drawerState.open()
+                    }
+                })
+            }
+            composable(
                 UserProfile.route,
                 enterTransition = { fadeIn() },
                 exitTransition = { fadeOut() },
@@ -356,15 +369,15 @@ fun AppNavHost(
                 }, onInvalidUser = {
                     navController.popBackStack()
                 },
-                onDeleteUser = {
-                    scope.launch {
-                        isLoading = true
-                        authViewModel.resetState()
-                        userStore.cleanToken()
-                        navController.navigateInclusive(Auth.route)
-                        isLoading = false
-                    }
-                })
+                    onDeleteUser = {
+                        scope.launch {
+                            isLoading = true
+                            authViewModel.resetState()
+                            userStore.cleanToken()
+                            navController.navigateInclusive(Auth.route)
+                            isLoading = false
+                        }
+                    })
             }
         }
     }

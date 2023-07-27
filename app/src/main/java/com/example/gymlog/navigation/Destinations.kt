@@ -66,10 +66,16 @@ object Auth : Destination {
 object DropdownTimer : Destination {
     override val route: String = "dropdown_timer"
     override val title: Int = R.string.dropdown_timer_destination
-    override val icon: Int = R.drawable.ic_timer
+    override val icon: Int = R.drawable.ic_hourglass
     val deepLinks = listOf(
         navDeepLink { uriPattern = "gymlog://$route" }
     )
+}
+
+object Stopwatch : Destination {
+    override val route: String get() = "stopwatch"
+    override val title: Int get() = R.string.stopwatch_destination
+    override val icon: Int = R.drawable.ic_stop_watch
 }
 
 object UserProfile : Destination {
