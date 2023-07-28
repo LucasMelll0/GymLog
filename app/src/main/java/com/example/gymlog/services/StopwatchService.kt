@@ -8,6 +8,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import java.util.concurrent.TimeUnit
@@ -32,6 +33,7 @@ class StopwatchService : Service() {
                 stopWatch = Stopwatch.createStarted()
             }
             _isRunning.update { true }
+
         }
 
         fun pause() {
@@ -57,5 +59,6 @@ class StopwatchService : Service() {
 
     override fun onDestroy() {
         stopWatch = null
+        currentTime.cancellable()
     }
 }

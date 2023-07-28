@@ -2,6 +2,7 @@ package com.example.gymlog.ui.components
 
 import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -55,7 +56,11 @@ import com.example.gymlog.R
 import com.example.gymlog.services.StopwatchService
 import com.example.gymlog.ui.theme.GymLogTheme
 import com.example.gymlog.utils.formatTime
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AppStopwatch(
     savedTimesList: List<Long>,
@@ -64,9 +69,10 @@ fun AppStopwatch(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    Intent(context, StopwatchService::class.java).also {
-        context.startService(it)
-    }
+    val notificationPermissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(permission = android.Manifest.permission.POST_NOTIFICATIONS)
+    } else null
+    val stopwatchService = Intent(context, StopwatchService::class.java)
     val isRunning by StopwatchService.isRunning.collectAsStateWithLifecycle(false)
     val currentTime by StopwatchService.currentTime.collectAsStateWithLifecycle(initialValue = 0L)
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -96,7 +102,16 @@ fun AppStopwatch(
                 }
             }
             Button(onClick = {
-                if (isRunning) StopwatchService.pause() else StopwatchService.start()
+                val playPauseFunction =
+                    {
+                        if (isRunning) StopwatchService.pause() else {
+                            if (currentTime == 0L) context.startService(stopwatchService)
+                            StopwatchService.start()
+                        }
+                    }
+                notificationPermissionState?.let {
+                    if (!it.status.isGranted) it.launchPermissionRequest() else playPauseFunction()
+                } ?: playPauseFunction()
             }) {
                 Crossfade(
                     targetState = isRunning,
@@ -125,6 +140,7 @@ fun AppStopwatch(
                 OutlinedButton(
                     onClick = {
                         StopwatchService.reset()
+                        context.stopService(stopwatchService)
                         onReset()
                     },
                     modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding))
@@ -147,6 +163,7 @@ fun AppStopwatch(
 
 @Composable
 fun StopwatchFace(timeInMillis: Long, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
     val infiniteTransition = rememberInfiniteTransition(label = "Stopwatch Face Gradient Effect")
     val rotateAnimation by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -176,7 +193,7 @@ fun StopwatchFace(timeInMillis: Long, modifier: Modifier = Modifier) {
             )
         }
         Text(
-            text = formatTime(timeInMillis = timeInMillis),
+            text = formatTime(context, timeInMillis = timeInMillis),
             style = MaterialTheme.typography.displaySmall
         )
     }
@@ -213,14 +230,15 @@ fun SavedTimesList(list: List<Long>, modifier: Modifier = Modifier) {
 
 @Composable
 fun SavedTimesItem(position: Int, time: Long, totalTime: Long, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = "${position}º")
-        Text(text = formatTime(timeInMillis = time))
-        Text(text = formatTime(timeInMillis = totalTime))
+        Text(text = formatTime(context, timeInMillis = time))
+        Text(text = formatTime(context, timeInMillis = totalTime))
     }
 }
 

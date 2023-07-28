@@ -98,10 +98,13 @@
     <string name="app_dropdown_timer_notification_title">Tempo restante: %s</string>
     <string name="app_dropdown_timer_notification_text">Continue Treinando</string>
     <string name="app_dropdown_time_format">%02dm%02ds</string>
+    <string name="app_dropdown_time_end_notification_title">O Tempo Acabou!</string>
 
     <!-- StopWatch -->
     <string name="stopwatch_face_time_format">%02d:%02d:%03d</string>
     <string name="stopwatch_to_mark">Marcar</string>
+    <string name="stopwatch_notification_description">Mostra cronômetro</string>
+    <string name="stopwatch_notification_title">Tempo corrido: %s</string>
 
     <!-- BmiCalculator -->
     <string name="bmi_calculator_title">Calcular Imc</string>
