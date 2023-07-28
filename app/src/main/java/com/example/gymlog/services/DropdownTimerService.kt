@@ -59,7 +59,7 @@ class DropdownTimerService : Service() {
         private fun createOnFinishNotification(context: Context) {
             val notification = NotificationCompat.Builder(context, NOTIFICATION_ID)
                 .setSmallIcon(R.drawable.ic_stop_watch)
-                .setContentTitle("O Tempo Acabou")
+                .setContentTitle(context.getString(R.string.app_dropdown_time_end_notification_title))
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.DEFAULT_VIBRATE)
                 .build()
@@ -107,7 +107,7 @@ class DropdownTimerService : Service() {
         }
 
         fun pause() {
-            countDownTimer?.cancel() ?: run { countDownTimer = null }
+            countDownTimer?.cancel()
             pIsRunning.value = false
         }
 
