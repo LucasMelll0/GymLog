@@ -15,6 +15,7 @@ import com.example.gymlog.ui.bmi.viewmodel.BmiHistoricViewModelImpl
 import com.example.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.example.gymlog.ui.home.viewmodel.HomeViewModelImpl
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModelImpl
+import com.example.gymlog.ui.stopwatch.viewmodel.StopwatchViewModelImpl
 import com.example.gymlog.ui.user.viewmodel.UserProfileViewModelImpl
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -109,5 +110,11 @@ val userProfileModule = module {
             bmiInfoRepository = get<BmiInfoRepositoryImpl>(),
             userRepository = get<UserRepositoryImpl>()
         )
+    }
+}
+
+val stopwatchModule = module {
+    viewModel {
+        StopwatchViewModelImpl()
     }
 }

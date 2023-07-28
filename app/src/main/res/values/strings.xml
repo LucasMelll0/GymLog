@@ -101,6 +101,7 @@
 
     <!-- StopWatch -->
     <string name="stopwatch_face_time_format">%02d:%02d:%03d</string>
+    <string name="stopwatch_to_mark">Marcar</string>
 
     <!-- BmiCalculator -->
     <string name="bmi_calculator_title">Calcular Imc</string>

@@ -4,22 +4,31 @@ import android.content.Intent
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -27,6 +36,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -43,9 +54,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gymlog.R
 import com.example.gymlog.services.StopwatchService
 import com.example.gymlog.ui.theme.GymLogTheme
+import com.example.gymlog.utils.formatTime
 
 @Composable
-fun AppStopwatch(modifier: Modifier = Modifier) {
+fun AppStopwatch(
+    savedTimesList: List<Long>,
+    onSaveTime: (Long) -> Unit,
+    onReset: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     Intent(context, StopwatchService::class.java).also {
         context.startService(it)
@@ -62,6 +79,22 @@ fun AppStopwatch(modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
+            AnimatedVisibility(
+                visible = isRunning,
+                modifier = Modifier.padding(end = dimensionResource(id = R.dimen.default_padding))
+            ) {
+                FilledTonalButton(onClick = { onSaveTime(currentTime) }) {
+                    TextWithIcon(
+                        text = stringResource(id = R.string.stopwatch_to_mark),
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Rounded.Check,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                }
+            }
             Button(onClick = {
                 if (isRunning) StopwatchService.pause() else StopwatchService.start()
             }) {
@@ -90,7 +123,10 @@ fun AppStopwatch(modifier: Modifier = Modifier) {
             }
             AnimatedVisibility(visible = !isRunning) {
                 OutlinedButton(
-                    onClick = { StopwatchService.reset() },
+                    onClick = {
+                        StopwatchService.reset()
+                        onReset()
+                    },
                     modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding))
                 ) {
                     Icon(
@@ -99,6 +135,12 @@ fun AppStopwatch(modifier: Modifier = Modifier) {
                     )
                 }
             }
+        }
+        AnimatedVisibility(visible = savedTimesList.isNotEmpty()) {
+            SavedTimesList(
+                list = savedTimesList,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.large_padding))
+            )
         }
     }
 }
@@ -121,13 +163,12 @@ fun StopwatchFace(timeInMillis: Long, modifier: Modifier = Modifier) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.secondary
     val circleColor = Brush.sweepGradient(listOf(primaryColor, secondaryColor, primaryColor))
-    val minutes = timeInMillis / 1000 / 60
-    val seconds = timeInMillis / 1000 % 60
-    val millis = timeInMillis % 1000
     Box(contentAlignment = Alignment.Center, modifier = modifier.size(size)) {
-        Canvas(modifier = Modifier
-            .size(size)
-            .rotate(degrees = rotateAnimation)) {
+        Canvas(
+            modifier = Modifier
+                .size(size)
+                .rotate(degrees = rotateAnimation)
+        ) {
             drawCircle(
                 brush = circleColor,
                 radius = size.toPx() / 2,
@@ -135,23 +176,88 @@ fun StopwatchFace(timeInMillis: Long, modifier: Modifier = Modifier) {
             )
         }
         Text(
-            text = stringResource(
-                id = R.string.stopwatch_face_time_format,
-                minutes,
-                seconds,
-                millis
-            ), style = MaterialTheme.typography.displaySmall
+            text = formatTime(timeInMillis = timeInMillis),
+            style = MaterialTheme.typography.displaySmall
         )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SavedTimesList(list: List<Long>, modifier: Modifier = Modifier) {
+    Card(
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize()
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .padding(dimensionResource(id = R.dimen.large_padding))
+                .heightIn(max = dimensionResource(id = R.dimen.default_max_list_height))
+        ) {
+            items(list) {
+                val position = list.indexOf(it)
+                val time = if (position == 0) it else (it - list[position - 1])
+                SavedTimesItem(
+                    position = position + 1,
+                    time = time,
+                    totalTime = it,
+                    modifier = Modifier.animateItemPlacement()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SavedTimesItem(position: Int, time: Long, totalTime: Long, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = "${position}º")
+        Text(text = formatTime(timeInMillis = time))
+        Text(text = formatTime(timeInMillis = totalTime))
     }
 }
 
 @Preview(uiMode = UI_MODE_NIGHT_YES)
 @Preview
 @Composable
-fun AppChronometerPreview() {
+fun SavedTimesListPreview() {
     GymLogTheme {
         Surface {
-            AppStopwatch()
+            val list = listOf<Long>(1455, 10987, 24678)
+            SavedTimesList(
+                list = list,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.large_padding))
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun SavedTimesItemPreview() {
+    GymLogTheme {
+        SavedTimesItem(position = 1, time = 3078, totalTime = 23856)
+    }
+}
+
+@Preview(uiMode = UI_MODE_NIGHT_YES)
+@Preview
+@Composable
+fun AppStopwatchPreview() {
+    GymLogTheme {
+        Surface {
+            val savedTimes: MutableList<Long> = remember { mutableStateListOf() }
+            AppStopwatch(
+                savedTimesList = savedTimes,
+                onSaveTime = { savedTimes.add(it) },
+                onReset = { savedTimes.clear() })
         }
     }
 }

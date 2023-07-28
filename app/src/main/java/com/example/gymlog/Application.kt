@@ -11,6 +11,7 @@ import com.example.gymlog.di.homeModule
 import com.example.gymlog.di.logModule
 import com.example.gymlog.di.repositoryModule
 import com.example.gymlog.di.roomModule
+import com.example.gymlog.di.stopwatchModule
 import com.example.gymlog.di.userProfileModule
 import com.example.gymlog.services.DropdownTimerService
 import org.koin.android.ext.koin.androidContext
@@ -27,7 +28,8 @@ class Application : Application() {
             DropdownTimerService.NOTIFICATION_NAME,
             NotificationManager.IMPORTANCE_DEFAULT
         )
-        notificationChannel.description = getString(R.string.app_dropdown_timer_notification_description)
+        notificationChannel.description =
+            getString(R.string.app_dropdown_timer_notification_description)
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(notificationChannel)
 
@@ -43,7 +45,8 @@ class Application : Application() {
                 bmiModule,
                 authModule,
                 firebaseModule,
-                userProfileModule
+                userProfileModule,
+                stopwatchModule
             )
         }
     }
