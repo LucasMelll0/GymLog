@@ -353,7 +353,7 @@ private fun TrainingLogBottomAppBar(
         }
         IconButton(onClick = onClickTimer) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_stop_watch),
+                painter = painterResource(id = R.drawable.ic_stopwatch),
                 contentDescription = stringResource(
                     id = R.string.common_timer
                 )

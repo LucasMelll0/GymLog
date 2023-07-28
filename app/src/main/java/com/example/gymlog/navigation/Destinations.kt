@@ -75,7 +75,7 @@ object DropdownTimer : Destination {
 object Stopwatch : Destination {
     override val route: String get() = "stopwatch"
     override val title: Int get() = R.string.stopwatch_destination
-    override val icon: Int = R.drawable.ic_stop_watch
+    override val icon: Int = R.drawable.ic_stopwatch
 }
 
 object UserProfile : Destination {

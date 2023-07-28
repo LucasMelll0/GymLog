@@ -23,15 +23,15 @@ class Application : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        val notificationChannel = NotificationChannel(
+        val dropdownTimerNotificationChannel = NotificationChannel(
             DropdownTimerService.NOTIFICATION_ID,
             DropdownTimerService.NOTIFICATION_NAME,
             NotificationManager.IMPORTANCE_DEFAULT
-        )
-        notificationChannel.description =
-            getString(R.string.app_dropdown_timer_notification_description)
+        ).apply {
+            description = getString(R.string.app_dropdown_timer_notification_description)
+        }
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(notificationChannel)
+        notificationManager.createNotificationChannel(dropdownTimerNotificationChannel)
 
         startKoin {
             androidLogger()
