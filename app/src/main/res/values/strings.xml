@@ -51,7 +51,7 @@
     <string name="common_training_delete_dialog_text">Ao confirmar você irá deletar o treino…</string>
     <string name="common_optional">Opcional</string>
     <string name="common_observations_prefix">Observações: </string>
-    <string name="common_timer">Pomodoro</string>
+    <string name="common_timer">Temporizador</string>
     <string name="common_reset">Reiniciar</string>
     <string name="common_male"> Homem</string>
     <string name="common_female">Mulher</string>
@@ -68,6 +68,7 @@
     <string name="common_offline_message">Para fazer essa alteração você deve estar conectado a internet.</string>
     <string name="common_play_text">Começar</string>
     <string name="common_pause_text">Pausar</string>
+    <string name="common_stopwatch">Cronômetro</string>
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>
