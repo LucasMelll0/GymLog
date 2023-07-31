@@ -47,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -78,6 +79,7 @@ import com.example.gymlog.utils.BackPressHandler
 import com.example.gymlog.utils.TrainingTypes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -91,12 +93,12 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel<HomeViewModelImpl>()
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var isLoading by rememberSaveable { mutableStateOf(false) }
     var showFiltersBottomSheet by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
     var bottomSheetMenuTraining: Training? by remember { mutableStateOf(null) }
     var showTrainingDeleteDialog: Boolean by remember { mutableStateOf(false) }
-    val trainingIdForDelete: String? = bottomSheetMenuTraining?.trainingId
     val focusRequester = remember { FocusRequester() }
     val trainings by viewModel.trainings.collectAsState(emptyList())
 
@@ -123,11 +125,16 @@ fun HomeScreen(
         ) {
             if (isLoading) LoadingDialog(text = stringResource(id = R.string.common_synchronizing))
             if (trainings.isEmpty()) HomeEmptyListMessage()
-            trainingIdForDelete?.let {
+            bottomSheetMenuTraining?.let {
                 if (showTrainingDeleteDialog) DeleteTrainingDialog(
                     onConfirm = {
-                        viewModel.deleteTraining(it)
-                        bottomSheetMenuTraining = null
+                        scope.launch {
+                            isLoading = true
+                            viewModel.deleteTraining(it.trainingId)
+                            bottomSheetMenuTraining = null
+                            showTrainingDeleteDialog = false
+                            isLoading = false
+                        }
                     },
                     onDismissRequest = { showTrainingDeleteDialog = false })
             }
@@ -477,7 +484,7 @@ private fun HomeScreenPreview() {
                 if (!filters.contains(filter)) _filters.add(filter) else _filters.remove(filter)
             }
 
-            override fun deleteTraining(trainingId: String) {
+            override suspend fun deleteTraining(trainingId: String) {
                 TODO("Not yet implemented")
             }
 
