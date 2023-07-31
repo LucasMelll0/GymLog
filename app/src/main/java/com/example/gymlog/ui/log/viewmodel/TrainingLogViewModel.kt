@@ -20,12 +20,15 @@ interface TrainingLogViewModel {
     val exercises: List<ExerciseMutableState>
     val filters: List<String>
     val resource: Flow<Resource<Training>>
+    val savedStopwatchTimes: List<Long>
     fun setLoading()
     suspend fun getTraining(id: String)
     fun updateExercise(exerciseId: String, isChecked: Boolean)
     fun resetExercises()
     suspend fun removeTraining(trainingId: String)
     suspend fun updateTraining(trainingId: String)
+    fun saveStopwatchTime(time: Long)
+    fun resetStopwatchTimes()
 }
 
 class TrainingLogViewModelImpl(private val repository: TrainingRepository) : TrainingLogViewModel,
@@ -43,6 +46,8 @@ class TrainingLogViewModelImpl(private val repository: TrainingRepository) : Tra
 
     private val _resource: MutableStateFlow<Resource<Training>> = MutableStateFlow(Resource.Loading)
     override val resource: Flow<Resource<Training>> = _resource
+    private val _savedStopwatchTimes = mutableStateListOf<Long>()
+    override val savedStopwatchTimes: List<Long> get() = _savedStopwatchTimes
 
 
     override fun setLoading() {
@@ -106,5 +111,10 @@ class TrainingLogViewModelImpl(private val repository: TrainingRepository) : Tra
             }
         }
     }
+
+    override fun saveStopwatchTime(time: Long) { _savedStopwatchTimes.add(time) }
+
+    override fun resetStopwatchTimes() = _savedStopwatchTimes.clear()
+
 
 }

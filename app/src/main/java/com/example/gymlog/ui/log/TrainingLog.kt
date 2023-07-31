@@ -59,6 +59,7 @@ import com.example.gymlog.data.Mock
 import com.example.gymlog.model.ExerciseMutableState
 import com.example.gymlog.model.Training
 import com.example.gymlog.ui.components.AppDropdownTimer
+import com.example.gymlog.ui.components.AppStopwatch
 import com.example.gymlog.ui.components.CustomLinearProgressBar
 import com.example.gymlog.ui.components.DefaultAlertDialog
 import com.example.gymlog.ui.components.LoadingDialog
@@ -88,6 +89,7 @@ fun TrainingLogScreen(
     var showResetDialog: Boolean by remember { mutableStateOf(false) }
     var showDeleteDialog: Boolean by remember { mutableStateOf(false) }
     var showTimerBottomSheet: Boolean by rememberSaveable { mutableStateOf(false) }
+    var showStopwatchBottomSheet: Boolean by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(key1 = Unit) {
         viewModel.getTraining(trainingId)
     }
@@ -113,7 +115,9 @@ fun TrainingLogScreen(
                 onClickEdit(trainingId)
                 viewModel.setLoading()
             },
-            onClickTimer = { showTimerBottomSheet = true })
+            onClickTimer = { showTimerBottomSheet = true },
+            onClickStopwatch = { showStopwatchBottomSheet = true }
+        )
     }) { paddingValues ->
         if (showDeleteDialog) {
             DeleteDialog(onConfirm = {
@@ -203,9 +207,15 @@ fun TrainingLogScreen(
                 )
             }
         }
-        if (showTimerBottomSheet) {
-            TimerBottomSheet(onDismissRequest = { showTimerBottomSheet = false })
-        }
+        if (showTimerBottomSheet) TimerBottomSheet(onDismissRequest = {
+            showTimerBottomSheet = false
+        })
+        if (showStopwatchBottomSheet) StopwatchBottomSheet(
+            savedTimesList = viewModel.savedStopwatchTimes,
+            onSaveTime = { viewModel.saveStopwatchTime(it) },
+            onReset = { viewModel.resetStopwatchTimes() },
+            onDismissRequest = { showStopwatchBottomSheet = false })
+
     }
 }
 
@@ -216,6 +226,33 @@ fun TimerBottomSheet(onDismissRequest: () -> Unit) {
         onDismissRequest = onDismissRequest, sheetState = rememberModalBottomSheetState(true)
     ) {
         AppDropdownTimer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StopwatchBottomSheet(
+    savedTimesList: List<Long>,
+    onSaveTime: (Long) -> Unit,
+    onReset: () -> Unit,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = rememberModalBottomSheetState(true)
+    ) {
+        Column(
+            modifier = modifier
+                .verticalScroll(rememberScrollState())
+                .padding(dimensionResource(id = R.dimen.default_padding))
+        ) {
+            AppStopwatch(
+                savedTimesList = savedTimesList,
+                onSaveTime = onSaveTime,
+                onReset = onReset
+            )
+        }
     }
 }
 
@@ -323,6 +360,7 @@ private fun TrainingLogBottomAppBar(
     onClickReset: () -> Unit,
     onClickEdit: () -> Unit,
     onClickTimer: () -> Unit,
+    onClickStopwatch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     BottomAppBar(modifier = modifier, floatingActionButton = {
@@ -339,10 +377,20 @@ private fun TrainingLogBottomAppBar(
                 contentDescription = stringResource(id = R.string.common_go_to_back)
             )
         }
-        IconButton(onClick = onClickDelete) {
+        IconButton(onClick = onClickTimer) {
             Icon(
-                imageVector = Icons.Rounded.Delete,
-                contentDescription = stringResource(id = R.string.common_delete)
+                painter = painterResource(id = R.drawable.ic_hourglass),
+                contentDescription = stringResource(
+                    id = R.string.common_timer
+                )
+            )
+        }
+        IconButton(onClick = onClickStopwatch) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_stopwatch),
+                contentDescription = stringResource(
+                    id = R.string.common_stopwatch
+                )
             )
         }
         IconButton(onClick = onClickReset) {
@@ -351,12 +399,10 @@ private fun TrainingLogBottomAppBar(
                 contentDescription = stringResource(id = R.string.common_reset)
             )
         }
-        IconButton(onClick = onClickTimer) {
+        IconButton(onClick = onClickDelete) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_stopwatch),
-                contentDescription = stringResource(
-                    id = R.string.common_timer
-                )
+                imageVector = Icons.Rounded.Delete,
+                contentDescription = stringResource(id = R.string.common_delete)
             )
         }
     })
@@ -374,6 +420,8 @@ private fun TrainingLogScreenPreview() {
             override val filters: List<String> = training.filters
             override val resource: Flow<Resource<Training>> =
                 flow { emit(Resource.Success(training)) }
+            override val savedStopwatchTimes: List<Long>
+                get() = TODO("Not yet implemented")
 
             override fun setLoading() {}
 
@@ -386,6 +434,13 @@ private fun TrainingLogScreenPreview() {
             override suspend fun removeTraining(trainingId: String) {}
 
             override suspend fun updateTraining(trainingId: String) {}
+            override fun saveStopwatchTime(time: Long) {
+                TODO("Not yet implemented")
+            }
+
+            override fun resetStopwatchTimes() {
+                TODO("Not yet implemented")
+            }
 
         }
         TrainingLogScreen(onNavIconClick = {},
