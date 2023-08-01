@@ -211,6 +211,7 @@ fun UserProfileScreen(
         UserProfileContent(
             user = user,
             userPhotoUri = userPhotoUri,
+            isEmailAuthProvider = isEmailAuthProvider,
             onSelectPhoto = {
                 it?.let {
                     selectedPhoto = it
@@ -243,7 +244,8 @@ private fun UserProfileContent(
     onDeleteUserClick: () -> Unit,
     onInvalidUser: () -> Unit,
     context: Context,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isEmailAuthProvider: Boolean
 ) {
     Column(
         modifier = modifier
@@ -308,20 +310,22 @@ private fun UserProfileContent(
                 Button(onClick = onChangeUsernameClick, Modifier.fillMaxWidth()) {
                     Text(text = stringResource(id = R.string.user_profile_change_username_button))
                 }
-                Button(onClick = onChangePasswordClick, Modifier.fillMaxWidth()) {
-                    Text(text = stringResource(id = R.string.user_profile_change_password_button))
-                }
-                OutlinedButton(
-                    onClick = onDeleteUserClick,
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            top = dimensionResource(
-                                id = R.dimen.large_padding
+                if (isEmailAuthProvider) {
+                    Button(onClick = onChangePasswordClick, Modifier.fillMaxWidth()) {
+                        Text(text = stringResource(id = R.string.user_profile_change_password_button))
+                    }
+                    OutlinedButton(
+                        onClick = onDeleteUserClick,
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                top = dimensionResource(
+                                    id = R.dimen.large_padding
+                                )
                             )
-                        )
-                ) {
-                    Text(text = stringResource(id = R.string.user_profile_delete_account_button))
+                    ) {
+                        Text(text = stringResource(id = R.string.user_profile_delete_account_button))
+                    }
                 }
             }
         } ?: onInvalidUser()
