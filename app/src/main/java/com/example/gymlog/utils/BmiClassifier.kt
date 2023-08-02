@@ -68,10 +68,10 @@ class BmiClassifier(
     private fun adultBmiClassifier(bmiValue: Float = this.bmiValue): BmiRating {
         return when (bmiValue) {
             in 0f..18.5f -> BmiRating.UnderWeight
-            in 18.6f..24.9f -> BmiRating.NormalWeight
-            in 25f..29.9f -> BmiRating.PreObesity
-            in 30f..34.9f -> BmiRating.GradeOneObesity
-            in 35f..39.9f -> BmiRating.GradeTwoObesity
+            in 18.51f..24.9f -> BmiRating.NormalWeight
+            in 24.91f..29.9f -> BmiRating.PreObesity
+            in 29.91f..34.9f -> BmiRating.GradeOneObesity
+            in 34.91f..39.9f -> BmiRating.GradeTwoObesity
             else -> BmiRating.GradeThreeObesity
 
         }
