@@ -9,6 +9,7 @@ import com.example.gymlog.di.firebaseModule
 import com.example.gymlog.di.formModule
 import com.example.gymlog.di.homeModule
 import com.example.gymlog.di.logModule
+import com.example.gymlog.di.mainModule
 import com.example.gymlog.di.repositoryModule
 import com.example.gymlog.di.roomModule
 import com.example.gymlog.di.stopwatchModule
@@ -39,6 +40,7 @@ class Application : Application() {
             modules(
                 roomModule,
                 repositoryModule,
+                mainModule,
                 homeModule,
                 formModule,
                 logModule,

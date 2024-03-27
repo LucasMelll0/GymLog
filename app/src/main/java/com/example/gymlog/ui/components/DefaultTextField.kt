@@ -142,7 +142,6 @@ fun DefaultTextField(
             disabledIndicatorColor = Color.Transparent,
             errorIndicatorColor = Color.Transparent,
             cursorColor = MaterialTheme.colorScheme.onSurfaceVariant,
-
             ),
         keyboardOptions = keyboardOptions,
 

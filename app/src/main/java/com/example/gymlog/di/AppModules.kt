@@ -3,12 +3,15 @@ package com.example.gymlog.di
 import androidx.room.Room
 import com.example.gymlog.data.AppDataBase
 import com.example.gymlog.data.DATABASE_NAME
+import com.example.gymlog.data.datastore.UserStore
 import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.data.firebase.FirebaseUserClient
 import com.example.gymlog.data.firebase.StorageClient
+import com.example.gymlog.navigation.viewmodel.MainViewModelImpl
 import com.example.gymlog.repository.BmiInfoRepositoryImpl
 import com.example.gymlog.repository.TrainingRepositoryImpl
 import com.example.gymlog.repository.UserRepositoryImpl
+import com.example.gymlog.ui.auth.authclient.AuthUiClient
 import com.example.gymlog.ui.auth.viewmodel.AuthViewModel
 import com.example.gymlog.ui.bmi.viewmodel.BmiCalculatorViewModel
 import com.example.gymlog.ui.bmi.viewmodel.BmiHistoricViewModelImpl
@@ -17,6 +20,8 @@ import com.example.gymlog.ui.home.viewmodel.HomeViewModelImpl
 import com.example.gymlog.ui.log.viewmodel.TrainingLogViewModelImpl
 import com.example.gymlog.ui.stopwatch.viewmodel.StopwatchViewModelImpl
 import com.example.gymlog.ui.user.viewmodel.UserProfileViewModelImpl
+import com.google.android.gms.auth.api.identity.Identity
+import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -66,6 +71,16 @@ val repositoryModule = module {
     }
 }
 
+val mainModule = module {
+    single {
+        UserStore(androidApplication())
+    }
+    viewModel() {
+        MainViewModelImpl(get(), get())
+    }
+
+}
+
 val homeModule = module {
     viewModel {
         HomeViewModelImpl(get<TrainingRepositoryImpl>())
@@ -97,6 +112,9 @@ val bmiModule = module {
 }
 
 val authModule = module {
+    single {
+        AuthUiClient(androidContext(), oneTapClient = Identity.getSignInClient(androidContext()))
+    }
     viewModel {
         AuthViewModel()
     }

@@ -1,7 +1,6 @@
 import android.app.Activity
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
@@ -20,7 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,7 +28,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.gymlog.R
-import com.example.gymlog.data.datastore.UserStore
 import com.example.gymlog.navigation.Auth
 import com.example.gymlog.navigation.Bmi
 import com.example.gymlog.navigation.DropdownTimer
@@ -41,10 +38,11 @@ import com.example.gymlog.navigation.Login
 import com.example.gymlog.navigation.Register
 import com.example.gymlog.navigation.Stopwatch
 import com.example.gymlog.navigation.UserProfile
+import com.example.gymlog.navigation.viewmodel.MainViewModel
+import com.example.gymlog.navigation.viewmodel.MainViewModelImpl
 import com.example.gymlog.ui.auth.AuthenticationScreen
 import com.example.gymlog.ui.auth.LoginScreen
 import com.example.gymlog.ui.auth.RegisterScreen
-import com.example.gymlog.ui.auth.authclient.AuthUiClient
 import com.example.gymlog.ui.auth.viewmodel.AuthViewModel
 import com.example.gymlog.ui.bmi.BmiHistoricScreen
 import com.example.gymlog.ui.components.AppNavigationDrawer
@@ -59,7 +57,6 @@ import com.example.gymlog.ui.user.UserProfileScreen
 import com.example.gymlog.utils.BackPressHandler
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
-import com.google.android.gms.auth.api.identity.Identity
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -70,55 +67,24 @@ fun AppNavHost(
     modifier: Modifier = Modifier
 ) {
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val userStore = UserStore(context)
-    var isLoading: Boolean by rememberSaveable { mutableStateOf(false) }
-    var showExitConfirmationDialog: Boolean by remember { mutableStateOf(false) }
+    val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val showExitConfirmationDialog by viewModel.showExitConfirmationDialog.collectAsStateWithLifecycle()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val currentActivity = LocalContext.current as Activity
     val authViewModel: AuthViewModel = koinViewModel()
     val signInState by authViewModel.state.collectAsStateWithLifecycle()
-    val authUiClient by lazy {
-        AuthUiClient(
-            context = currentActivity,
-            oneTapClient = Identity.getSignInClient(currentActivity)
-        )
-    }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult(),
         onResult = { result ->
-            isLoading = true
-            if (result.resultCode == Activity.RESULT_OK) {
-                scope.launch {
-                    val signInResult = authUiClient.signInWithIntent(
-                        intent = result.data ?: run {
-                            isLoading = false
-                            return@launch
-                        }
-                    )
-                    signInResult.data?.googleIdToken?.let {
-                        userStore.saveToken(it)
-                    }
-                    authViewModel.onSignInResult(signInResult)
-                }
-            }
-            isLoading = false
+            viewModel.signInWithIntent(
+                result = result,
+                authViewModel = authViewModel,
+            )
         }
     )
-    val signInWithGoogle = {
-        scope.launch {
-            isLoading = true
-            val signInIntentSender = authUiClient.signInWithGoogle()
-            launcher.launch(
-                IntentSenderRequest.Builder(
-                    signInIntentSender ?: return@launch
-                ).build()
-            )
-            isLoading = false
-        }
-    }
-    var currentUserdata by remember { mutableStateOf(authUiClient.getSignedInUser()) }
+    var currentUserdata by remember { mutableStateOf(viewModel.authClient.getSignedInUser()) }
 
     LaunchedEffect(key1 = signInState.signInError) {
         signInState.signInError?.let { error ->
@@ -131,7 +97,7 @@ fun AppNavHost(
     }
     LaunchedEffect(key1 = signInState.isSignInSuccessful) {
         if (signInState.isSignInSuccessful) {
-            currentUserdata = authUiClient.getSignedInUser()
+            currentUserdata = viewModel.authClient.getSignedInUser()
             navController.navigateSingleTopTo(Home.route)
         }
     }
@@ -157,7 +123,7 @@ fun AppNavHost(
         onClickExit = {
             scope.launch {
                 drawerState.close()
-                showExitConfirmationDialog = true
+                viewModel.setExitConfirmationDialogVisibility(true)
             }
         },
         user = currentUserdata
@@ -168,18 +134,10 @@ fun AppNavHost(
                 .zIndex(1f)
         ) {
             if (isLoading) LoadingDialog()
-            if (showExitConfirmationDialog) DefaultAlertDialog(
-                title = stringResource(id = R.string.common_dialog_title),
-                text = stringResource(id = R.string.auth_exit_confirmation_dialog_text),
-                onDismissRequest = { showExitConfirmationDialog = false },
-                onConfirm = {
-                    isLoading = true
-                    authUiClient.signOutUser()
-                    authViewModel.resetState()
-                    isLoading = false
-                    showExitConfirmationDialog = false
-                    navController.navigateInclusive(Auth.route)
-                }
+            if (showExitConfirmationDialog) ExitConfirmationDialog(
+                viewModel = viewModel,
+                authViewModel = authViewModel,
+                navController = navController
             )
         }
         val startDestination = authViewModel.currentUser?.let { Home.route } ?: Auth.route
@@ -214,20 +172,18 @@ fun AppNavHost(
         ) {
             composable(Login.route) {
                 LoginScreen(
-                    onGoogleSignInClick = { signInWithGoogle() },
+                    onGoogleSignInClick = { viewModel.signInWithGoogle(launcher) },
                     onClickRegister = { navController.navigateInclusive(Register.route) },
-                    onConventionalSignInClick = {
-                        scope.launch {
-                            isLoading = true
-                            val signInResult = authUiClient.signInWithEmailAndPassword(it)
-                            authViewModel.onSignInResult(signInResult)
-                            isLoading = false
-                        }
+                    onConventionalSignInClick = { userCredentials ->
+                        viewModel.signInWithEmailAndPassword(
+                            userCredentials = userCredentials,
+                            authViewModel = authViewModel
+                        )
                     },
                     onSendResetPasswordEmailClick = {
                         scope.launch {
-                            isLoading = true
-                            val response = authUiClient.sendPasswordResetEmail(it)
+                            viewModel.setIsLoadingTo(true)
+                            val response = viewModel.authClient.sendPasswordResetEmail(it)
                             if (response.isSuccess) {
                                 Toast.makeText(
                                     currentActivity,
@@ -243,7 +199,7 @@ fun AppNavHost(
                                     ).show()
                                 }
                             }
-                            isLoading = false
+                            viewModel.setIsLoadingTo(false)
                         }
                     }
                 )
@@ -259,13 +215,13 @@ fun AppNavHost(
             composable(Register.route) {
                 RegisterScreen(
                     onClickLogin = { navController.navigateSingleTopTo(Login.route) },
-                    onGoogleSignInClick = { signInWithGoogle() },
+                    onGoogleSignInClick = { viewModel.signInWithGoogle(launcher) },
                     onConventionalRegisterClick = {
                         scope.launch {
-                            isLoading = true
-                            val signInResult = authUiClient.registerWithEmailAndPassword(it)
+                            viewModel.setIsLoadingTo(true)
+                            val signInResult = viewModel.authClient.registerWithEmailAndPassword(it)
                             authViewModel.onSignInResult(signInResult)
-                            isLoading = false
+                            viewModel.setIsLoadingTo(false)
                         }
                     }
                 )
@@ -371,16 +327,37 @@ fun AppNavHost(
                 },
                     onDeleteUser = {
                         scope.launch {
-                            isLoading = true
+                            viewModel.setIsLoadingTo(true)
                             authViewModel.resetState()
-                            userStore.cleanToken()
+                            viewModel.userStore.cleanToken()
                             navController.navigateInclusive(Auth.route)
-                            isLoading = false
+                            viewModel.setIsLoadingTo(false)
                         }
                     })
             }
         }
     }
+}
+
+@Composable
+private fun ExitConfirmationDialog(
+    viewModel: MainViewModel,
+    authViewModel: AuthViewModel,
+    navController: NavHostController
+) {
+    DefaultAlertDialog(
+        title = stringResource(id = R.string.common_dialog_title),
+        text = stringResource(id = R.string.auth_exit_confirmation_dialog_text),
+        onDismissRequest = { viewModel.setExitConfirmationDialogVisibility(false) },
+        onConfirm = {
+            viewModel.setIsLoadingTo(true)
+            viewModel.authClient.signOutUser()
+            authViewModel.resetState()
+            viewModel.setIsLoadingTo(false)
+            viewModel.setExitConfirmationDialogVisibility(false)
+            navController.navigateInclusive(Auth.route)
+        }
+    )
 }
 
 fun NavHostController.navigateSingleTopTo(route: String) = this.navigate(route) {
