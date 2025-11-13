@@ -3,6 +3,8 @@ package com.example.gymlog.di
 import androidx.room.Room
 import com.example.gymlog.data.AppDataBase
 import com.example.gymlog.data.DATABASE_NAME
+import com.example.gymlog.data.cloud_db.CloudDB
+import com.example.gymlog.data.cloud_db.MockedCloudDB
 import com.example.gymlog.data.datastore.UserStore
 import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.data.firebase.FirebaseUserClient
@@ -48,8 +50,8 @@ val roomModule = module {
 }
 
 val firebaseModule = module {
-    single {
-        FireStoreClient()
+    single<CloudDB> {
+        MockedCloudDB()
     }
     single {
         FirebaseUserClient(get())

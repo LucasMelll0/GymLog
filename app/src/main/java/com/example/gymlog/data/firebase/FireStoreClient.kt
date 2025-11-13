@@ -1,5 +1,6 @@
 package com.example.gymlog.data.firebase
 
+import com.example.gymlog.data.cloud_db.CloudDB
 import com.example.gymlog.model.BmiInfo
 import com.example.gymlog.model.Training
 import com.example.gymlog.model.User
@@ -9,12 +10,12 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 
-class FireStoreClient {
+class FireStoreClient : CloudDB {
 
     private val db = Firebase.firestore
 
 
-    suspend fun saveUserInfo(user: User) {
+    override suspend fun saveUserInfo(user: User) {
         try {
             db.collection(USERS)
                 .document(user.id)
@@ -25,7 +26,7 @@ class FireStoreClient {
         }
     }
 
-    suspend fun getUser(id: String): User? {
+    override suspend fun getUser(id: String): User? {
         return try {
             withTimeout(5000) {
                 db.collection(USERS).document(id).get().await().toObject(User::class.java)
@@ -36,7 +37,7 @@ class FireStoreClient {
         }
     }
 
-    suspend fun saveBmiInfo(bmiInfo: BmiInfo) {
+    override suspend fun saveBmiInfo(bmiInfo: BmiInfo) {
         try {
             withTimeout(5000) {
                 db.collection(BMI_INFO)
@@ -51,7 +52,7 @@ class FireStoreClient {
         }
     }
 
-    suspend fun deleteBmiInfo(bmiInfo: BmiInfo): Response {
+    override suspend fun deleteBmiInfo(bmiInfo: BmiInfo): Response {
         return try {
             db.collection(BMI_INFO)
                 .document(bmiInfo.userId)
@@ -66,7 +67,7 @@ class FireStoreClient {
         }
     }
 
-    suspend fun getHistoric(userId: String): List<BmiInfo>? {
+    override suspend fun getHistoric(userId: String): List<BmiInfo>? {
         return try {
             withTimeout(5000) {
                 db.collection(BMI_INFO)
@@ -82,7 +83,7 @@ class FireStoreClient {
         }
     }
 
-    suspend fun saveTraining(training: Training): Response {
+    override suspend fun saveTraining(training: Training): Response {
         return try {
             withTimeout(5000) {
                 db.collection(USERS)
@@ -99,7 +100,7 @@ class FireStoreClient {
         }
     }
 
-    suspend fun deleteTraining(training: Training): Response {
+    override suspend fun deleteTraining(training: Training): Response {
         return try {
             withTimeout(2000) {
                 db.collection(USERS)
@@ -116,7 +117,7 @@ class FireStoreClient {
         }
     }
 
-    suspend fun getAllTrainings(userId: String): List<Training>? {
+    override suspend fun getAllTrainings(userId: String): List<Training>? {
         return try {
             withTimeout(2000) {
                 db.collection(USERS)
@@ -132,7 +133,7 @@ class FireStoreClient {
         }
     }
 
-    suspend fun deleteAllUserData(userId: String): Response {
+    override suspend fun deleteAllUserData(userId: String): Response {
         return try {
             withTimeout(10000) {
                 db.collection(USERS)

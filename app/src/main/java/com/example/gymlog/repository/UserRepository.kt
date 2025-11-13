@@ -1,5 +1,6 @@
 package com.example.gymlog.repository
 
+import com.example.gymlog.data.cloud_db.CloudDB
 import com.example.gymlog.data.dao.UserDao
 import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.model.User
@@ -20,20 +21,20 @@ interface UserRepository {
 
 class UserRepositoryImpl(
     private val dao: UserDao,
-    private val fireStore: FireStoreClient
+    private val cloudDb: CloudDB
 ) : UserRepository {
 
     override fun getUser(userId: String): Flow<User?> = dao.getUser(userId)
 
     override suspend fun saveUser(user: User) {
         dao.saveUser(user)
-        fireStore.saveUserInfo(user)
+        cloudDb.saveUserInfo(user)
     }
 
     override suspend fun delete(userId: String) {
         if (userId.isNotEmpty()) {
             try {
-                val response = fireStore.deleteAllUserData(userId)
+                val response = cloudDb.deleteAllUserData(userId)
                 if (response.isSuccess) dao.delete(userId)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -43,10 +44,10 @@ class UserRepositoryImpl(
 
     override suspend fun sync(id: String) {
         val localUser = dao.getUserById(id)
-        val cloudUser = fireStore.getUser(id)
+        val cloudUser = cloudDb.getUser(id)
         localUser?.let {
             if (localUser != cloudUser) {
-                fireStore.saveUserInfo(localUser)
+                cloudDb.saveUserInfo(localUser)
             }
         } ?: run {
             cloudUser?.let {

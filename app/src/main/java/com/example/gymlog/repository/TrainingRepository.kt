@@ -1,6 +1,7 @@
 package com.example.gymlog.repository
 
 import android.util.Log
+import com.example.gymlog.data.cloud_db.CloudDB
 import com.example.gymlog.data.dao.TrainingDao
 import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.model.Training
@@ -22,7 +23,7 @@ interface TrainingRepository {
     suspend fun sync(userId: String)
 }
 
-class TrainingRepositoryImpl(private val dao: TrainingDao, private val fireStore: FireStoreClient) :
+class TrainingRepositoryImpl(private val dao: TrainingDao, private val cloudDbClient: CloudDB) :
     TrainingRepository {
 
     override fun getAll(userId: String): Flow<List<Training>> = dao.getAllFlow(userId)
@@ -30,7 +31,7 @@ class TrainingRepositoryImpl(private val dao: TrainingDao, private val fireStore
     override suspend fun getById(id: String, userId: String): Training? = dao.getById(id, userId)
 
     override suspend fun save(training: Training) {
-        dao.save(training.copy(isSynchronized = fireStore.saveTraining(training).isSuccess))
+        dao.save(training.copy(isSynchronized = cloudDbClient.saveTraining(training).isSuccess))
     }
 
     override suspend fun disable(training: Training) {
@@ -47,15 +48,15 @@ class TrainingRepositoryImpl(private val dao: TrainingDao, private val fireStore
         val allDisabled = dao.getAllDisabled(userId)
         val allUnSynchronized = dao.getAllUnSynchronized(userId)
         val allLocal = dao.getAll(userId)
-        val allCloud = fireStore.getAllTrainings(userId)
+        val allCloud = cloudDbClient.getAllTrainings(userId)
 
         allDisabled.forEach {
-            if (fireStore.deleteTraining(it).isSuccess) {
+            if (cloudDbClient.deleteTraining(it).isSuccess) {
                 dao.delete(it)
             }
         }
         allUnSynchronized.forEach {
-            if (fireStore.saveTraining(it).isSuccess) {
+            if (cloudDbClient.saveTraining(it).isSuccess) {
                 dao.save(it.copy(isSynchronized = true))
             } else {
                 return@forEach

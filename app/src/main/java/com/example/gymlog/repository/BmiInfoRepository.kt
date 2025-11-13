@@ -1,7 +1,7 @@
 package com.example.gymlog.repository
 
+import com.example.gymlog.data.cloud_db.CloudDB
 import com.example.gymlog.data.dao.BmiInfoDao
-import com.example.gymlog.data.firebase.FireStoreClient
 import com.example.gymlog.model.BmiInfo
 import kotlinx.coroutines.flow.Flow
 
@@ -19,14 +19,14 @@ interface BmiInfoRepository {
 
 }
 
-class BmiInfoRepositoryImpl(private val dao: BmiInfoDao, private val fireStore: FireStoreClient) :
+class BmiInfoRepositoryImpl(private val dao: BmiInfoDao, private val cloudDB: CloudDB) :
     BmiInfoRepository {
     override fun getAll(userId: String): Flow<List<BmiInfo>> = dao.getAllFlow(userId)
 
     override suspend fun save(bmiInfo: BmiInfo) {
         if (bmiInfo.userId.isNotEmpty()) {
             dao.save(bmiInfo)
-            fireStore.saveBmiInfo(bmiInfo)
+            cloudDB.saveBmiInfo(bmiInfo)
         }
     }
 
@@ -43,16 +43,16 @@ class BmiInfoRepositoryImpl(private val dao: BmiInfoDao, private val fireStore: 
     override suspend fun sync(userId: String) {
         val allDisabled = dao.getAllDisabled(userId)
         val allLocal = dao.getAll(userId)
-        val allCloud = fireStore.getHistoric(userId)
+        val allCloud = cloudDB.getHistoric(userId)
         allDisabled.forEach {
-            if (fireStore.deleteBmiInfo(it).isSuccess) {
+            if (cloudDB.deleteBmiInfo(it).isSuccess) {
                 dao.delete(it)
             }
         }
         if (allLocal.isNotEmpty()) {
             if (allLocal != allCloud) {
                 allLocal.forEach {
-                    fireStore.saveBmiInfo(it)
+                    cloudDB.saveBmiInfo(it)
                 }
             }
         } else {
