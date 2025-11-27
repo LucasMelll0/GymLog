@@ -8,37 +8,32 @@ package com.example.gymlogwearapp.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.animateColorAsState
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.health.services.client.data.DataTypeAvailability
+import androidx.health.services.client.data.SampleDataPoint
 import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.ButtonColors
 import androidx.wear.compose.material.ButtonDefaults
-import androidx.wear.compose.material.Colors
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
-import androidx.wear.compose.material.rememberScalingLazyListState
-import androidx.wear.tooling.preview.devices.WearDevices
-import com.example.gymlogwearapp.R
+import com.example.gymlogwearapp.domain.viewmodel.MainViewModel
 import com.example.gymlogwearapp.presentation.theme.GymLogTheme
-import kotlin.random.Random
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import org.koin.androidx.compose.koinViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,16 +44,27 @@ class MainActivity : ComponentActivity() {
         setTheme(android.R.style.Theme_DeviceDefault)
 
         setContent {
-            WearApp("Android")
+            WearApp()
         }
     }
 }
 
+const val PERMISSION = android.Manifest.permission.BODY_SENSORS
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun WearApp(greetingName: String) {
+fun WearApp(
+    viewmodel: MainViewModel = koinViewModel<MainViewModel>()
+) {
 
-    var colorState : Color by remember { mutableStateOf(randomizeColor()) }
-    val buttonBackgroundColor by animateColorAsState(colorState)
+    val enabled by viewmodel.enabled.collectAsState()
+    val hr by viewmodel.hr.collectAsState()
+    val permissionState = rememberPermissionState(
+        permission = PERMISSION,
+        onPermissionResult = { granted ->
+            if (granted) viewmodel.toggleEnabled()
+        }
+    )
+
     GymLogTheme {
         Box(
             modifier = Modifier
@@ -67,53 +73,40 @@ fun WearApp(greetingName: String) {
             contentAlignment = Alignment.Center
         ) {
             TimeText()
-            SimpleButton(
-                backgroundColor = buttonBackgroundColor,
-                onClick =  {
-                colorState = randomizeColor()
-            })
+            Column {
+                Text(text = "${hr.toInt()}", style = MaterialTheme.typography.title2)
+                SimpleButton(
+                    onClick = {
+                        if(permissionState.status.isGranted) {
+                            viewmodel.toggleEnabled()
+                        } else {
+                            permissionState.launchPermissionRequest()
+                        }
+                    }, text = if(enabled) "Stop" else "Measure HR")
+            }
+
         }
     }
 }
 
-private fun randomizeColor(): Color {
-    return Color(
-        Random.nextInt(256),
-        Random.nextInt(256),
-        Random.nextInt(256),
-        alpha = 255
-    )
-}
 
 
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    WearApp("Preview Android")
-}
-
-@Composable
-fun CommonList(modifier: Modifier = Modifier) {
-    val listState = rememberScalingLazyListState()
-
-    ScalingLazyColumn {
-        item { Text("First item") }
-        item { Text("Second item") }
-        item { Text("Third item") }
-    }
+sealed class MeasureMessage {
+    class MeasureAvailability(val availability: DataTypeAvailability) : MeasureMessage()
+    class MeasureData(val data: List<SampleDataPoint<Double>>) : MeasureMessage()
 }
 
 @Composable
 fun SimpleButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    backgroundColor: Color = Color.Blue
+    text: String
 ) {
     Button(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
-        colors = ButtonDefaults.primaryButtonColors(backgroundColor = backgroundColor)
+        colors = ButtonDefaults.primaryButtonColors()
     ) {
-        Text("Mudar Cor")
+        Text(text)
     }
 }
