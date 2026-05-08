@@ -7,13 +7,14 @@ plugins {
 }
 
 android {
-    namespace 'com.example.gymlog'
+    namespace 'com.devmello.gymlog'
     compileSdk 35
 
     defaultConfig {
-        applicationId "com.example.gymlog"
+        applicationId "com.devmello.gymlog"
         minSdk 26
-        targetSdk 33
+        targetSdk 35
+        targetSdkVersion 35
         versionCode 1
         versionName "1.0"
 
@@ -52,6 +53,11 @@ android {
 dependencies {
 
 
+    // App Search library for Stopwatch
+    def guava_version = "33.6.0-android"
+    implementation "com.google.guava:guava:$guava_version"
+
+
     // DataStore
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
@@ -62,8 +68,13 @@ dependencies {
     implementation"io.coil-kt:coil-compose:2.4.0"
 
     // FirebaseAuth
+    def credentials_version = "1.2.2"
     implementation 'com.google.firebase:firebase-auth-ktx:22.1.0'
     implementation 'com.google.android.gms:play-services-auth:20.6.0'
+    implementation "androidx.credentials:credentials:$credentials_version"
+    implementation "androidx.credentials:credentials-play-services-auth:$credentials_version"
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
 
     // Firestore
     implementation 'com.google.firebase:firebase-firestore-ktx:24.7.0'
@@ -105,6 +116,9 @@ dependencies {
 
     // ConstraintLayout
     implementation "androidx.constraintlayout:constraintlayout-compose:1.0.1"
+
+    // Firebase BOM
+    implementation platform('com.google.firebase:firebase-bom:34.12.0')
 
     implementation 'androidx.core:core-ktx:1.10.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'

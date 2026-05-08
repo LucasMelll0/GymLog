@@ -1,0 +1,44 @@
+package com.devmello.gymlog.model
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import com.google.firebase.firestore.Exclude
+import java.util.UUID
+
+@Entity
+data class Exercise(
+    @PrimaryKey
+    val exerciseId: String = UUID.randomUUID().toString(),
+    val title: String = "",
+    val repetitions: Int = 0,
+    val series: Int = 0,
+    val observations: String = "",
+    val filters: List<String> = emptyList(),
+    val isChecked: Boolean = false,
+) {
+
+    @Exclude
+    fun getEstimatedTime() = (this.series * (this.repetitions * 0.03)) + (this.series * 2)
+
+    override fun equals(other: Any?): Boolean {
+        return if (other is Exercise) {
+            val otherTitle = other.title
+            val otherSeries = other.series
+            val otherRepetitions = other.repetitions
+            return otherTitle == this.title &&
+                    otherSeries == this.series &&
+                    otherRepetitions == this.repetitions
+        } else {
+            false
+        }
+
+    }
+
+    override fun hashCode(): Int {
+        var result = title.hashCode()
+        result = 31 * result + repetitions
+        result = 31 * result + series
+        result = 31 * result + isChecked.hashCode()
+        return result
+    }
+}
