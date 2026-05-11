@@ -1,16 +1,18 @@
 package com.devmello.gymlog.ui.auth.authclient
 
 import android.content.Context
-import android.content.Intent
-import android.content.IntentSender
+import android.util.Log
 import androidx.credentials.ClearCredentialStateRequest
-import com.devmello.gymlog.R
-import com.devmello.gymlog.utils.Response
+import androidx.credentials.Credential
 import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
+import com.devmello.gymlog.R
+import com.devmello.gymlog.utils.Response
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.ktx.userProfileChangeRequest
@@ -79,33 +81,27 @@ class AuthUiClient(
         }
     }
 
-    suspend fun signInWithGoogle(): SignInResult {
+    suspend fun signInWithGoogle(alreadyRegistered: Boolean = true): SignInResult {
         return try {
-            val googleIdOption = GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(false)
-                .setServerClientId(context.getString(R.string.web_client_id))
-                .setAutoSelectEnabled(true)
-                .build()
+            val googleIdOption =
+                GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(alreadyRegistered)
+                    .setServerClientId(context.getString(R.string.web_client_id))
+                    .build()
             val request = GetCredentialRequest.Builder()
                 .addCredentialOption(googleIdOption)
                 .build()
+
             val result = credentialManager.getCredential(context, request)
-
-            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
-            val googleIdToken = googleIdTokenCredential.idToken
-
-            val firebaseCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
-            val userData = auth.signInWithCredential(firebaseCredential).await().user
-
+            var idToken: String? = null
+            handleSignIn(result.credential) {
+                idToken = it
+                if (idToken == null) throw Exception("No id token")
+            }
+            val userData = getSignedInUser()
+            if (userData == null) throw Exception("No user data")
             SignInResult(
-                data = userData?.run {
-                    UserData(
-                        uid = uid,
-                        userName = displayName,
-                        profilePicture = photoUrl?.toString(),
-                        googleIdToken = googleIdToken
-                    )
-                },
+                data = userData.copy(googleIdToken = idToken),
                 errorMessage = null
             )
         } catch (e: GetCredentialException) {
@@ -117,11 +113,40 @@ class AuthUiClient(
         }
     }
 
+    private suspend fun handleSignIn(
+        credential: Credential,
+        onSuccess: (idToken: String?) -> Unit
+    ) {
+        when (credential) {
+            is CustomCredential  if credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL -> {
+                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                firebaseAuthWithGoogle(googleIdTokenCredential.idToken) { idToken ->
+                    onSuccess(idToken)
+                }
+            }
+        }
+    }
+
+    private suspend fun firebaseAuthWithGoogle(
+        idToken: String,
+        onSuccess: (idToken: String) -> Unit
+    ) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                onSuccess(idToken)
+            } else {
+                Log.w("firebaseAuthWithGoogle", "signInWithCredential:failure", task.exception)
+            }
+        }.await()
+    }
+
+
     fun getSignedInUser(): UserData? = auth.currentUser?.run {
         UserData(
             uid = uid,
             userName = displayName,
-            profilePicture = photoUrl?.toString(),
+            profilePicture = photoUrl?.toString()
         )
     }
 

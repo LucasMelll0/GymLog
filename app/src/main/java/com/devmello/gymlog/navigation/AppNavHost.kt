@@ -204,7 +204,7 @@ fun AppNavHost(
             composable(Register.route) {
                 RegisterScreen(
                     onClickLogin = { navController.navigateSingleTopTo(Login.route) },
-                    onGoogleSignInClick = { viewModel.signInWithGoogle() },
+                    onGoogleSignInClick = { viewModel.signInWithGoogle(false) },
                     onConventionalRegisterClick = {
                         scope.launch {
                             viewModel.setIsLoadingTo(true)

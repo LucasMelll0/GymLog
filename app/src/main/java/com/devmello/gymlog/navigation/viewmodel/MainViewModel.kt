@@ -1,5 +1,6 @@
 package com.devmello.gymlog.navigation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devmello.gymlog.data.datastore.UserStore
@@ -20,7 +21,7 @@ interface MainViewModel {
 
     fun setExitConfirmationDialogVisibility(value: Boolean)
 
-    fun signInWithGoogle()
+    fun signInWithGoogle(alreadyRegistered: Boolean = true)
 
     fun signInWithEmailAndPassword(userCredentials: UserCredentials, authViewModel: AuthViewModel)
 
@@ -45,13 +46,14 @@ class MainViewModelImpl(override val userStore: UserStore, override val authClie
         _showExitConfirmationDialog.value = value
     }
 
-    override fun signInWithGoogle() {
+    override fun signInWithGoogle(alreadyRegistered: Boolean) {
         viewModelScope.launch {
             setIsLoadingTo(true)
-            val signInResult = authClient.signInWithGoogle()
+            val signInResult = authClient.signInWithGoogle(alreadyRegistered)
             signInResult.data?.googleIdToken?.let {
                 userStore.saveToken(it)
             }
+            Log.d("SignIn viewModelScope", signInResult.data.toString())
             setIsLoadingTo(false)
         }
     }

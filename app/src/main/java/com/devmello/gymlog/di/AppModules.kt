@@ -6,6 +6,7 @@ import com.devmello.gymlog.data.DATABASE_NAME
 import com.devmello.gymlog.data.cloud_db.CloudDB
 import com.devmello.gymlog.data.cloud_db.MockedCloudDB
 import com.devmello.gymlog.data.datastore.UserStore
+import com.devmello.gymlog.data.firebase.FireStoreClient
 import com.devmello.gymlog.data.firebase.FirebaseUserClient
 import com.devmello.gymlog.data.firebase.StorageClient
 import com.devmello.gymlog.navigation.viewmodel.MainViewModelImpl
@@ -49,7 +50,7 @@ val roomModule = module {
 
 val firebaseModule = module {
     single<CloudDB> {
-        MockedCloudDB()
+        FireStoreClient()
     }
     single {
         FirebaseUserClient(get())
