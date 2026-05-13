@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devmello.gymlog.data.datastore.UserStore
+import com.devmello.gymlog.ui.auth.authclient.AuthResult
 import com.devmello.gymlog.ui.auth.authclient.AuthUiClient
 import com.devmello.gymlog.ui.auth.authclient.UserCredentials
 import com.devmello.gymlog.ui.auth.viewmodel.AuthViewModel
@@ -50,10 +51,11 @@ class MainViewModelImpl(override val userStore: UserStore, override val authClie
         viewModelScope.launch {
             setIsLoadingTo(true)
             val signInResult = authClient.signInWithGoogle(alreadyRegistered)
-            signInResult.data?.googleIdToken?.let {
-                userStore.saveToken(it)
+            if (signInResult is AuthResult.Success) {
+                signInResult.data.googleIdToken?.let {
+                    userStore.saveToken(it)
+                }
             }
-            Log.d("SignIn viewModelScope", signInResult.data.toString())
             setIsLoadingTo(false)
         }
     }

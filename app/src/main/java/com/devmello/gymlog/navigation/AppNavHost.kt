@@ -73,7 +73,7 @@ fun AppNavHost(
     val currentActivity = LocalContext.current as Activity
     val authViewModel: AuthViewModel = koinViewModel()
     val signInState by authViewModel.state.collectAsStateWithLifecycle()
-    var currentUserdata by remember { mutableStateOf(viewModel.authClient.getSignedInUser()) }
+    var currentUserdata by remember { mutableStateOf(viewModel.authClient.currentUserData) }
 
     LaunchedEffect(key1 = signInState.signInError) {
         signInState.signInError?.let { error ->

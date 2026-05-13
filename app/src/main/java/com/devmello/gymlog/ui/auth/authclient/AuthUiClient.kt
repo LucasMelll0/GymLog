@@ -9,6 +9,8 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import com.devmello.gymlog.R
+import com.devmello.gymlog.ui.auth.authclient.AuthResult.Success
+import com.devmello.gymlog.ui.auth.authclient.AuthResult.Error
 import com.devmello.gymlog.utils.Response
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -28,7 +30,7 @@ class AuthUiClient(
 
     suspend fun registerWithEmailAndPassword(
         userCredentials: UserCredentials
-    ): SignInResult {
+    ): AuthResult {
         return try {
             val userData =
                 auth.createUserWithEmailAndPassword(userCredentials.email, userCredentials.password)
@@ -37,51 +39,49 @@ class AuthUiClient(
                 displayName = userCredentials.userName
             }
             userData?.updateProfile(profileUpdates)?.await()
-            SignInResult(
-                data = userData?.run {
-                    UserData(
-                        uid = uid,
-                        userName = displayName,
-                        profilePicture = photoUrl?.toString()
-                    )
-                },
-                errorMessage = null
+            val signedUser = userData?.run {
+                UserData(
+                    uid = uid,
+                    userName = displayName,
+                    profilePicture = photoUrl?.toString()
+                )
+            } ?: currentUserData
+            Success(
+                data = signedUser ?: throw Exception("No user data")
             )
         } catch (e: Exception) {
             e.printStackTrace()
-            SignInResult(
-                data = null,
-                errorMessage = e.message
+            Error(
+                errorMessage = e.message ?: "Ocorreu um erro ao "
             )
         }
 
     }
 
-    suspend fun signInWithEmailAndPassword(userCredentials: UserCredentials): SignInResult {
+    suspend fun signInWithEmailAndPassword(userCredentials: UserCredentials): AuthResult {
         return try {
             val userData =
                 auth.signInWithEmailAndPassword(userCredentials.email, userCredentials.password)
                     .await().user
-            SignInResult(
+            Success(
                 data = userData?.run {
                     UserData(
                         uid = uid,
                         userName = displayName,
                         profilePicture = photoUrl?.toString()
                     )
-                },
-                errorMessage = null
+                } ?: throw Exception("No user data")
             )
         } catch (e: Exception) {
             e.printStackTrace()
-            SignInResult(
-                data = null,
+            Error(
                 errorMessage = e.message
+                    ?: context.getString(R.string.common_login_error_message)
             )
         }
     }
 
-    suspend fun signInWithGoogle(alreadyRegistered: Boolean = true): SignInResult {
+    suspend fun signInWithGoogle(alreadyRegistered: Boolean = true): AuthResult {
         return try {
             val googleIdOption =
                 GetGoogleIdOption.Builder()
@@ -98,18 +98,17 @@ class AuthUiClient(
                 idToken = it
                 if (idToken == null) throw Exception("No id token")
             }
-            val userData = getSignedInUser()
+            val userData = currentUserData
             if (userData == null) throw Exception("No user data")
-            SignInResult(
-                data = userData.copy(googleIdToken = idToken),
-                errorMessage = null
+            Success(
+                data = userData.copy(googleIdToken = idToken)
             )
         } catch (e: GetCredentialException) {
-            SignInResult(data = null, errorMessage = e.message)
+            Error(errorMessage = e.message ?: context.getString(R.string.get_credential_error_message))
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             e.printStackTrace()
-            SignInResult(data = null, errorMessage = e.message)
+            Error(errorMessage = e.message ?: context.getString(R.string.common_login_error_message))
         }
     }
 
@@ -141,6 +140,14 @@ class AuthUiClient(
         }.await()
     }
 
+
+    val currentUserData: UserData? get() = auth.currentUser?.run {
+        UserData(
+            uid = uid,
+            userName = displayName,
+            profilePicture = photoUrl?.toString()
+        )
+    }
 
     fun getSignedInUser(): UserData? = auth.currentUser?.run {
         UserData(

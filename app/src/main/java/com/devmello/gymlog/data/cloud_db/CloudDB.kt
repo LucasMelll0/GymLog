@@ -24,6 +24,4 @@ interface CloudDB {
     suspend fun getAllTrainings(userId: String): List<Training>?
 
     suspend fun deleteAllUserData(userId: String): Response
-
-
 }

@@ -1,7 +1,7 @@
 package com.devmello.gymlog.ui.auth.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.devmello.gymlog.ui.auth.authclient.SignInResult
+import com.devmello.gymlog.ui.auth.authclient.AuthResult
 import com.devmello.gymlog.ui.auth.authclient.SignInState
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -15,11 +15,13 @@ class AuthViewModel : ViewModel() {
     internal val state = _state.asStateFlow()
     internal val currentUser = Firebase.auth.currentUser
 
-    fun onSignInResult(result: SignInResult) {
+    fun onSignInResult(result: AuthResult) {
         _state.update {
             it.copy(
-                isSignInSuccessful = result.data != null,
-                signInError = result.errorMessage
+                isSignInSuccessful = result is AuthResult.Success,
+                signInError = if (result is AuthResult.Error) {
+                    result.errorMessage
+                } else null
             )
         }
     }

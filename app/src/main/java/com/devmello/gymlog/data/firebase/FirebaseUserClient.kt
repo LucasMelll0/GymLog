@@ -20,7 +20,7 @@ class FirebaseUserClient(
     val user = firebaseAuth.currentUser
     val userProvider = user.let { user ->
         val providerData = user?.providerData
-        providerData?.let {
+        providerData?.let { providerData ->
             if (providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID }) {
                 GoogleAuthProvider.PROVIDER_ID
             } else if (providerData.any { it.providerId == EmailAuthProvider.PROVIDER_ID }) {
@@ -32,7 +32,7 @@ class FirebaseUserClient(
     }
 
 
-    private suspend fun reauthenticate(password: String? = null, googleIdToken: String? = null) {
+    private suspend fun reAuthenticate(password: String? = null, googleIdToken: String? = null) {
         user?.let { user ->
             try {
                 when (userProvider) {
@@ -61,7 +61,7 @@ class FirebaseUserClient(
     ): Response {
         return user?.let {
             try {
-                reauthenticate(oldPassword, googleIdToken)
+                reAuthenticate(oldPassword, googleIdToken)
                 it.updatePassword(newPassword.trim()).await()
                 Response(isSuccess = true)
             } catch (e: Exception) {
@@ -77,7 +77,7 @@ class FirebaseUserClient(
     ): Response {
         return user?.let {
             try {
-                reauthenticate(password, googleIdToken)
+                reAuthenticate(password, googleIdToken)
                 storageClient.deletePhoto(it.uid)
                 it.delete().await()
                 reload()

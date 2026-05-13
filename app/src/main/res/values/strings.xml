@@ -193,4 +193,6 @@
     <string name="user_profile_photo_content_description">User photo</string>
     <string name="user_profile_photo_selection_error">Falha ao carregar imagem!</string>
     <string name="user_profile_change_photo_error">Ocorreu uma falha ao tentar mudar sua imagem!</string>
+    <string name="get_credential_error_message">Ocorreu um erro na tentativa de buscar as credenciais</string>
+    <string name="common_login_error_message">Ocorreu um erro na tentativa de login</string>
 </resources>
