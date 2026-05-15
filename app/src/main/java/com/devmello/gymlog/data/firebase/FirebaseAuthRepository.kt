@@ -1,4 +1,4 @@
-package com.devmello.gymlog.ui.auth.authclient
+package com.devmello.gymlog.data.firebase
 
 import android.content.Context
 import android.util.Log
@@ -9,10 +9,11 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import com.devmello.gymlog.R
+import com.devmello.gymlog.core.model.repositories.AuthRepository
 import com.devmello.gymlog.core.model.AuthResult
+import com.devmello.gymlog.core.model.Response
+import com.devmello.gymlog.core.model.UserCredentials
 import com.devmello.gymlog.core.model.UserData
-
-import com.devmello.gymlog.utils.Response
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
@@ -23,15 +24,13 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.CancellationException
 
-class AuthUiClient(
-    private val context: Context
-) {
+class FirebaseAuthRepository(private val context: Context) : AuthRepository {
+
     private val credentialManager = CredentialManager.create(context)
+
     private val auth = Firebase.auth
 
-    suspend fun registerWithEmailAndPassword(
-        userCredentials: UserCredentials
-    ): AuthResult {
+    override suspend fun registerWithEmailAndPassword(userCredentials: UserCredentials): AuthResult {
         return try {
             val userData =
                 auth.createUserWithEmailAndPassword(userCredentials.email, userCredentials.password)
@@ -56,10 +55,9 @@ class AuthUiClient(
                 errorMessage = e.message ?: "Ocorreu um erro ao "
             )
         }
-
     }
 
-    suspend fun signInWithEmailAndPassword(userCredentials: UserCredentials): AuthResult {
+    override suspend fun signInWithEmailAndPassword(userCredentials: UserCredentials): AuthResult {
         return try {
             val userData =
                 auth.signInWithEmailAndPassword(userCredentials.email, userCredentials.password)
@@ -82,7 +80,7 @@ class AuthUiClient(
         }
     }
 
-    suspend fun signInWithGoogle(alreadyRegistered: Boolean = true): AuthResult {
+    override suspend fun signInWithGoogle(alreadyRegistered: Boolean): AuthResult {
         return try {
             val googleIdOption =
                 GetGoogleIdOption.Builder()
@@ -145,28 +143,27 @@ class AuthUiClient(
         }.await()
     }
 
-
-    val currentUserData: UserData?
+    override val currentUserData: UserData?
         get() = auth.currentUser?.run {
-            UserData(
-                uid = uid,
-                userName = displayName,
-                profilePicture = photoUrl?.toString()
-            )
-        }
+        UserData(
+            uid = uid,
+            userName = displayName,
+            profilePicture = photoUrl?.toString()
+        )
+    }
 
-    suspend fun signOutUser() {
+    override suspend fun signOutUser() {
         auth.signOut()
         credentialManager.clearCredentialState(ClearCredentialStateRequest())
     }
 
-    suspend fun sendPasswordResetEmail(email: String): Response {
+    override suspend fun sendPasswordResetEmail(email: String): Response<Nothing> {
         return try {
             auth.sendPasswordResetEmail(email).await()
-            Response(isSuccess = true)
+            Response.Success(data = null)
         } catch (e: Exception) {
             e.printStackTrace()
-            Response(isSuccess = false, errorMessage = e.message)
+            Response.Error(message = e.message)
         }
     }
 }

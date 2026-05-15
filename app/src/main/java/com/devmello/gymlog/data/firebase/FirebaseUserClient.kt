@@ -1,9 +1,10 @@
 package com.devmello.gymlog.data.firebase
 
-import android.net.Uri
+import com.devmello.gymlog.core.model.Response
+import com.devmello.gymlog.core.model.repositories.AccountRepository
 import com.devmello.gymlog.extensions.capitalizeAllWords
+import com.devmello.gymlog.extensions.toUserData
 import com.devmello.gymlog.utils.Resource
-import com.devmello.gymlog.utils.Response
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
@@ -11,14 +12,16 @@ import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
+import androidx.core.net.toUri
 
 class FirebaseUserClient(
     private val storageClient: StorageClient
-) {
+) : AccountRepository {
 
     private val firebaseAuth = Firebase.auth
-    val user = firebaseAuth.currentUser
-    val userProvider = user.let { user ->
+    private val user = firebaseAuth.currentUser
+    override val currentUser = user?.toUserData()
+    override val userProvider = user.let { user ->
         val providerData = user?.providerData
         providerData?.let { providerData ->
             if (providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID }) {
@@ -54,69 +57,70 @@ class FirebaseUserClient(
         }
     }
 
-    suspend fun changePassword(
+    override suspend fun changePassword(
         oldPassword: String?,
         newPassword: String,
-        googleIdToken: String? = null
-    ): Response {
+        googleIdToken: String?
+    ): Response<Nothing> {
         return user?.let {
             try {
                 reAuthenticate(oldPassword, googleIdToken)
                 it.updatePassword(newPassword.trim()).await()
-                Response(isSuccess = true)
+                Response.Success(data = null)
             } catch (e: Exception) {
                 e.printStackTrace()
-                Response(isSuccess = false, errorMessage = e.message)
+                Response.Error(message = e.message)
             }
-        } ?: Response(isSuccess = false, errorMessage = "Invalid user!")
+        } ?: Response.Error(message = "Invalid user!")
     }
 
-    suspend fun deleteUser(
+    override suspend fun deleteAccount(
         password: String?,
         googleIdToken: String?
-    ): Response {
+    ): Response<Nothing> {
         return user?.let {
             try {
                 reAuthenticate(password, googleIdToken)
                 storageClient.deletePhoto(it.uid)
                 it.delete().await()
-                reload()
-                Response(isSuccess = true)
+                reloadUser()
+                Response.Success(data = null)
             } catch (e: Exception) {
                 e.printStackTrace()
-                Response(isSuccess = false, errorMessage = e.message)
+                Response.Error(message = e.message)
             }
-        } ?: Response(isSuccess = false, errorMessage = "Invalid user!")
+        } ?: Response.Error(message = "Invalid user!")
     }
 
-    suspend fun changeUsername(username: String): Response {
+    override suspend fun updateUsername(newName: String): Response<Nothing> {
         return user?.let {
             val profileUpdate = userProfileChangeRequest {
-                displayName = username.capitalizeAllWords()
+                displayName = newName.capitalizeAllWords()
             }
             try {
                 withTimeout(5000) {
                     it.updateProfile(profileUpdate).await()
                 }
-                Response(isSuccess = true)
+                Response.Success(data = null)
             } catch (e: Exception) {
                 e.printStackTrace()
-                Response(isSuccess = false, errorMessage = e.message)
+                Response.Error(message = e.message)
             }
-        } ?: Response(isSuccess = false, errorMessage = "Invalid User")
+        } ?: Response.Error(message = "Invalid user!")
     }
 
-    suspend fun changeUserPhoto(photo: Uri): Response {
-        return user?.let {
+    override suspend fun updateProfilePicture(photo: String): Response<Nothing> {
+        return user?.let { user ->
             try {
-                return when (val resource = storageClient.savePhoto(photo, it.uid)) {
+                val uri = photo.toUri()
+                return when (val resource = storageClient.savePhoto(uri, user.uid)) {
                     is Resource.Success -> {
                         val downloadUri = resource.data
                         val profileUpdate = userProfileChangeRequest {
                             photoUri = downloadUri
                         }
-                        it.updateProfile(profileUpdate).await()
-                        Response(isSuccess = true)
+                        user.updateProfile(profileUpdate).await()
+                        Response.Success(data = null)
                     }
 
                     else -> throw Exception("Error on upload image")
@@ -125,12 +129,12 @@ class FirebaseUserClient(
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                Response(isSuccess = false, errorMessage = e.message ?: "Unknown Error")
+                Response.Error(message = e.message)
             }
-        } ?: Response(isSuccess = false, errorMessage = "Invalid User")
+        } ?: Response.Error(message = "Invalid user!")
     }
 
-    suspend fun reload() {
+    override suspend fun reloadUser() {
         try {
             withTimeout(5000) {
                 user?.reload()?.await()

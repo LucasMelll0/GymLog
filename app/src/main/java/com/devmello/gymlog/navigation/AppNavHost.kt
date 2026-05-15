@@ -1,3 +1,5 @@
+package com.devmello.gymlog.navigation
+
 import android.app.Activity
 import android.widget.Toast
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -26,22 +28,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.devmello.gymlog.R
-import com.devmello.gymlog.navigation.Auth
-import com.devmello.gymlog.navigation.Bmi
-import com.devmello.gymlog.navigation.DropdownTimer
-import com.devmello.gymlog.navigation.Form
-import com.devmello.gymlog.navigation.Home
-import com.devmello.gymlog.navigation.Log
-import com.devmello.gymlog.navigation.Login
-import com.devmello.gymlog.navigation.Register
-import com.devmello.gymlog.navigation.Stopwatch
-import com.devmello.gymlog.navigation.UserProfile
 import com.devmello.gymlog.navigation.viewmodel.MainViewModel
 import com.devmello.gymlog.navigation.viewmodel.MainViewModelImpl
 import com.devmello.gymlog.ui.auth.AuthenticationScreen
 import com.devmello.gymlog.ui.auth.LoginScreen
 import com.devmello.gymlog.ui.auth.RegisterScreen
 import com.devmello.gymlog.ui.auth.viewmodel.AuthViewModel
+import com.devmello.gymlog.ui.auth.viewmodel.AuthViewModelImpl
 import com.devmello.gymlog.ui.bmi.BmiHistoricScreen
 import com.devmello.gymlog.ui.components.AppNavigationDrawer
 import com.devmello.gymlog.ui.components.DefaultAlertDialog
@@ -71,9 +64,9 @@ fun AppNavHost(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val currentActivity = LocalContext.current as Activity
-    val authViewModel: AuthViewModel = koinViewModel()
+    val authViewModel: AuthViewModel = koinViewModel<AuthViewModelImpl>()
     val signInState by authViewModel.state.collectAsStateWithLifecycle()
-    var currentUserdata by remember { mutableStateOf(viewModel.authClient.currentUserData) }
+    var currentUserdata by remember { mutableStateOf(authViewModel.currentUser) }
 
     LaunchedEffect(key1 = signInState.signInError) {
         signInState.signInError?.let { error ->
@@ -86,7 +79,7 @@ fun AppNavHost(
     }
     LaunchedEffect(key1 = signInState.isSignInSuccessful) {
         if (signInState.isSignInSuccessful) {
-            currentUserdata = viewModel.authClient.getSignedInUser()
+            currentUserdata = authViewModel.currentUser
             navController.navigateSingleTopTo(Home.route)
         }
     }
@@ -161,35 +154,32 @@ fun AppNavHost(
         ) {
             composable(Login.route) {
                 LoginScreen(
-                    onGoogleSignInClick = { viewModel.signInWithGoogle() },
+                    onGoogleSignInClick = {
+                        authViewModel.signInWithGoogle(alreadyRegistered = true)
+                    },
                     onClickRegister = { navController.navigateInclusive(Register.route) },
                     onConventionalSignInClick = { userCredentials ->
-                        viewModel.signInWithEmailAndPassword(
-                            userCredentials = userCredentials,
-                            authViewModel = authViewModel
-                        )
+                        authViewModel.signInWithEmailAndPassword(userCredentials)
                     },
                     onSendResetPasswordEmailClick = {
-                        scope.launch {
-                            viewModel.setIsLoadingTo(true)
-                            val response = viewModel.authClient.sendPasswordResetEmail(it)
-                            if (response.isSuccess) {
-                                Toast.makeText(
-                                    currentActivity,
-                                    currentActivity.getString(R.string.auth_send_password_reset_email_success_message),
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            } else {
-                                response.errorMessage?.let {
-                                    Toast.makeText(
-                                        currentActivity,
-                                        it,
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-                            }
-                            viewModel.setIsLoadingTo(false)
-                        }
+
+                        authViewModel.sendPasswordResetEmail(it)
+//                        if (response.isSuccess) {
+//                            Toast.makeText(
+//                                currentActivity,
+//                                currentActivity.getString(R.string.auth_send_password_reset_email_success_message),
+//                                Toast.LENGTH_LONG
+//                            ).show()
+//                        } else {
+//                            response.errorMessage?.let { TODO Colocar em uma classe manager para mostrar automaticamente o snackbar
+//                                Toast.makeText(
+//                                    currentActivity,
+//                                    it,
+//                                    Toast.LENGTH_LONG
+//                                ).show()
+//                            }
+//                        }
+
                     }
                 )
             }
@@ -204,14 +194,11 @@ fun AppNavHost(
             composable(Register.route) {
                 RegisterScreen(
                     onClickLogin = { navController.navigateSingleTopTo(Login.route) },
-                    onGoogleSignInClick = { viewModel.signInWithGoogle(false) },
-                    onConventionalRegisterClick = {
-                        scope.launch {
-                            viewModel.setIsLoadingTo(true)
-                            val signInResult = viewModel.authClient.registerWithEmailAndPassword(it)
-                            authViewModel.onSignInResult(signInResult)
-                            viewModel.setIsLoadingTo(false)
-                        }
+                    onGoogleSignInClick = {
+                        authViewModel.signInWithGoogle(alreadyRegistered = false)
+                    },
+                    onConventionalRegisterClick = { credentials ->
+                        authViewModel.registerWithEmailAndPassword(credentials)
                     }
                 )
             }
@@ -309,19 +296,16 @@ fun AppNavHost(
             ) {
                 UserProfileScreen(
                     onNavIconClick = {
-                    scope.launch {
-                        drawerState.open()
-                    }
-                }, onInvalidUser = {
-                    navController.popBackStack()
-                },
+                        scope.launch {
+                            drawerState.open()
+                        }
+                    }, onInvalidUser = {
+                        navController.popBackStack()
+                    },
                     onDeleteUser = {
                         scope.launch {
-                            viewModel.setIsLoadingTo(true)
                             authViewModel.resetState()
-                            viewModel.userStore.cleanToken()
                             navController.navigateInclusive(Auth.route)
-                            viewModel.setIsLoadingTo(false)
                         }
                     })
             }
@@ -340,10 +324,7 @@ private fun ExitConfirmationDialog(
         text = stringResource(id = R.string.auth_exit_confirmation_dialog_text),
         onDismissRequest = { viewModel.setExitConfirmationDialogVisibility(false) },
         onConfirm = {
-            viewModel.setIsLoadingTo(true)
-            viewModel.signOut()
-            authViewModel.resetState()
-            viewModel.setIsLoadingTo(false)
+            authViewModel.signOut()
             viewModel.setExitConfirmationDialogVisibility(false)
             navController.navigateInclusive(Auth.route)
         }

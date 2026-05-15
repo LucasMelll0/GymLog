@@ -1,0 +1,42 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.devmello.core'
+    compileSdk 36
+
+    defaultConfig {
+        minSdk 24
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+
+}
+
+dependencies {
+
+    // FirebaseAuth
+    def credentials_version = "1.2.2"
+    implementation 'com.google.firebase:firebase-auth-ktx:22.1.0'
+    implementation 'com.google.android.gms:play-services-auth:20.6.0'
+    implementation "androidx.credentials:credentials:$credentials_version"
+    implementation "androidx.credentials:credentials-play-services-auth:$credentials_version"
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'com.google.android.material:material:1.10.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+}

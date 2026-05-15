@@ -1,10 +1,10 @@
 package com.devmello.gymlog.data.firebase
 
+import com.devmello.gymlog.core.model.Response
 import com.devmello.gymlog.data.cloud_db.CloudDB
 import com.devmello.gymlog.model.BmiInfo
 import com.devmello.gymlog.model.Training
 import com.devmello.gymlog.model.User
-import com.devmello.gymlog.utils.Response
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
@@ -52,7 +52,7 @@ class FireStoreClient : CloudDB {
         }
     }
 
-    override suspend fun deleteBmiInfo(bmiInfo: BmiInfo): Response {
+    override suspend fun deleteBmiInfo(bmiInfo: BmiInfo): Response<Nothing> {
         return try {
             db.collection(BMI_INFO)
                 .document(bmiInfo.userId)
@@ -60,10 +60,10 @@ class FireStoreClient : CloudDB {
                 .document(bmiInfo.id)
                 .delete()
                 .await()
-            Response(isSuccess = true)
+            Response.Success(data = null)
         } catch (e: Exception) {
             e.printStackTrace()
-            Response(isSuccess = false)
+            Response.Error(message = e.message)
         }
     }
 
@@ -83,7 +83,7 @@ class FireStoreClient : CloudDB {
         }
     }
 
-    override suspend fun saveTraining(training: Training): Response {
+    override suspend fun saveTraining(training: Training): Response<Nothing> {
         return try {
             withTimeout(5000) {
                 db.collection(USERS)
@@ -92,15 +92,15 @@ class FireStoreClient : CloudDB {
                     .document(training.trainingId)
                     .set(training.copy(isSynchronized = true))
                     .await()
-                Response(isSuccess = true)
+                Response.Success(data = null)
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Response(isSuccess = false)
+            Response.Error(e.message)
         }
     }
 
-    override suspend fun deleteTraining(training: Training): Response {
+    override suspend fun deleteTraining(training: Training): Response<Nothing> {
         return try {
             withTimeout(2000) {
                 db.collection(USERS)
@@ -109,11 +109,11 @@ class FireStoreClient : CloudDB {
                     .document(training.trainingId)
                     .delete()
                     .await()
-                Response(isSuccess = true)
+                Response.Success(data = null)
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Response(isSuccess = false)
+            Response.Error(e.message)
         }
     }
 
@@ -127,13 +127,13 @@ class FireStoreClient : CloudDB {
                     .await()
                     .toObjects(Training::class.java)
             }
-        }catch (e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
             null
         }
     }
 
-    override suspend fun deleteAllUserData(userId: String): Response {
+    override suspend fun deleteAllUserData(userId: String): Response<Nothing> {
         return try {
             withTimeout(10000) {
                 db.collection(USERS)
@@ -172,11 +172,11 @@ class FireStoreClient : CloudDB {
                     .document(userId)
                     .delete()
                     .await()
-                Response(isSuccess = true)
+                Response.Success(data = null)
             }
-        }catch (e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
-            Response(isSuccess = false, errorMessage = e.message)
+            Response.Error(message = e.message)
         }
     }
 

@@ -60,10 +60,11 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devmello.gymlog.R
+import com.devmello.gymlog.core.model.Response
+import com.devmello.gymlog.core.model.UserData
 import com.devmello.gymlog.data.datastore.UserStore
 import com.devmello.gymlog.extensions.capitalizeAllWords
 import com.devmello.gymlog.extensions.checkConnection
-import com.devmello.gymlog.ui.auth.authclient.UserData
 import com.devmello.gymlog.ui.components.DefaultAsyncImage
 import com.devmello.gymlog.ui.components.DefaultPasswordTextField
 import com.devmello.gymlog.ui.components.DefaultTextField
@@ -71,7 +72,6 @@ import com.devmello.gymlog.ui.components.LoadingDialog
 import com.devmello.gymlog.ui.theme.GymLogTheme
 import com.devmello.gymlog.ui.user.viewmodel.UserProfileViewModel
 import com.devmello.gymlog.ui.user.viewmodel.UserProfileViewModelImpl
-import com.devmello.gymlog.utils.Response
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -92,7 +92,6 @@ fun UserProfileScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val googleIdToken by UserStore(context).getAccessToken.collectAsStateWithLifecycle(null)
     var isLoading by rememberSaveable { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
     val user by viewModel.user.collectAsStateWithLifecycle()
@@ -106,7 +105,8 @@ fun UserProfileScreen(
     var showChangePasswordBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteAccountBottomSheet by rememberSaveable { mutableStateOf(false) }
     val isEmailAuthProvider = viewModel.userProvider == EmailAuthProvider.PROVIDER_ID
-    Scaffold(snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         bottomBar = { UserProfileBottomBar(onNavIconClick = onNavIconClick) }) { paddingValues ->
         if (isLoading) Box(modifier = Modifier.fillMaxSize()) {
             LoadingDialog()
@@ -159,7 +159,8 @@ fun UserProfileScreen(
             }
         }, onDismissRequest = { showChangeUsernameBottomSheet = false })
 
-        if (showChangePasswordBottomSheet) ChangePasswordBottomSheet(needPasswordToReauthenticate = isEmailAuthProvider,
+        if (showChangePasswordBottomSheet) ChangePasswordBottomSheet(
+            needPasswordToReauthenticate = isEmailAuthProvider,
             onConfirm = { oldPassword, newPassword ->
                 showChangePasswordBottomSheet = false
                 scope.launch {
@@ -173,7 +174,7 @@ fun UserProfileScreen(
                         val response =
                             viewModel.changePassword(oldPassword, newPassword, googleIdToken)
                         isLoading = false
-                        if (response.isSuccess) {
+                        if (response is Response.Success) {
                             snackBarHostState.showSnackbar(
                                 context.getString(R.string.user_profile_change_password_success_message),
                                 withDismissAction = true
@@ -190,13 +191,14 @@ fun UserProfileScreen(
             showChangePasswordBottomSheet = false
         }
 
-        if (showDeleteAccountBottomSheet) DeleteAccountBottomSheet(needPasswordToReauthenticate = isEmailAuthProvider,
+        if (showDeleteAccountBottomSheet) DeleteAccountBottomSheet(
+            needPasswordToReauthenticate = isEmailAuthProvider,
             onConfirm = {
                 showDeleteAccountBottomSheet = false
                 scope.launch {
                     isLoading = true
                     val response = viewModel.deleteUser(it, googleIdToken)
-                    if (response.isSuccess) {
+                    if (response is Response.Success) {
                         onDeleteUser()
                     } else {
                         snackBarHostState.showSnackbar(
@@ -657,11 +659,14 @@ fun UserProfileScreenPreview() {
 
             override suspend fun changePassword(
                 oldPassword: String, newPassword: String, googleIdToken: String?
-            ): Response {
+            ): Response<Nothing> {
                 TODO("Not yet implemented")
             }
 
-            override suspend fun deleteUser(password: String, googleIdToken: String?): Response {
+            override suspend fun deleteUser(
+                password: String,
+                googleIdToken: String?
+            ): Response<Nothing> {
                 TODO("Not yet implemented")
             }
 

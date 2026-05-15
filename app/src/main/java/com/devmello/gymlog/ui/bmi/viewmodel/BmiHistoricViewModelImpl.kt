@@ -1,12 +1,12 @@
 package com.devmello.gymlog.ui.bmi.viewmodel
 
 import androidx.lifecycle.ViewModel
+import com.devmello.gymlog.core.model.UserData
+import com.devmello.gymlog.core.model.repositories.UserRepository
 import com.devmello.gymlog.extensions.toUserData
 import com.devmello.gymlog.model.BmiInfo
 import com.devmello.gymlog.model.User
 import com.devmello.gymlog.repository.BmiInfoRepository
-import com.devmello.gymlog.repository.UserRepository
-import com.devmello.gymlog.ui.auth.authclient.UserData
 import com.devmello.gymlog.utils.Resource
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase

@@ -6,6 +6,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +29,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
@@ -43,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.devmello.gymlog.R
+import com.devmello.gymlog.core.model.UserData
 import com.devmello.gymlog.extensions.capitalizeAllWords
 import com.devmello.gymlog.navigation.Bmi
 import com.devmello.gymlog.navigation.Destination
@@ -50,7 +53,6 @@ import com.devmello.gymlog.navigation.DropdownTimer
 import com.devmello.gymlog.navigation.Home
 import com.devmello.gymlog.navigation.Stopwatch
 import com.devmello.gymlog.navigation.UserProfile
-import com.devmello.gymlog.ui.auth.authclient.UserData
 import com.devmello.gymlog.ui.theme.GymLogTheme
 import java.util.Date
 
@@ -214,8 +216,15 @@ fun AppNavigationDrawer(
                 onClickExit = onClickExit,
                 user = user
             )
-        }, content = content, drawerState = drawerState, modifier = Modifier.fillMaxHeight()
-    )
+        }, drawerState = drawerState, modifier = Modifier.fillMaxHeight()
+    ) {
+        Scaffold { contentPadding ->
+            Box(modifier = Modifier.padding(contentPadding)) {
+                content()
+            }
+
+        }
+    }
 }
 
 @Preview(uiMode = UI_MODE_NIGHT_YES)

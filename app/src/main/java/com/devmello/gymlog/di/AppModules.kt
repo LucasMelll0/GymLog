@@ -1,20 +1,22 @@
 package com.devmello.gymlog.di
 
 import androidx.room.Room
+import com.devmello.gymlog.core.model.repositories.AuthRepository
+import com.devmello.gymlog.core.model.repositories.UserPreferencesRepository
+import com.devmello.gymlog.core.ui.LoadingManager
 import com.devmello.gymlog.data.AppDataBase
 import com.devmello.gymlog.data.DATABASE_NAME
 import com.devmello.gymlog.data.cloud_db.CloudDB
-import com.devmello.gymlog.data.cloud_db.MockedCloudDB
 import com.devmello.gymlog.data.datastore.UserStore
 import com.devmello.gymlog.data.firebase.FireStoreClient
+import com.devmello.gymlog.data.firebase.FirebaseAuthRepository
 import com.devmello.gymlog.data.firebase.FirebaseUserClient
 import com.devmello.gymlog.data.firebase.StorageClient
 import com.devmello.gymlog.navigation.viewmodel.MainViewModelImpl
 import com.devmello.gymlog.repository.BmiInfoRepositoryImpl
 import com.devmello.gymlog.repository.TrainingRepositoryImpl
 import com.devmello.gymlog.repository.UserRepositoryImpl
-import com.devmello.gymlog.ui.auth.authclient.AuthUiClient
-import com.devmello.gymlog.ui.auth.viewmodel.AuthViewModel
+import com.devmello.gymlog.ui.auth.viewmodel.AuthViewModelImpl
 import com.devmello.gymlog.ui.bmi.viewmodel.BmiCalculatorViewModel
 import com.devmello.gymlog.ui.bmi.viewmodel.BmiHistoricViewModelImpl
 import com.devmello.gymlog.ui.form.viewmodel.TrainingFormViewModel
@@ -73,11 +75,14 @@ val repositoryModule = module {
 }
 
 val mainModule = module {
-    single {
+    single<LoadingManager> {
+        LoadingManager()
+    }
+    single<UserPreferencesRepository> {
         UserStore(androidApplication())
     }
-    viewModel() {
-        MainViewModelImpl(get(), get())
+    viewModel {
+        MainViewModelImpl(get())
     }
 
 }
@@ -113,18 +118,22 @@ val bmiModule = module {
 }
 
 val authModule = module {
-    single {
-        AuthUiClient(androidContext())
+    single<AuthRepository> {
+        FirebaseAuthRepository(context = androidContext())
     }
     viewModel {
-        AuthViewModel()
+        AuthViewModelImpl(
+            authRepository = get(),
+            userPreferencesRepository = get(),
+            loadingManager = get()
+        )
     }
 }
 
 val userProfileModule = module {
     viewModel {
         UserProfileViewModelImpl(
-            userClient = get(),
+            accountRepository = get(),
             trainingRepository = get<TrainingRepositoryImpl>(),
             bmiInfoRepository = get<BmiInfoRepositoryImpl>(),
             userRepository = get<UserRepositoryImpl>()

@@ -60,10 +60,10 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devmello.gymlog.R
+import com.devmello.gymlog.core.model.UserData
 import com.devmello.gymlog.extensions.checkConnection
 import com.devmello.gymlog.model.BmiInfo
 import com.devmello.gymlog.model.User
-import com.devmello.gymlog.ui.auth.authclient.UserData
 import com.devmello.gymlog.ui.bmi.viewmodel.BmiHistoricViewModel
 import com.devmello.gymlog.ui.bmi.viewmodel.BmiHistoricViewModelImpl
 import com.devmello.gymlog.ui.components.DefaultAlertDialog

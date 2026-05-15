@@ -1,6 +1,6 @@
 package com.devmello.gymlog
 
-import AppNavHost
+import com.devmello.gymlog.navigation.AppNavHost
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent

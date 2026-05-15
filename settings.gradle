@@ -16,3 +16,5 @@ dependencyResolutionManagement {
 rootProject.name = "GymLog"
 include ':app'
 include ':gymlogwearapp'
+include ':core'
+include ':core:auth'
