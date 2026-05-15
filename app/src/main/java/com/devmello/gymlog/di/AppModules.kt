@@ -4,6 +4,8 @@ import androidx.room.Room
 import com.devmello.gymlog.core.model.repositories.AuthRepository
 import com.devmello.gymlog.core.model.repositories.UserPreferencesRepository
 import com.devmello.gymlog.core.ui.LoadingManager
+import com.devmello.gymlog.core.ui.MessageManager
+import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.data.AppDataBase
 import com.devmello.gymlog.data.DATABASE_NAME
 import com.devmello.gymlog.data.cloud_db.CloudDB
@@ -78,6 +80,14 @@ val mainModule = module {
     single<LoadingManager> {
         LoadingManager()
     }
+    single<ScaffoldManager> {
+        ScaffoldManager()
+    }
+
+    single<MessageManager> {
+        MessageManager()
+    }
+
     single<UserPreferencesRepository> {
         UserStore(androidApplication())
     }
