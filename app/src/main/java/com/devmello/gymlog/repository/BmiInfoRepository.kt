@@ -1,5 +1,6 @@
 package com.devmello.gymlog.repository
 
+import com.devmello.gymlog.core.model.Response
 import com.devmello.gymlog.data.cloud_db.CloudDB
 import com.devmello.gymlog.data.dao.BmiInfoDao
 import com.devmello.gymlog.model.BmiInfo
@@ -45,7 +46,7 @@ class BmiInfoRepositoryImpl(private val dao: BmiInfoDao, private val cloudDB: Cl
         val allLocal = dao.getAll(userId)
         val allCloud = cloudDB.getHistoric(userId)
         allDisabled.forEach {
-            if (cloudDB.deleteBmiInfo(it).isSuccess) {
+            if (cloudDB.deleteBmiInfo(it) is Response.Success) {
                 dao.delete(it)
             }
         }

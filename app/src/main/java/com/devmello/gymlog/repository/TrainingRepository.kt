@@ -1,6 +1,7 @@
 package com.devmello.gymlog.repository
 
 import android.util.Log
+import com.devmello.gymlog.core.model.Response
 import com.devmello.gymlog.data.cloud_db.CloudDB
 import com.devmello.gymlog.data.dao.TrainingDao
 import com.devmello.gymlog.model.Training
@@ -30,7 +31,7 @@ class TrainingRepositoryImpl(private val dao: TrainingDao, private val cloudDbCl
     override suspend fun getById(id: String, userId: String): Training? = dao.getById(id, userId)
 
     override suspend fun save(training: Training) {
-        dao.save(training.copy(isSynchronized = cloudDbClient.saveTraining(training).isSuccess))
+        dao.save(training.copy(isSynchronized = cloudDbClient.saveTraining(training) is Response.Success))
     }
 
     override suspend fun disable(training: Training) {
@@ -50,12 +51,12 @@ class TrainingRepositoryImpl(private val dao: TrainingDao, private val cloudDbCl
         val allCloud = cloudDbClient.getAllTrainings(userId)
 
         allDisabled.forEach {
-            if (cloudDbClient.deleteTraining(it).isSuccess) {
+            if (cloudDbClient.deleteTraining(it) is Response.Success) {
                 dao.delete(it)
             }
         }
         allUnSynchronized.forEach {
-            if (cloudDbClient.saveTraining(it).isSuccess) {
+            if (cloudDbClient.saveTraining(it) is Response.Success) {
                 dao.save(it.copy(isSynchronized = true))
             } else {
                 return@forEach
