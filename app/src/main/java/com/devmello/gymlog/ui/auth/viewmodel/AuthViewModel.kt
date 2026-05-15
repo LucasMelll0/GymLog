@@ -8,9 +8,12 @@ import com.devmello.gymlog.core.model.UserCredentials
 import com.devmello.gymlog.core.model.UserData
 import com.devmello.gymlog.core.model.repositories.UserPreferencesRepository
 import com.devmello.gymlog.core.ui.LoadingManager
+import com.devmello.gymlog.core.ui.MessageDuration
+import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.ui.auth.authclient.SignInState
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,7 +44,8 @@ interface AuthViewModel {
 class AuthViewModelImpl(
     private val authRepository: AuthRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val loadingManager: LoadingManager
+    private val loadingManager: LoadingManager,
+    private val messageManager: MessageManager
 ) : AuthViewModel, ViewModel() {
     private val _state = MutableStateFlow(SignInState())
     override val state = _state.asStateFlow()
@@ -64,6 +68,10 @@ class AuthViewModelImpl(
                     result.errorMessage
                 } else null
             )
+        }
+        if(result is AuthResult.Error) {
+            val message = result.errorMessage
+            messageManager.postMessage(message, duration = MessageDuration.INDEFINITE)
         }
     }
 

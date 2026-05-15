@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -26,10 +28,24 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.devmello.gymlog.R
+import com.devmello.gymlog.core.ui.ScaffoldConfig
+import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.ui.theme.GymLogTheme
 
 @Composable
-fun AuthenticationScreen(onClickLogin: () -> Unit, onClickRegister: () -> Unit) {
+fun AuthenticationScreen(
+    scaffoldManager: ScaffoldManager,
+    onClickLogin: () -> Unit,
+    onClickRegister: () -> Unit
+) {
+    LaunchedEffect(Unit) {
+        scaffoldManager.updateConfig(
+            ScaffoldConfig(
+                drawerGesturesEnabled = false,
+                showTopBar = false
+            )
+        )
+    }
     Image(
         painter = painterResource(id = R.drawable.welcome_background),
         contentDescription = null,
@@ -110,6 +126,10 @@ fun AuthenticationScreen(onClickLogin: () -> Unit, onClickRegister: () -> Unit) 
 @Composable
 fun AuthenticationScreenPreview() {
     GymLogTheme {
-        AuthenticationScreen(onClickLogin = {}, onClickRegister = {})
+        AuthenticationScreen(
+            onClickLogin = {},
+            onClickRegister = {},
+            scaffoldManager = ScaffoldManager()
+        )
     }
 }

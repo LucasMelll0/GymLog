@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.devmello.gymlog.R
 import com.devmello.gymlog.core.model.UserCredentials
+import com.devmello.gymlog.core.ui.ScaffoldConfig
+import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.ui.components.DefaultPasswordTextField
 import com.devmello.gymlog.ui.components.DefaultTextField
 import com.devmello.gymlog.ui.components.GoogleSignInButton
@@ -46,12 +49,20 @@ import com.devmello.gymlog.utils.isValidEmail
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
+    scaffoldManager: ScaffoldManager,
     onGoogleSignInClick: () -> Unit,
     onClickRegister: () -> Unit,
     onConventionalSignInClick: (UserCredentials) -> Unit,
     onSendResetPasswordEmailClick: (email: String) -> Unit
 ) {
-    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        scaffoldManager.updateConfig(ScaffoldConfig(
+            drawerGesturesEnabled = false,
+            showTopBar = false
+        ))
+    }
+
     var email: String by rememberSaveable { mutableStateOf("") }
     var password: String by rememberSaveable { mutableStateOf("") }
     var emailHasError: Boolean by remember { mutableStateOf(false) }
@@ -115,11 +126,11 @@ fun LoginScreen(
                     val userCredentials = UserCredentials(email = email, password = password)
                     onConventionalSignInClick(userCredentials)
                 } else {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.auth_invalid_credentials_message),
-                        Toast.LENGTH_SHORT
-                    ).show()
+//                    Toast.makeText(
+//                        context,
+//                        context.getString(R.string.auth_invalid_credentials_message), // TODO
+//                        Toast.LENGTH_SHORT
+//                    ).show()
                 }
 
             }, modifier = Modifier.fillMaxWidth()) {
@@ -240,6 +251,7 @@ fun SendPasswordResetEmailBottomSheetPreview() {
 fun LoginScreenPreview() {
     GymLogTheme {
         LoginScreen(
+            scaffoldManager = ScaffoldManager(),
             onGoogleSignInClick = {},
             onClickRegister = {},
             onConventionalSignInClick = {},

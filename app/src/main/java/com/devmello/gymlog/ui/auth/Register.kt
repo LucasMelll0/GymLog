@@ -21,6 +21,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +36,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.devmello.gymlog.R
 import com.devmello.gymlog.core.model.UserCredentials
+import com.devmello.gymlog.core.ui.MessageManager
+import com.devmello.gymlog.core.ui.ScaffoldConfig
+import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.ui.components.DefaultPasswordTextField
 import com.devmello.gymlog.ui.components.DefaultTextField
 import com.devmello.gymlog.ui.components.GoogleSignInButton
@@ -42,11 +47,19 @@ import com.devmello.gymlog.utils.isValidEmail
 
 @Composable
 fun RegisterScreen(
+    scaffoldManager: ScaffoldManager,
     onClickLogin: () -> Unit,
     onGoogleSignInClick: () -> Unit,
     onConventionalRegisterClick: (UserCredentials) -> Unit
 ) {
-    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        scaffoldManager.updateConfig(
+            ScaffoldConfig(
+                drawerGesturesEnabled = false,
+                showTopBar = false
+            )
+        )
+    }
     var userName: String by rememberSaveable { mutableStateOf("") }
     var email: String by rememberSaveable { mutableStateOf("") }
     var password: String by rememberSaveable { mutableStateOf("") }
@@ -170,8 +183,6 @@ fun RegisterScreen(
                         userName = userName
                     )
                     onConventionalRegisterClick(userCredentials)
-                } else {
-                    Toast.makeText(context, "Tem erro", Toast.LENGTH_SHORT).show()
                 }
             }, modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -202,6 +213,7 @@ fun RegisterScreen(
 fun RegisterScreenPreview() {
     GymLogTheme {
         RegisterScreen(
+            scaffoldManager = ScaffoldManager(),
             onClickLogin = {},
             onGoogleSignInClick = {},
             onConventionalRegisterClick = {})
