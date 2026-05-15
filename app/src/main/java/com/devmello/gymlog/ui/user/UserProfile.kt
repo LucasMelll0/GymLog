@@ -62,7 +62,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devmello.gymlog.R
 import com.devmello.gymlog.core.model.Response
 import com.devmello.gymlog.core.model.UserData
-import com.devmello.gymlog.data.datastore.UserStore
+import com.devmello.gymlog.core.model.repositories.UserPreferencesRepository
 import com.devmello.gymlog.extensions.capitalizeAllWords
 import com.devmello.gymlog.extensions.checkConnection
 import com.devmello.gymlog.ui.components.DefaultAsyncImage
@@ -77,8 +77,11 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.auth.EmailAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
 import java.util.Date
 import java.util.UUID
@@ -93,6 +96,12 @@ fun UserProfileScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var isLoading by rememberSaveable { mutableStateOf(false) }
+    val userPreferencesRepository = get<UserPreferencesRepository>()
+    val googleIdToken by userPreferencesRepository.googleIdToken.stateIn(
+        scope = rememberCoroutineScope(),
+        started = SharingStarted.Eagerly,
+        initialValue = null
+    ).collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
     val user by viewModel.user.collectAsStateWithLifecycle()
     LaunchedEffect(key1 = user) {
