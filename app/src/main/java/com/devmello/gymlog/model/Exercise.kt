@@ -25,7 +25,7 @@ data class Exercise(
             val otherTitle = other.title
             val otherSeries = other.series
             val otherRepetitions = other.repetitions
-            return otherTitle == this.title &&
+            otherTitle == this.title &&
                     otherSeries == this.series &&
                     otherRepetitions == this.repetitions
         } else {

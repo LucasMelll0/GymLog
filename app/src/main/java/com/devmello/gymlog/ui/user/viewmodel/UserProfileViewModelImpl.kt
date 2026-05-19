@@ -5,12 +5,13 @@ import androidx.lifecycle.ViewModel
 import com.devmello.gymlog.core.model.Response
 import com.devmello.gymlog.core.model.UserData
 import com.devmello.gymlog.core.model.repositories.AccountRepository
+import com.devmello.gymlog.core.model.repositories.UserPreferencesRepository
 import com.devmello.gymlog.core.model.repositories.UserRepository
-import com.devmello.gymlog.extensions.toUserData
 import com.devmello.gymlog.repository.BmiInfoRepository
 import com.devmello.gymlog.repository.TrainingRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 
 
@@ -24,13 +25,11 @@ interface UserProfileViewModel {
 
     suspend fun changePassword(
         oldPassword: String,
-        newPassword: String,
-        googleIdToken: String? = null,
+        newPassword: String
     ): Response<Unit>
 
     suspend fun deleteUser(
-        password: String,
-        googleIdToken: String? = null,
+        password: String
     ): Response<Unit>
 
 }
@@ -39,8 +38,10 @@ class UserProfileViewModelImpl(
     private val accountRepository: AccountRepository,
     private val trainingRepository: TrainingRepository,
     private val bmiInfoRepository: BmiInfoRepository,
-    private val userRepository: UserRepository
-) : UserProfileViewModel, ViewModel() {
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val userRepository: UserRepository,
+
+    ) : UserProfileViewModel, ViewModel() {
 
     private val _user = MutableStateFlow(accountRepository.currentUser)
     override val user: StateFlow<UserData?> get() = _user
@@ -70,19 +71,21 @@ class UserProfileViewModelImpl(
 
     override suspend fun changePassword(
         oldPassword: String,
-        newPassword: String,
-        googleIdToken: String?,
-    ) =
-        accountRepository.changePassword(
+        newPassword: String
+    ): Response<Unit> {
+        val googleIdToken = userPreferencesRepository.googleIdToken.firstOrNull()
+        return accountRepository.changePassword(
             oldPassword = oldPassword.ifEmpty { null },
             newPassword = newPassword,
             googleIdToken = googleIdToken
         )
+    }
+
 
     override suspend fun deleteUser(
-        password: String,
-        googleIdToken: String?
+        password: String
     ): Response<Unit> {
+        val googleIdToken = userPreferencesRepository.googleIdToken.firstOrNull()
         return user.value?.let {
             trainingRepository.disableAll(it.uid)
             bmiInfoRepository.disableAll(it.uid)

@@ -177,7 +177,7 @@ fun AppDropdownTimer(modifier: Modifier = Modifier) {
 @Composable
 private fun AppTimerPreview() {
     GymLogTheme {
-        Card() {
+        Card {
             AppDropdownTimer(modifier = Modifier.padding(8.dp))
         }
     }

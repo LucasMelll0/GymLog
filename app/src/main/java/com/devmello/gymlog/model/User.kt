@@ -12,5 +12,4 @@ data class User(
     val gender: Gender? = null,
     val height: Int = 0,
     val age: Int = 0
-) {
-}
+)

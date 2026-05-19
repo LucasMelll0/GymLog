@@ -1,8 +1,11 @@
 package com.devmello.gymlog.di
 
 import androidx.room.Room
+import com.devmello.gymlog.core.model.repositories.AccountRepository
 import com.devmello.gymlog.core.model.repositories.AuthRepository
 import com.devmello.gymlog.core.model.repositories.UserPreferencesRepository
+import com.devmello.gymlog.core.model.repositories.UserRepository
+import com.devmello.gymlog.core.navigation.NavigationManager
 import com.devmello.gymlog.core.ui.LoadingManager
 import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.core.ui.ScaffoldManager
@@ -15,7 +18,9 @@ import com.devmello.gymlog.data.firebase.FirebaseAuthRepository
 import com.devmello.gymlog.data.firebase.FirebaseUserClient
 import com.devmello.gymlog.data.firebase.StorageClient
 import com.devmello.gymlog.navigation.viewmodel.MainViewModelImpl
+import com.devmello.gymlog.repository.BmiInfoRepository
 import com.devmello.gymlog.repository.BmiInfoRepositoryImpl
+import com.devmello.gymlog.repository.TrainingRepository
 import com.devmello.gymlog.repository.TrainingRepositoryImpl
 import com.devmello.gymlog.repository.UserRepositoryImpl
 import com.devmello.gymlog.ui.auth.viewmodel.AuthViewModelImpl
@@ -56,7 +61,7 @@ val firebaseModule = module {
     single<CloudDB> {
         FireStoreClient()
     }
-    single {
+    single<AccountRepository> {
         FirebaseUserClient(get())
     }
     single {
@@ -65,13 +70,13 @@ val firebaseModule = module {
 }
 
 val repositoryModule = module {
-    single {
+    single<TrainingRepository> {
         TrainingRepositoryImpl(get(), get())
     }
-    single {
+    single<BmiInfoRepository> {
         BmiInfoRepositoryImpl(get(), get())
     }
-    single {
+    single<UserRepository> {
         UserRepositoryImpl(get(), get())
     }
 }
@@ -88,6 +93,10 @@ val mainModule = module {
         MessageManager()
     }
 
+    single<NavigationManager> {
+        NavigationManager()
+    }
+
     single<UserPreferencesRepository> {
         UserStore(androidApplication())
     }
@@ -99,30 +108,30 @@ val mainModule = module {
 
 val homeModule = module {
     viewModel {
-        HomeViewModelImpl(get<TrainingRepositoryImpl>())
+        HomeViewModelImpl(get())
     }
 }
 
 val formModule = module {
     viewModel {
-        TrainingFormViewModel(get<TrainingRepositoryImpl>())
+        TrainingFormViewModel(get())
     }
 }
 
 val logModule = module {
     viewModel {
-        TrainingLogViewModelImpl(get<TrainingRepositoryImpl>())
+        TrainingLogViewModelImpl(get())
     }
 }
 
 val bmiModule = module {
     viewModel {
-        BmiCalculatorViewModel(get<BmiInfoRepositoryImpl>())
+        BmiCalculatorViewModel(get())
     }
     viewModel {
         BmiHistoricViewModelImpl(
-            userRepository = get<UserRepositoryImpl>(),
-            bmiRepository = get<BmiInfoRepositoryImpl>()
+            userRepository = get(),
+            bmiRepository = get()
         )
     }
 }
@@ -135,7 +144,9 @@ val authModule = module {
         AuthViewModelImpl(
             authRepository = get(),
             userPreferencesRepository = get(),
-            loadingManager = get()
+            loadingManager = get(),
+            messageManager = get(),
+            navigationManager = get()
         )
     }
 }
@@ -144,9 +155,10 @@ val userProfileModule = module {
     viewModel {
         UserProfileViewModelImpl(
             accountRepository = get(),
-            trainingRepository = get<TrainingRepositoryImpl>(),
-            bmiInfoRepository = get<BmiInfoRepositoryImpl>(),
-            userRepository = get<UserRepositoryImpl>()
+            trainingRepository = get(),
+            bmiInfoRepository = get(),
+            userRepository = get(),
+            userPreferencesRepository = get()
         )
     }
 }

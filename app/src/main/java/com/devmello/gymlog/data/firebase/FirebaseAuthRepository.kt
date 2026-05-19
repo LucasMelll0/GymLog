@@ -8,6 +8,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import com.devmello.gymlog.R
 import com.devmello.gymlog.core.model.repositories.AuthRepository
 import com.devmello.gymlog.core.model.AuthResult
@@ -97,8 +98,7 @@ class FirebaseAuthRepository(private val context: Context) : AuthRepository {
                 idToken = it
                 if (idToken == null) throw Exception("No id token")
             }
-            val userData = currentUserData
-            if (userData == null) throw Exception("No user data")
+            val userData = currentUserData ?: throw Exception("No user data")
             AuthResult.Success(
                 data = userData.copy(googleIdToken = idToken)
             )
@@ -106,7 +106,11 @@ class FirebaseAuthRepository(private val context: Context) : AuthRepository {
             AuthResult.Error(
                 errorMessage = e.message ?: context.getString(R.string.get_credential_error_message)
             )
-        } catch (e: Exception) {
+        } catch (e: NoCredentialException) {
+            AuthResult.Error(
+                errorMessage = e.message ?: context.getString(R.string.get_credential_error_message)
+            )
+        }catch (e: Exception) {
             if (e is CancellationException) throw e
             e.printStackTrace()
             AuthResult.Error(

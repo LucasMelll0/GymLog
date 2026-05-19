@@ -7,9 +7,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -50,6 +53,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devmello.gymlog.R
@@ -221,7 +225,11 @@ fun SavedTimesList(list: List<Long>, modifier: Modifier = Modifier) {
                     position = position + 1,
                     time = time,
                     totalTime = it,
-                    modifier = Modifier.animateItemPlacement()
+                    modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null, placementSpec = spring(
+                                stiffness = Spring.StiffnessMediumLow,
+                                visibilityThreshold = IntOffset.VisibilityThreshold
+                            )
+                    )
                 )
             }
         }

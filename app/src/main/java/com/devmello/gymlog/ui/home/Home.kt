@@ -117,7 +117,7 @@ fun HomeScreen(
 
     Box(modifier = modifier) {
         if (isLoading) TrainingListShimmer(Modifier.padding(dimensionResource(id = R.dimen.small_padding)))
-        if (trainings.isEmpty()) HomeEmptyListMessage()
+        if (trainings.isEmpty() && !isLoading) HomeEmptyListMessage()
         bottomSheetMenuTraining?.let {
             if (showTrainingDeleteDialog) DeleteTrainingDialog(
                 onConfirm = {
@@ -236,13 +236,9 @@ private fun HomeScreenPreview() {
                 if (!filters.contains(filter)) _filters.add(filter) else _filters.remove(filter)
             }
 
-            override suspend fun deleteTraining(trainingId: String) {
-                TODO("Not yet implemented")
-            }
+            override suspend fun deleteTraining(trainingId: String) {}
 
-            override suspend fun sync() {
-                TODO("Not yet implemented")
-            }
+            override suspend fun sync() {}
         }
         HomeScreen(
             scaffoldManager = ScaffoldManager(),

@@ -9,7 +9,7 @@ import com.devmello.gymlog.extensions.shimmerEffect
 @Composable
 fun TrainingListShimmer(modifier: Modifier = Modifier) {
     LazyColumn(modifier = modifier.fillMaxSize()) {
-        items(5) {
+        items(3) {
             TrainingItemShimmer(modifier, Modifier.shimmerEffect())
         }
     }

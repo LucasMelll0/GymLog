@@ -1,8 +1,12 @@
 package com.devmello.gymlog.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeGestures
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -19,10 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.zIndex
@@ -31,6 +33,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.devmello.gymlog.R
+import com.devmello.gymlog.core.navigation.NavDestination
+import com.devmello.gymlog.core.navigation.NavMethod
+import com.devmello.gymlog.core.navigation.NavigationManager
+import com.devmello.gymlog.core.ui.MessageDuration
 import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.navigation.AppNavHost
@@ -48,11 +54,12 @@ import com.devmello.gymlog.ui.components.LoadingDialog
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MainScreen(
     scaffoldManager: ScaffoldManager,
-    messageManager: MessageManager
+    messageManager: MessageManager,
+    navigationManager: NavigationManager
 ) {
     val navController = rememberNavController()
 
@@ -74,16 +81,19 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
 
     // User
-    var currentUserdata by remember { mutableStateOf(authViewModel.currentUser) }
+    val currentUserdata by authViewModel.currentUser.collectAsStateWithLifecycle()
+
+    LaunchedEffect(currentUserdata) {
+        currentUserdata?.let {
+            navigationManager.navigate(NavDestination(Home.route, navMethod = NavMethod.INCLUSIVE))
+        }
+    }
 
     // Route
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val signInState by authViewModel.state.collectAsStateWithLifecycle()
-
-
-    LaunchedEffect(messages) {
+    LaunchedEffect(key1 = messages) {
         if (messages.isNotEmpty()) {
             val message = messages.first()
             snackBarHostState.showSnackbar(
@@ -94,20 +104,6 @@ fun MainScreen(
             messageManager.removeMessage(message.id)
         }
     }
-    // TODO Pensar num navigation Manager e manter a lógica de postagem de mensagem dentro do authViewModel
-    LaunchedEffect(signInState.signInError) { // TODO talvez dê para refatorar melhor
-        signInState.signInError?.let { error ->
-            messageManager.postMessage(error)
-        }
-    }
-
-    LaunchedEffect(key1 = signInState.isSignInSuccessful) {
-        if (signInState.isSignInSuccessful) {
-            currentUserdata = authViewModel.currentUser
-            navController.navigateSingleTopTo(Home.route)
-        }
-    }
-    // TODO
 
     DisposableEffect(currentRoute) {
         onDispose {
@@ -166,9 +162,10 @@ fun MainScreen(
                 }
             },
             floatingActionButton = config.fab,
+            contentWindowInsets = WindowInsets.safeGestures
         ) { paddingValues ->
             Box(modifier = Modifier.padding(paddingValues)) {
-                AppNavHost(navController, scaffoldManager)
+                AppNavHost(navController, scaffoldManager, navigationManager)
             }
         }
 

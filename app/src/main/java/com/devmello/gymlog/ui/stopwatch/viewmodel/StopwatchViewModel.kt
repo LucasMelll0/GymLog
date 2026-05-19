@@ -12,7 +12,7 @@ interface StopwatchViewModel {
 
 }
 
-class StopwatchViewModelImpl() : StopwatchViewModel,
+class StopwatchViewModelImpl : StopwatchViewModel,
     ViewModel() {
 
     private val _savedTimes = mutableStateListOf<Long>()

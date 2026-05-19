@@ -21,9 +21,9 @@ object Form : Destination {
     override val route: String = "form"
     override val title: Int = R.string.form_destination
     override val icon: Int? = null
-    const val trainingIdArg = "training_id"
-    val routeWithArgs = "$route/{$trainingIdArg}"
-    val arguments = listOf(navArgument(trainingIdArg) {
+    const val TRAINING_ID_ARG = "training_id"
+    val routeWithArgs = "$route/{$TRAINING_ID_ARG}"
+    val arguments = listOf(navArgument(TRAINING_ID_ARG) {
         type = NavType.StringType
     })
 }
@@ -32,9 +32,9 @@ object Log : Destination {
     override val route: String = "training_log"
     override val title: Int? = null
     override val icon: Int? = null
-    const val trainingIdArg = "training_id"
-    val routeWithArgs = "$route/{$trainingIdArg}"
-    val arguments = listOf(navArgument(trainingIdArg) {
+    const val TRAINING_ID_ARG = "training_id"
+    val routeWithArgs = "$route/{$TRAINING_ID_ARG}"
+    val arguments = listOf(navArgument(TRAINING_ID_ARG) {
         type = NavType.StringType
     })
 }

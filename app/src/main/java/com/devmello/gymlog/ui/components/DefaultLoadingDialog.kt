@@ -2,7 +2,7 @@ package com.devmello.gymlog.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -20,21 +20,22 @@ import com.devmello.gymlog.ui.theme.GymLogTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoadingDialog(text: String? = null) {
-    AlertDialog(
+    BasicAlertDialog(
         onDismissRequest = {},
-        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CircularProgressIndicator(modifier = Modifier.size(dimensionResource(id = R.dimen.default_icon_size)))
-            text?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
-                )
+        modifier = Modifier,
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+        content = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator(modifier = Modifier.size(dimensionResource(id = R.dimen.default_icon_size)))
+                text?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
+                    )
+                }
             }
-        }
-    }
+        })
 }
 
 @Preview

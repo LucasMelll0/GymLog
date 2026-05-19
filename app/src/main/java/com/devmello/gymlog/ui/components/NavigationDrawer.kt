@@ -1,8 +1,6 @@
 package com.devmello.gymlog.ui.components
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,12 +18,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ExitToApp
+import androidx.compose.material.icons.automirrored.rounded.ExitToApp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
@@ -42,8 +41,6 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import com.devmello.gymlog.R
 import com.devmello.gymlog.core.model.UserData
 import com.devmello.gymlog.extensions.capitalizeAllWords
@@ -65,22 +62,18 @@ fun DrawerBody(
     onClickExit: () -> Unit,
     user: UserData?
 ) {
-    val bigCornerSize = dimensionResource(id = R.dimen.large_corner_size)
-    ConstraintLayout(
-        modifier
+    val bigCornerSize = dimensionResource(R.dimen.large_corner_size)
+    Column(
+        verticalArrangement = Arrangement.SpaceBetween,
+        modifier = modifier
             .fillMaxHeight()
             .clip(RoundedCornerShape(topEnd = bigCornerSize, bottomEnd = bigCornerSize))
-            .background(MaterialTheme.colorScheme.surface)
-            .fillMaxWidth(0.8f)
+            .background(MaterialTheme.colorScheme.surface),
     ) {
-        val (content, exitButton) = createRefs()
         Column(
             modifier = Modifier
                 .padding(dimensionResource(id = R.dimen.default_padding))
-                .constrainAs(content) {
-                    linkTo(parent.top, exitButton.top, bias = 0f)
-                    height = Dimension.fillToConstraints
-                }) {
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
@@ -118,9 +111,9 @@ fun DrawerBody(
                     }
                 }
             }
-            Divider()
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
             Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
-            LazyColumn() {
+            LazyColumn {
                 items(items) {
                     val isCurrentDestination = it.route == currentDestinationRoute
                     DrawerBodyItem(
@@ -129,23 +122,20 @@ fun DrawerBody(
                 }
             }
         }
+        // Exit Button
         TextButton(
             onClick = onClickExit,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = dimensionResource(id = R.dimen.default_padding))
-                .constrainAs(exitButton) {
-                    linkTo(top = content.bottom, bottom = parent.bottom, bias = 0f)
-                },
-
-            ) {
+                .padding(vertical = dimensionResource(id = R.dimen.default_padding)),
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.ExitToApp,
+                    imageVector = Icons.AutoMirrored.Rounded.ExitToApp,
                     contentDescription = null,
                     modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.default_padding))
                 )
@@ -156,6 +146,7 @@ fun DrawerBody(
             }
         }
     }
+
 }
 
 

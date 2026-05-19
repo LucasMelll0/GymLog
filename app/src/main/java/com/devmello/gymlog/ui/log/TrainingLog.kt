@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Refresh
@@ -373,7 +373,7 @@ private fun TrainingLogBottomAppBar(
     }, actions = {
         IconButton(onClick = onNavIconClick) {
             Icon(
-                imageVector = Icons.Rounded.ArrowBack,
+                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                 contentDescription = stringResource(id = R.string.common_go_to_back)
             )
         }

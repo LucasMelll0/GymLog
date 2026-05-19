@@ -213,7 +213,6 @@ fun DefaultPasswordTextField(
 
             ),
         keyboardOptions = KeyboardOptions.Default.copy(
-            autoCorrect = true,
             keyboardType = KeyboardType.Text,
             imeAction = ImeAction.Done
         ),

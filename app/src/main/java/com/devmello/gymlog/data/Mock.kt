@@ -15,7 +15,7 @@ class Mock {
 
     companion object {
         fun getFilters(): List<TrainingTypes> {
-            val trainingTypes = TrainingTypes.values()
+            val trainingTypes = TrainingTypes.entries.toTypedArray()
             val filters = mutableListOf<TrainingTypes>()
             val listSize = Random.nextInt(3, 5)
             while (filters.size < listSize) {

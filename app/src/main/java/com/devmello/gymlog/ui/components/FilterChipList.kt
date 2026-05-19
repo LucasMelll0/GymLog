@@ -134,7 +134,7 @@ fun FilterChipSelectionList(
 @Preview(showBackground = true)
 @Composable
 private fun FilterChipSelectionListPreview() {
-    val filters = TrainingTypes.values().map { stringResource(id = it.stringRes()) }
+    val filters = TrainingTypes.entries.map { stringResource(id = it.stringRes()) }
     val selectedList = remember {
         mutableStateListOf<String>()
     }

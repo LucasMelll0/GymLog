@@ -5,6 +5,7 @@ import com.devmello.gymlog.model.BmiInfo
 import com.devmello.gymlog.model.Training
 import com.devmello.gymlog.model.User
 
+@Suppress("unused")
 class MockedCloudDB : CloudDB {
     override suspend fun saveUserInfo(user: User) {
         return

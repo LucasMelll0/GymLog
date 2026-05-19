@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,7 +49,7 @@ fun DefaultSearchBar(
             horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
         ) {
             IconButton(onClick = onClickBackButton) {
-                Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = "Voltar")
+                Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Voltar")
             }
             OutlinedTextField(
                 modifier = Modifier

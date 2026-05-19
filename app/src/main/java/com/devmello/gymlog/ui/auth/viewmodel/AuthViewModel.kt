@@ -2,18 +2,23 @@ package com.devmello.gymlog.ui.auth.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.devmello.gymlog.core.model.repositories.AuthRepository
 import com.devmello.gymlog.core.model.AuthResult
 import com.devmello.gymlog.core.model.UserCredentials
 import com.devmello.gymlog.core.model.UserData
+import com.devmello.gymlog.core.model.repositories.AuthRepository
 import com.devmello.gymlog.core.model.repositories.UserPreferencesRepository
+import com.devmello.gymlog.core.navigation.NavDestination
+import com.devmello.gymlog.core.navigation.NavMethod
+import com.devmello.gymlog.core.navigation.NavigationManager
 import com.devmello.gymlog.core.ui.LoadingManager
 import com.devmello.gymlog.core.ui.MessageDuration
 import com.devmello.gymlog.core.ui.MessageManager
+import com.devmello.gymlog.extensions.toUserData
+import com.devmello.gymlog.navigation.Home
 import com.devmello.gymlog.ui.auth.authclient.SignInState
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +28,7 @@ import kotlinx.coroutines.launch
 interface AuthViewModel {
 
     val state: StateFlow<SignInState>
-    val currentUser: UserData?
+    val currentUser: StateFlow<UserData?>
 
     fun onSignInResult(result: AuthResult)
 
@@ -45,20 +50,28 @@ class AuthViewModelImpl(
     private val authRepository: AuthRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val loadingManager: LoadingManager,
-    private val messageManager: MessageManager
+    private val messageManager: MessageManager,
+    private val navigationManager: NavigationManager
 ) : AuthViewModel, ViewModel() {
     private val _state = MutableStateFlow(SignInState())
     override val state = _state.asStateFlow()
 
-    override val currentUser
-        get() = Firebase.auth.currentUser?.run {
-            UserData(
-                uid = uid,
-                userName = displayName ?: "",
-                profilePicture = photoUrl?.toString() ?: "",
-            )
+    private val _currentUser = MutableStateFlow<UserData?>(null)
+    override val currentUser = _currentUser.asStateFlow()
+
+    private val authStateListener: FirebaseAuth.AuthStateListener =
+        FirebaseAuth.AuthStateListener { state ->
+            _currentUser.value = state.currentUser?.toUserData()
         }
 
+    init {
+        Firebase.auth.addAuthStateListener(authStateListener)
+    }
+
+    override fun onCleared() {
+        Firebase.auth.removeAuthStateListener(authStateListener)
+        super.onCleared()
+    }
 
     override fun onSignInResult(result: AuthResult) {
         _state.update {
@@ -69,10 +82,19 @@ class AuthViewModelImpl(
                 } else null
             )
         }
-        if(result is AuthResult.Error) {
-            val message = result.errorMessage
-            messageManager.postMessage(message, duration = MessageDuration.INDEFINITE)
+        when (result) {
+            is AuthResult.Success -> navigationManager.navigate(
+                NavDestination(
+                    Home.route,
+                    navMethod = NavMethod.INCLUSIVE
+                )
+            )
+
+            is AuthResult.Error -> result.errorMessage.let {
+                messageManager.postMessage(it, duration = MessageDuration.LONG)
+            }
         }
+
     }
 
     override fun resetState() {

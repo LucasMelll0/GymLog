@@ -1,5 +1,8 @@
 package com.devmello.gymlog.ui.home.components
 
+import androidx.compose.animation.core.Spring.StiffnessMediumLow
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.padding
@@ -8,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.unit.IntOffset
 import com.devmello.gymlog.R
 import com.devmello.gymlog.model.Training
 
@@ -27,13 +31,17 @@ fun TrainingList(
             trainingWithExercises,
             key = { training -> training.trainingId }
         ) { training ->
+            Modifier
+                .padding(dimensionResource(id = R.dimen.small_padding))
             TrainingItem(
                 onClick = { onClickListener(training) },
                 onLongClick = { onLongClickListener(training) },
                 training = training,
-                modifier = Modifier
-                    .padding(dimensionResource(id = R.dimen.small_padding))
-                    .animateItemPlacement(),
+                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null, placementSpec = spring(
+                            stiffness = StiffnessMediumLow,
+                            visibilityThreshold = IntOffset.VisibilityThreshold
+                        )
+                ),
             )
         }
     }

@@ -2,13 +2,16 @@ package com.devmello.gymlog.navigation
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.devmello.gymlog.core.ui.MessageManager
+import com.devmello.gymlog.core.navigation.NavMethod
+import com.devmello.gymlog.core.navigation.NavigationManager
 import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.ui.auth.AuthenticationScreen
 import com.devmello.gymlog.ui.auth.LoginScreen
@@ -23,7 +26,6 @@ import com.devmello.gymlog.ui.log.TrainingLogScreen
 import com.devmello.gymlog.ui.stopwatch.StopwatchScreen
 import com.devmello.gymlog.ui.user.UserProfileScreen
 import com.devmello.gymlog.utils.BackPressHandler
-import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -31,13 +33,28 @@ import org.koin.androidx.compose.koinViewModel
 fun AppNavHost(
     navController: NavHostController,
     scaffoldManager: ScaffoldManager,
+    navigationManager: NavigationManager,
     modifier: Modifier = Modifier
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val authViewModel: AuthViewModel = koinViewModel<AuthViewModelImpl>()
+    val navigationQueue by navigationManager.destinations.collectAsStateWithLifecycle()
 
-    val startDestination = authViewModel.currentUser?.let { Home.route } ?: Auth.route
+    val startDestination = Auth.route
+
+    LaunchedEffect(navigationQueue) {
+
+        if (navigationQueue.isNotEmpty()) {
+            val destination = navigationQueue.first()
+            when (destination.navMethod) {
+                NavMethod.SINGLE_TOP -> navController.navigateSingleTopTo(destination.formatedDestination)
+                NavMethod.INCLUSIVE -> navController.navigateInclusive(destination.formatedDestination)
+            }
+            navigationManager.removeDestination(destination)
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -47,7 +64,7 @@ fun AppNavHost(
             LoginScreen(
                 scaffoldManager = scaffoldManager,
                 onGoogleSignInClick = {
-                    authViewModel.signInWithGoogle(alreadyRegistered = true)
+                    authViewModel.signInWithGoogle(alreadyRegistered = false)
                 },
                 onClickRegister = { navController.navigateInclusive(Register.route) },
                 onConventionalSignInClick = { userCredentials ->
@@ -92,7 +109,7 @@ fun AppNavHost(
             route = Form.routeWithArgs,
             arguments = Form.arguments
         ) { navBackStackEntry ->
-            val trainingId = navBackStackEntry.arguments?.getString(Form.trainingIdArg)
+            val trainingId = navBackStackEntry.arguments?.getString(Form.TRAINING_ID_ARG)
             TrainingFormScreen(
                 trainingId = trainingId,
                 onSaveTraining = { navController.popBackStack() },
@@ -102,7 +119,7 @@ fun AppNavHost(
             route = Log.routeWithArgs,
             arguments = Log.arguments
         ) { navBackStackEntry ->
-            val trainingId = navBackStackEntry.arguments?.getString(Log.trainingIdArg)
+            val trainingId = navBackStackEntry.arguments?.getString(Log.TRAINING_ID_ARG)
             trainingId?.let {
                 TrainingLogScreen(
                     onBackPressed = { navController.popBackStack() },

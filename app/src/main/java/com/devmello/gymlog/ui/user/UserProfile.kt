@@ -12,7 +12,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -62,7 +61,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devmello.gymlog.R
 import com.devmello.gymlog.core.model.Response
 import com.devmello.gymlog.core.model.UserData
-import com.devmello.gymlog.core.model.repositories.UserPreferencesRepository
 import com.devmello.gymlog.extensions.capitalizeAllWords
 import com.devmello.gymlog.extensions.checkConnection
 import com.devmello.gymlog.ui.components.DefaultAsyncImage
@@ -77,11 +75,8 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.auth.EmailAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
 import java.util.Date
 import java.util.UUID
@@ -96,12 +91,6 @@ fun UserProfileScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var isLoading by rememberSaveable { mutableStateOf(false) }
-    val userPreferencesRepository = get<UserPreferencesRepository>()
-    val googleIdToken by userPreferencesRepository.googleIdToken.stateIn(
-        scope = rememberCoroutineScope(),
-        started = SharingStarted.Eagerly,
-        initialValue = null
-    ).collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
     val user by viewModel.user.collectAsStateWithLifecycle()
     LaunchedEffect(key1 = user) {
@@ -181,7 +170,7 @@ fun UserProfileScreen(
                     }) {
                         isLoading = true
                         val response =
-                            viewModel.changePassword(oldPassword, newPassword, googleIdToken)
+                            viewModel.changePassword(oldPassword, newPassword)
                         isLoading = false
                         if (response is Response.Success) {
                             snackBarHostState.showSnackbar(
@@ -206,7 +195,7 @@ fun UserProfileScreen(
                 showDeleteAccountBottomSheet = false
                 scope.launch {
                     isLoading = true
-                    val response = viewModel.deleteUser(it, googleIdToken)
+                    val response = viewModel.deleteUser(it)
                     if (response is Response.Success) {
                         onDeleteUser()
                     } else {
@@ -266,7 +255,7 @@ private fun UserProfileContent(
         verticalArrangement = Arrangement.Center
     ) {
         user?.let { user ->
-            BoxWithConstraints(
+            Box(
                 modifier = Modifier
                     .size(dimensionResource(id = R.dimen.user_profile_photo_size))
                     .padding(dimensionResource(id = R.dimen.large_padding))
@@ -575,48 +564,48 @@ fun ChangeUserPhotoDialog(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    AlertDialog(
+    BasicAlertDialog(
         onDismissRequest = onDismissRequest,
+        modifier = modifier,
         properties = DialogProperties(
             dismissOnClickOutside = false,
         ),
-        modifier = modifier
-    ) {
-        Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.extraLarge) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(dimensionResource(id = R.dimen.large_padding))
-                    .verticalScroll(rememberScrollState())
-            ) {
-                DefaultAsyncImage(
-                    data = photoUri,
-                    diskCacheKey = "user_image_selection_${Date().time}",
-                    error = painterResource(id = R.drawable.ic_person),
-                    contentDescription = stringResource(id = R.string.user_profile_photo_content_description),
+        content = {
+            Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.extraLarge) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
                     modifier = Modifier
-                        .size(dimensionResource(id = R.dimen.user_profile_photo_size))
+                        .fillMaxWidth()
                         .padding(dimensionResource(id = R.dimen.large_padding))
-                        .clip(MaterialTheme.shapes.extraLarge)
-                )
-                Text(text = "Deseja usar essa imagem como foto de perfil?")
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    OutlinedButton(onClick = onDismissRequest) {
-                        Text(text = stringResource(id = R.string.common_cancel))
-                    }
-                    Button(onClick = onConfirm) {
-                        Text(text = stringResource(id = R.string.common_confirm))
+                    DefaultAsyncImage(
+                        data = photoUri,
+                        diskCacheKey = "user_image_selection_${Date().time}",
+                        error = painterResource(id = R.drawable.ic_person),
+                        contentDescription = stringResource(id = R.string.user_profile_photo_content_description),
+                        modifier = Modifier
+                            .size(dimensionResource(id = R.dimen.user_profile_photo_size))
+                            .padding(dimensionResource(id = R.dimen.large_padding))
+                            .clip(MaterialTheme.shapes.extraLarge)
+                    )
+                    Text(text = "Deseja usar essa imagem como foto de perfil?")
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedButton(onClick = onDismissRequest) {
+                            Text(text = stringResource(id = R.string.common_cancel))
+                        }
+                        Button(onClick = onConfirm) {
+                            Text(text = stringResource(id = R.string.common_confirm))
+                        }
                     }
                 }
             }
-        }
-    }
+        })
 }
 
 @Preview
@@ -667,14 +656,13 @@ fun UserProfileScreenPreview() {
             }
 
             override suspend fun changePassword(
-                oldPassword: String, newPassword: String, googleIdToken: String?
+                oldPassword: String, newPassword: String
             ): Response<Nothing> {
                 TODO("Not yet implemented")
             }
 
             override suspend fun deleteUser(
-                password: String,
-                googleIdToken: String?
+                password: String
             ): Response<Nothing> {
                 TODO("Not yet implemented")
             }

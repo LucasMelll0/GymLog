@@ -3,6 +3,9 @@ package com.devmello.gymlog.ui.form
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,15 +23,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,6 +61,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -69,8 +73,8 @@ import com.devmello.gymlog.model.Exercise
 import com.devmello.gymlog.model.Training
 import com.devmello.gymlog.repository.TrainingRepositoryImpl
 import com.devmello.gymlog.ui.components.DefaultAlertDialog
-import com.devmello.gymlog.ui.components.DefaultTextButton
 import com.devmello.gymlog.ui.components.DefaultOutlinedTextField
+import com.devmello.gymlog.ui.components.DefaultTextButton
 import com.devmello.gymlog.ui.components.FilterChipList
 import com.devmello.gymlog.ui.components.LoadingDialog
 import com.devmello.gymlog.ui.form.viewmodel.TrainingFormViewModel
@@ -141,7 +145,7 @@ fun TrainingFormScreen(
             mutableStateOf(false)
         }
         var exerciseToEditIndex: Int? by rememberSaveable { mutableStateOf(null) }
-        TrainingTypes.values().map { stringResource(id = it.stringRes()) }
+        TrainingTypes.entries.forEach { stringResource(id = it.stringRes()) }
         if (showDismissDialog) {
             DismissTrainingDialog(
                 onDismissRequest = { showDismissDialog = false },
@@ -252,8 +256,11 @@ fun ExerciseListForm(
                 key = { exercise -> exercise.exerciseId }
             ) { exercise ->
                 ExerciseItemForm(
-                    modifier = Modifier
-                        .animateItemPlacement(),
+                    modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null, placementSpec = spring(
+                                stiffness = Spring.StiffnessMediumLow,
+                                visibilityThreshold = IntOffset.VisibilityThreshold
+                            )
+                    ),
                     exercise = exercise,
                     onClickRemove = onClickRemove,
                     onClick = onItemClickListener
@@ -261,7 +268,11 @@ fun ExerciseListForm(
             }
         }
         if (exercises.isNotEmpty()) {
-            Divider(color = DividerDefaults.color.copy(alpha = 0.3f))
+            HorizontalDivider(
+                Modifier,
+                DividerDefaults.Thickness,
+                color = DividerDefaults.color.copy(alpha = 0.3f)
+            )
         }
         DefaultTextButton(
             text = stringResource(id = R.string.training_form_button_add_exercise_text),
@@ -358,7 +369,7 @@ private fun TrainingFormBottomBar(
         actions = {
             IconButton(onClick = onNavIconClick) {
                 Icon(
-                    imageVector = Icons.Rounded.ArrowBack, contentDescription = stringResource(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(
                         id = R.string.common_go_to_back
                     )
                 )
@@ -438,7 +449,7 @@ private fun ExerciseListFormPreview() {
 @Composable
 private fun ExerciseItemFormPreview() {
     GymLogTheme {
-        Card() {
+        Card {
             val exercise = Exercise(
                 title = "Flexão de braço",
                 repetitions = 20,

@@ -19,8 +19,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
@@ -30,6 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -74,14 +76,14 @@ fun UserCreatorDialog(
         scope.launch {
             heightsListState.scrollToItem(heights.indexOf(initialValue))
         }
-        mutableStateOf(initialValue)
+        mutableIntStateOf(initialValue)
     }
     var selectedAge: Int by rememberSaveable {
         val initialValue = userToUpdate?.age ?: ages[0]
         scope.launch {
             agesListState.scrollToItem(ages.indexOf(initialValue))
         }
-        mutableStateOf(initialValue)
+        mutableIntStateOf(initialValue)
     }
     Dialog(
         onDismissRequest = onDismiss, properties = DialogProperties(
@@ -90,7 +92,7 @@ fun UserCreatorDialog(
             usePlatformDefaultWidth = false
         )
     ) {
-        Card() {
+        Card {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -112,7 +114,7 @@ fun UserCreatorDialog(
                     selected = selectedGender,
                     modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding))
                 )
-                Divider()
+                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
                 Text(
                     text = stringResource(id = R.string.bmi_calculator_height_label),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
@@ -215,7 +217,7 @@ fun HeightSelector(
 fun GenderSelector(
     onSelectedListener: (Gender) -> Unit, selected: Gender, modifier: Modifier = Modifier
 ) {
-    val genders = Gender.values()
+    val genders = Gender.entries.toTypedArray()
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceAround,
@@ -291,7 +293,7 @@ private fun AgeSelectorPreview() {
                 add(i)
             }
         }
-        var selected by remember { mutableStateOf(ages[0]) }
+        var selected by remember { mutableIntStateOf(ages[0]) }
         AgeSelector(ages = ages, onItemClickListener = { selected = it }, selected = selected)
     }
 }
@@ -325,7 +327,7 @@ private fun HeightSelectorPreview() {
                 }
             }
             var selected: Int by remember {
-                mutableStateOf(heights[0])
+                mutableIntStateOf(heights[0])
             }
             HeightSelector(
                 heights = heights,

@@ -107,7 +107,7 @@ fun CustomCircularProgressbar(progress: Float, text: String, modifier: Modifier 
 @Composable
 private fun CustomCircularProgressbarPreview() {
     GymLogTheme {
-        Card() {
+        Card {
             CustomCircularProgressbar(
                 50f,
                 "00m 10s",

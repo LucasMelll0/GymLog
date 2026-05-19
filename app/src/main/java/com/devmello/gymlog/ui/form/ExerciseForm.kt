@@ -171,7 +171,7 @@ fun ExerciseForm(
                 FilterChipSelectionList(
                     modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)),
                     selectedList = filters,
-                    filterList = TrainingTypes.values()
+                    filterList = TrainingTypes.entries
                         .map { stringResource(id = it.stringRes()) },
                     onClick = { selected ->
                         filters.find { it == selected }?.let {

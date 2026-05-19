@@ -184,14 +184,11 @@ private fun ExerciseItemPreview() {
         observations = "Ao realizar o agachamento, é essencial manter a postura correta e evitar que os joelhos ultrapassem a linha dos dedos dos pés.",
         filters = Mock.getFilters().map { stringResource(id = it.stringRes()) }
     )
-    var isChecked by rememberSaveable {
-        mutableStateOf(false)
-    }
     GymLogTheme {
         Card {
             ExerciseItem(
                 exercise = exercise,
-                onCheckedChange = { isChecked = it },
+                onCheckedChange = { },
                 modifier = Modifier.padding(8.dp)
             )
         }

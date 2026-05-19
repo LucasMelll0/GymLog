@@ -3,7 +3,7 @@ package com.devmello.gymlog.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.List
+import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
@@ -37,7 +37,7 @@ private fun TextWithIconPreview() {
     GymLogTheme {
         TextWithIcon(text = "Teste", icon = {
             Icon(
-                imageVector = Icons.Rounded.List,
+                imageVector = Icons.AutoMirrored.Rounded.List,
                 contentDescription = null
             )
         })
