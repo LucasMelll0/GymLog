@@ -132,7 +132,8 @@ val bmiModule = module {
     viewModel {
         BmiHistoricViewModelImpl(
             userRepository = get(),
-            bmiRepository = get()
+            bmiRepository = get(),
+            loadingManager = get()
         )
     }
 }

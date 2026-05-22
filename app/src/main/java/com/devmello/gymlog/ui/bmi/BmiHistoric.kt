@@ -27,9 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Warning
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -37,7 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,11 +57,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devmello.gymlog.R
 import com.devmello.gymlog.core.model.UserData
+import com.devmello.gymlog.core.ui.LoadingManager
+import com.devmello.gymlog.core.ui.ScaffoldConfig
+import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.extensions.checkConnection
 import com.devmello.gymlog.model.BmiInfo
 import com.devmello.gymlog.model.User
@@ -94,8 +92,9 @@ import java.util.TimeZone
 @Composable
 fun BmiHistoricScreen(
     onError: () -> Unit,
-    viewModel: BmiHistoricViewModel = koinViewModel<BmiHistoricViewModelImpl>(),
-    onNavIconClick: () -> Unit
+    scaffoldManager: ScaffoldManager,
+    modifier: Modifier = Modifier,
+    viewModel: BmiHistoricViewModel = koinViewModel<BmiHistoricViewModelImpl>()
 ) {
     val context = LocalContext.current
     var isLoading: Boolean by remember { mutableStateOf(false) }
@@ -108,119 +107,102 @@ fun BmiHistoricScreen(
     var showDeleteRegisterDialog: Boolean by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         context.checkConnection(onNotConnected = {
-            isLoading = true
             user ?: viewModel.getUser()
-            isLoading = false
         }) {
-            isLoading = true
             viewModel.sync()
             user ?: viewModel.getUser()
-            isLoading = false
         }
     }
+
+    LaunchedEffect(Unit) {
+        scaffoldManager.updateConfig(
+            ScaffoldConfig(
+                fab = {
+                    BmiHistoricFloatActionButton(
+                        onClickCalculate = { showBmiCalculatorDialog = true })
+                },
+
+                )
+        )
+    }
     when (userState) {
-        is State.Loading -> {
-            isLoading = true
-        }
+        is State.Loading -> {}
 
         is State.Success -> {
             (userState as State.Success<User?>).data?.let {
                 viewModel.setUser(it)
-                isLoading = false
             } ?: run { showUserCreatorDialog = true }
-
         }
 
-        else -> {
-            Log.i("on Error", "BmiHistoricScreen: error")
+        is State.Error -> {
+            Log.e("on Error", "BmiHistoricScreen: error")
             onError()
         }
     }
     val bmiInfoList by viewModel.getHistoric.collectAsState(emptyList())
-    Scaffold(bottomBar = {
-        BmiHistoricBottomBar(onNavIconClick = onNavIconClick,
-            onClickCalculate = { showBmiCalculatorDialog = true })
-    }) { paddingValues ->
-        Box {
-            if (showDeleteRegisterDialog) DeleteHistoricRegisterConfirmationDialog(
-                onDismissRequest = { showDeleteRegisterDialog = false },
-                onConfirm = {
-                    registerToDelete?.let {
-                        scope.launch {
-                            isLoading = true
-                            viewModel.disableBmiInfoRegister(it)
-                            isLoading = false
-                        }
-                        showDeleteRegisterDialog = false
+    Box {
+        if (showDeleteRegisterDialog) DeleteHistoricRegisterConfirmationDialog(
+            onDismissRequest = { showDeleteRegisterDialog = false },
+            onConfirm = {
+                registerToDelete?.let {
+                    scope.launch {
+                        isLoading = true
+                        viewModel.disableBmiInfoRegister(it)
+                        isLoading = false
                     }
-                })
-            if (showBmiCalculatorDialog && user != null) BmiCalculatorDialog(
-                onDismissRequest = {
-                    showBmiCalculatorDialog = false
-                },
-                onSaved = { showBmiCalculatorDialog = false },
-                user = user!!
-            )
-            if (showUserCreatorDialog) UserCreatorDialog(onDismiss = {
+                    showDeleteRegisterDialog = false
+                }
+            })
+        if (showBmiCalculatorDialog && user != null) BmiCalculatorDialog(
+            onDismissRequest = {
+                showBmiCalculatorDialog = false
+            },
+            onSaved = { showBmiCalculatorDialog = false },
+            user = user!!
+        )
+        if (showUserCreatorDialog) UserCreatorDialog(
+            onDismiss = {
                 user?.let {
                     showUserCreatorDialog = false
                 } ?: onError()
             }, onConfirm = { newUser ->
-                scope.launch {
-                    viewModel.setLoading()
-                    viewModel.saveUser(newUser)
-                    isLoading = false
+                viewModel.saveUser(newUser) {
+                    showUserCreatorDialog = false
                 }
-                showUserCreatorDialog = false
             }, userToUpdate = user
-            )
-            if (isLoading) LoadingDialog()
-            ConstraintLayout(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
+        )
+        if (isLoading) LoadingDialog()
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            Column(
+                modifier = modifier
             ) {
-                val (header, historic) = createRefs()
-                Column(
-                    modifier = Modifier
-                        .constrainAs(header) {
-                            top.linkTo(parent.top)
-                        }
-                ) {
-                    user?.let {
-                        BmiHistoricHeader(
-                            user = it,
-                            onClickEdit = { showUserCreatorDialog = true },
-                            modifier = Modifier.padding(
-                                dimensionResource(id = R.dimen.default_padding)
-                            )
-                        )
-                    }
-                    InfoCard(
-                        text = stringResource(id = R.string.bmi_historic_information),
+                user?.let {
+                    BmiHistoricHeader(
+                        user = it,
+                        onClickEdit = { showUserCreatorDialog = true },
                         modifier = Modifier.padding(
                             dimensionResource(id = R.dimen.default_padding)
                         )
                     )
                 }
-                if (bmiInfoList.isNotEmpty()) BmiInfoList(
-                    bmiInfoList = bmiInfoList, onLongClickListener = {
-                        registerToDelete = it
-                        showDeleteRegisterDialog = true
-                    }, modifier = Modifier
-                        .constrainAs(historic) {
-                            top.linkTo(header.bottom)
-                            bottom.linkTo(parent.bottom)
-                            height = Dimension.fillToConstraints
-                        }
-                        .heightIn(max = dimensionResource(id = R.dimen.default_max_list_height))
-                ) else BmiHistoricEmptyListMessage(modifier = Modifier.constrainAs(historic) {
-                    top.linkTo(header.bottom)
-                    bottom.linkTo(parent.bottom)
-                    height = Dimension.preferredWrapContent
-                })
+                InfoCard(
+                    text = stringResource(id = R.string.bmi_historic_information),
+                    modifier = Modifier.padding(
+                        dimensionResource(id = R.dimen.default_padding)
+                    )
+                )
             }
+            if (bmiInfoList.isNotEmpty()) BmiInfoList(
+                bmiInfoList = bmiInfoList, onLongClickListener = {
+                    registerToDelete = it
+                    showDeleteRegisterDialog = true
+                }, modifier = Modifier
+                    .heightIn(max = dimensionResource(id = R.dimen.default_max_list_height))
+            ) else BmiHistoricEmptyListMessage()
         }
     }
 
@@ -237,24 +219,15 @@ fun DeleteHistoricRegisterConfirmationDialog(onDismissRequest: () -> Unit, onCon
 }
 
 @Composable
-private fun BmiHistoricBottomBar(onNavIconClick: () -> Unit, onClickCalculate: () -> Unit) {
-    BottomAppBar(floatingActionButton = {
-        FloatingActionButton(onClick = onClickCalculate) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_calculate),
-                contentDescription = stringResource(
-                    id = R.string.bmi_historic_buttom_calculate
-                )
+private fun BmiHistoricFloatActionButton(onClickCalculate: () -> Unit) {
+    FloatingActionButton(onClick = onClickCalculate) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_calculate),
+            contentDescription = stringResource(
+                id = R.string.bmi_historic_buttom_calculate
             )
-        }
-    }, actions = {
-        IconButton(onClick = onNavIconClick) {
-            Icon(
-                imageVector = Icons.Rounded.Menu,
-                contentDescription = stringResource(id = R.string.common_go_to_back)
-            )
-        }
-    })
+        )
+    }
 }
 
 @Composable
@@ -344,10 +317,11 @@ fun BmiInfoList(
                             .padding(dimensionResource(id = R.dimen.default_padding))
                         BmiInfoItem(
                             bmiInfo = it,
-                            modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null, placementSpec = spring(
-                                        stiffness = Spring.StiffnessMediumLow,
-                                        visibilityThreshold = IntOffset.VisibilityThreshold
-                                    )
+                            modifier = Modifier.animateItem(
+                                fadeInSpec = null, fadeOutSpec = null, placementSpec = spring(
+                                    stiffness = Spring.StiffnessMediumLow,
+                                    visibilityThreshold = IntOffset.VisibilityThreshold
+                                )
                             ),
                             onLongClickListener = onLongClickListener
                         )
@@ -418,22 +392,24 @@ fun BmiInfoItem(
                         dimensionResource(id = R.dimen.default_padding)
                     )
             ) {
-                TextWithIcon(text = stringResource(
-                    id = R.string.bmi_historic_item_weight_suffix, bmiInfo.weight
-                ), icon = {
-                    if (classifier.getRating() != BmiRating.NormalWeight) {
-                        Icon(
-                            imageVector = Icons.Rounded.Warning, contentDescription = null
-                        )
-                    }
-                })
+                TextWithIcon(
+                    text = stringResource(
+                        id = R.string.bmi_historic_item_weight_suffix, bmiInfo.weight
+                    ), icon = {
+                        if (classifier.getRating() != BmiRating.NormalWeight) {
+                            Icon(
+                                imageVector = Icons.Rounded.Warning, contentDescription = null
+                            )
+                        }
+                    })
 
                 Text(
                     text = stringResource(
                         id = R.string.bmi_historic_item_bmi_prefix, classifier.bmiValue
                     )
                 )
-                TextWithIcon(text = stringResource(id = classifier.getRating().stringRes()),
+                TextWithIcon(
+                    text = stringResource(id = classifier.getRating().stringRes()),
                     icon = {
                         val icon = painterResource(id = classifier.getRating().drawableRes())
                         Icon(painter = icon, contentDescription = null)
@@ -500,26 +476,26 @@ private fun BmiHistoricScreenPreview() {
                 TODO("Not yet implemented")
             }
 
-            override suspend fun saveUser(user: User) {
+            override fun saveUser(user: User, onSuccess: () -> Unit) {
                 TODO("Not yet implemented")
             }
 
-            override suspend fun sync() {
+            override fun sync() {
                 TODO("Not yet implemented")
             }
 
-            override suspend fun getUser() {
+            override fun getUser() {
                 TODO("Not yet implemented")
             }
 
-            override suspend fun disableBmiInfoRegister(bmiInfo: BmiInfo) {
+            override fun disableBmiInfoRegister(bmiInfo: BmiInfo) {
                 TODO("Not yet implemented")
             }
         }
         BmiHistoricScreen(
-            onNavIconClick = {},
             onError = {},
             viewModel = viewModel,
+            scaffoldManager = ScaffoldManager(),
         )
     }
 }

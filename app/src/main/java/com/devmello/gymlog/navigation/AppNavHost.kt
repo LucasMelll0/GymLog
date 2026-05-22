@@ -136,11 +136,8 @@ fun AppNavHost(
                 navigationManager.navigate(NavRoute.Home)
             }
             BmiHistoricScreen(
-                onNavIconClick = {
-                    // drawerState.open() // TODO scaffold
-
-                },
-                onError = { navController.popBackStack() }
+                onError = { navController.popBackStack() },
+                scaffoldManager = scaffoldManager
             )
         }
         composable<NavRoute.DropdownTimer>(

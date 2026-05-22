@@ -1,8 +1,12 @@
 package com.devmello.gymlog.ui.bmi.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.devmello.gymlog.R
 import com.devmello.gymlog.core.model.UserData
 import com.devmello.gymlog.core.model.repositories.UserRepository
+import com.devmello.gymlog.core.ui.LoadingManager
+import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.extensions.toUserData
 import com.devmello.gymlog.model.BmiInfo
 import com.devmello.gymlog.model.User
@@ -14,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 interface BmiHistoricViewModel {
 
@@ -24,16 +29,18 @@ interface BmiHistoricViewModel {
 
     fun setLoading()
     fun setUser(user: User)
-    suspend fun saveUser(user: User)
-    suspend fun sync()
-    suspend fun getUser()
-    suspend fun disableBmiInfoRegister(bmiInfo: BmiInfo)
+    fun saveUser(user: User, onSuccess: () -> Unit)
+    fun sync()
+    fun getUser()
+    fun disableBmiInfoRegister(bmiInfo: BmiInfo)
 }
 
 class BmiHistoricViewModelImpl(
     private val userRepository: UserRepository,
-    private val bmiRepository: BmiInfoRepository
-) : BmiHistoricViewModel, ViewModel() {
+    private val bmiRepository: BmiInfoRepository,
+    private val loadingManager: LoadingManager
+
+    ) : BmiHistoricViewModel, ViewModel() {
 
 
     private val _userState: MutableStateFlow<State<User?>> =
@@ -49,38 +56,53 @@ class BmiHistoricViewModelImpl(
         _userState.value = State.Loading
     }
 
-    override suspend fun saveUser(user: User) {
-        currentUser?.let {
-            userRepository.saveUser(user.copy(id = it.uid))
+    override fun saveUser(user: User, onSuccess: () -> Unit) {
+       loadingManager.show()
+        viewModelScope.launch {
+            currentUser?.let {
+                userRepository.saveUser(user.copy(id = it.uid))
+                onSuccess()
+            }
+            loadingManager.hide()
         }
     }
 
-    override suspend fun sync() {
-        currentUser?.let {
-            userRepository.sync(it.uid)
-            bmiRepository.sync(it.uid)
+    override fun sync() {
+        loadingManager.show(textId = R.string.common_synchronizing)
+        viewModelScope.launch {
+            currentUser?.let {
+                userRepository.sync(it.uid)
+                bmiRepository.sync(it.uid)
+            }
+            loadingManager.hide()
         }
     }
 
     override fun setUser(user: User) = _user.update { user }
 
-    override suspend fun getUser() {
-        if (_userState.value !is State.Success) {
-            currentUser?.let {
-                userRepository.getUser(it.uid).collect { user ->
-                    _userState.value = State.Success(user)
+    override fun getUser() {
+        loadingManager.show()
+        viewModelScope.launch {
+            if (_userState.value !is State.Success) {
+                currentUser?.let {
+                    userRepository.getUser(it.uid).collect { user ->
+                        _userState.value = State.Success(user)
+                    }
+                } ?: run {
+                    _userState.value = State.Error("error on get user")
                 }
-            } ?: run {
-                _userState.value = State.Error("error on get user")
             }
+            loadingManager.hide()
         }
     }
 
-    override suspend fun disableBmiInfoRegister(bmiInfo: BmiInfo) {
-        try {
-            bmiRepository.disable(bmiInfo)
-        } catch (e: Exception) {
-            e.printStackTrace()
+    override fun disableBmiInfoRegister(bmiInfo: BmiInfo) {
+        viewModelScope.launch {
+            try {
+                bmiRepository.disable(bmiInfo)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }
