@@ -5,12 +5,15 @@ import androidx.compose.runtime.Composable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+typealias CanPop = Boolean
 data class ScaffoldConfig(
     val title: String = "",
     val fab: @Composable () -> Unit = {},
     val showTopBar: Boolean = true,
     val tobBarActions: @Composable RowScope.() -> Unit = {},
     val showBottomBar: Boolean = true,
+    val bottomBar: @Composable () -> Unit = {},
+    val onNavigateBack: () -> CanPop = {true},
     val drawerGesturesEnabled: Boolean = true
 )
 

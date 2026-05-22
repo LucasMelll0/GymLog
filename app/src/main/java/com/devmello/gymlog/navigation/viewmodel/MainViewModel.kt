@@ -16,7 +16,6 @@ class MainViewModelImpl(private val loadingManager: LoadingManager) :
     override val isLoading: StateFlow<Boolean>
         get() = loadingManager.isLoading
 
-
     override val showExitConfirmationDialog: StateFlow<Boolean>
         get() = _showExitConfirmationDialog
 

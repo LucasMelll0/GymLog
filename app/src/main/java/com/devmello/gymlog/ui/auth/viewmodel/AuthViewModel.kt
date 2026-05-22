@@ -7,14 +7,13 @@ import com.devmello.gymlog.core.model.UserCredentials
 import com.devmello.gymlog.core.model.UserData
 import com.devmello.gymlog.core.model.repositories.AuthRepository
 import com.devmello.gymlog.core.model.repositories.UserPreferencesRepository
-import com.devmello.gymlog.core.navigation.NavDestination
 import com.devmello.gymlog.core.navigation.NavMethod
 import com.devmello.gymlog.core.navigation.NavigationManager
 import com.devmello.gymlog.core.ui.LoadingManager
 import com.devmello.gymlog.core.ui.MessageDuration
 import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.extensions.toUserData
-import com.devmello.gymlog.navigation.Home
+import com.devmello.gymlog.navigation.NavRoute
 import com.devmello.gymlog.ui.auth.authclient.SignInState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -56,7 +55,7 @@ class AuthViewModelImpl(
     private val _state = MutableStateFlow(SignInState())
     override val state = _state.asStateFlow()
 
-    private val _currentUser = MutableStateFlow<UserData?>(null)
+    private val _currentUser = MutableStateFlow(Firebase.auth.currentUser?.toUserData())
     override val currentUser = _currentUser.asStateFlow()
 
     private val authStateListener: FirebaseAuth.AuthStateListener =
@@ -83,12 +82,7 @@ class AuthViewModelImpl(
             )
         }
         when (result) {
-            is AuthResult.Success -> navigationManager.navigate(
-                NavDestination(
-                    Home.route,
-                    navMethod = NavMethod.INCLUSIVE
-                )
-            )
+            is AuthResult.Success -> navigationManager.navigate(NavRoute.Home, NavMethod.INCLUSIVE)
 
             is AuthResult.Error -> result.errorMessage.let {
                 messageManager.postMessage(it, duration = MessageDuration.LONG)

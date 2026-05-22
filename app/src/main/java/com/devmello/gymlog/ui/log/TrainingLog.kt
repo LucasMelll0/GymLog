@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Refresh
@@ -30,7 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -50,11 +49,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devmello.gymlog.R
+import com.devmello.gymlog.core.ui.ScaffoldConfig
+import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.data.Mock
 import com.devmello.gymlog.model.ExerciseMutableState
 import com.devmello.gymlog.model.Training
@@ -67,7 +66,7 @@ import com.devmello.gymlog.ui.log.viewmodel.TrainingLogViewModel
 import com.devmello.gymlog.ui.log.viewmodel.TrainingLogViewModelImpl
 import com.devmello.gymlog.ui.theme.GymLogTheme
 import com.devmello.gymlog.utils.BackPressHandler
-import com.devmello.gymlog.utils.Resource
+import com.devmello.gymlog.utils.State
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -77,48 +76,67 @@ import org.koin.androidx.compose.koinViewModel
 fun TrainingLogScreen(
     onClickEdit: (String) -> Unit,
     onBackPressed: () -> Unit,
-    onNavIconClick: () -> Unit,
     onError: () -> Unit,
     onClickDelete: () -> Unit,
     trainingId: String,
+    scaffoldManager: ScaffoldManager,
     modifier: Modifier = Modifier,
     viewModel: TrainingLogViewModel = koinViewModel<TrainingLogViewModelImpl>()
 ) {
-    val resource by viewModel.resource.collectAsStateWithLifecycle(Resource.Loading)
-    var isLoading: Boolean = resource is Resource.Loading
+    val state by viewModel.state.collectAsStateWithLifecycle(State.Loading)
     var showResetDialog: Boolean by remember { mutableStateOf(false) }
     var showDeleteDialog: Boolean by remember { mutableStateOf(false) }
     var showTimerBottomSheet: Boolean by rememberSaveable { mutableStateOf(false) }
     var showStopwatchBottomSheet: Boolean by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(key1 = Unit) {
+
+    LaunchedEffect(trainingId) {
         viewModel.getTraining(trainingId)
     }
+
+    LaunchedEffect(Unit) {
+        scaffoldManager.updateConfig(
+            ScaffoldConfig(
+            fab = {
+                FloatingActionButton(onClick = {
+                    onClickEdit(trainingId)
+                    viewModel.setLoading()
+                }) {
+                    Icon(
+                        imageVector = Icons.Rounded.Edit,
+                        contentDescription = stringResource(id = R.string.common_edit)
+                    )
+                }
+            },
+            onNavigateBack = {
+                viewModel.updateTraining(trainingId)
+                true
+            },
+            showBottomBar = true,
+            bottomBar = {
+                TrainingLogBottomAppBar(
+                    onClickDelete = { showDeleteDialog = true },
+                    onClickReset = { showResetDialog = true },
+                    onClickEdit = {
+                        onClickEdit(trainingId)
+                        viewModel.setLoading()
+                    },
+                    onClickTimer = { showTimerBottomSheet = true },
+                    onClickStopwatch = { showStopwatchBottomSheet = true }
+                )
+            }
+
+        ))
+    }
+
     val scope = rememberCoroutineScope()
 
     BackPressHandler {
-        scope.launch {
-            viewModel.updateTraining(trainingId)
-            onBackPressed()
-        }
+        viewModel.updateTraining(trainingId)
+        onBackPressed()
+
     }
 
-    Scaffold(bottomBar = {
-        TrainingLogBottomAppBar(onNavIconClick = {
-            scope.launch {
-                viewModel.updateTraining(trainingId)
-                onNavIconClick()
-            }
-        },
-            onClickDelete = { showDeleteDialog = true },
-            onClickReset = { showResetDialog = true },
-            onClickEdit = {
-                onClickEdit(trainingId)
-                viewModel.setLoading()
-            },
-            onClickTimer = { showTimerBottomSheet = true },
-            onClickStopwatch = { showStopwatchBottomSheet = true }
-        )
-    }) { paddingValues ->
+    Box(modifier = modifier) {
         if (showDeleteDialog) {
             DeleteDialog(onConfirm = {
                 scope.launch {
@@ -133,38 +151,21 @@ fun TrainingLogScreen(
                 showResetDialog = false
             }, onDismiss = { showResetDialog = false })
         }
-        when (resource) {
-            is Resource.Loading -> {
-                isLoading = true
-            }
+        if (state is State.Loading) LoadingDialog()
 
-            is Resource.Success -> {
-                isLoading = false
-            }
-
-            else -> onError()
-        }
-        if (isLoading) LoadingDialog()
-
-        if (resource is Resource.Success) {
-            ConstraintLayout(
+        if (state is State.Success) {
+            Column(
                 modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface)
-                    .padding(paddingValues)
                     .verticalScroll(
                         rememberScrollState()
                     )
             ) {
-                val (header, exercises, emptyListMessage) = createRefs()
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
                     modifier = Modifier
-                        .constrainAs(header) {
-                            top.linkTo(parent.top)
-                            height = Dimension.wrapContent
-                        }
                         .padding(vertical = dimensionResource(id = R.dimen.default_padding))
                 ) {
                     val tips = stringArrayResource(id = R.array.training_tips).toList()
@@ -181,29 +182,18 @@ fun TrainingLogScreen(
                         )
                     )
                 }
-                if (viewModel.exercises.isNotEmpty()) ExerciseList(modifier = modifier
-                    .constrainAs(
-                        exercises
-                    ) {
-                        linkTo(header.bottom, parent.bottom, bias = 0f)
-                        height = Dimension.fillToConstraints
-                    }
-                    .padding(dimensionResource(id = R.dimen.default_padding))
-                    .heightIn(
-                        max = dimensionResource(
-                            id = R.dimen.default_max_list_height
-                        )
-                    ),
+                if (viewModel.exercises.isNotEmpty()) ExerciseList(
+                    modifier = modifier
+                        .padding(dimensionResource(id = R.dimen.default_padding))
+                        .heightIn(
+                            max = dimensionResource(
+                                id = R.dimen.default_max_list_height
+                            )
+                        ),
                     exercises = viewModel.exercises,
                     onCheckedChange = { exercise, isChecked ->
                         viewModel.updateExercise(exercise.id, isChecked)
                     }) else TrainingLogEmptyListMessage(
-                    modifier = Modifier.constrainAs(
-                        emptyListMessage
-                    ) {
-                        top.linkTo(header.bottom)
-                        height = Dimension.wrapContent
-                    }
                 )
             }
         }
@@ -215,7 +205,6 @@ fun TrainingLogScreen(
             onSaveTime = { viewModel.saveStopwatchTime(it) },
             onReset = { viewModel.resetStopwatchTimes() },
             onDismissRequest = { showStopwatchBottomSheet = false })
-
     }
 }
 
@@ -355,7 +344,6 @@ private fun TrainingLogEmptyListMessage(modifier: Modifier = Modifier) {
 
 @Composable
 private fun TrainingLogBottomAppBar(
-    onNavIconClick: () -> Unit,
     onClickDelete: () -> Unit,
     onClickReset: () -> Unit,
     onClickEdit: () -> Unit,
@@ -371,12 +359,6 @@ private fun TrainingLogBottomAppBar(
             )
         }
     }, actions = {
-        IconButton(onClick = onNavIconClick) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = stringResource(id = R.string.common_go_to_back)
-            )
-        }
         IconButton(onClick = onClickTimer) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_hourglass),
@@ -418,8 +400,8 @@ private fun TrainingLogScreenPreview() {
             override val title: String = training.title
             override val exercises: List<ExerciseMutableState> = emptyList()
             override val filters: List<String> = training.filters
-            override val resource: Flow<Resource<Training>> =
-                flow { emit(Resource.Success(training)) }
+            override val state: Flow<State<Training>> =
+                flow { emit(State.Success(training)) }
             override val savedStopwatchTimes: List<Long>
                 get() = TODO("Not yet implemented")
 
@@ -431,9 +413,9 @@ private fun TrainingLogScreenPreview() {
 
             override fun resetExercises() {}
 
-            override suspend fun removeTraining(trainingId: String) {}
+            override fun removeTraining(trainingId: String) {}
 
-            override suspend fun updateTraining(trainingId: String) {}
+            override fun updateTraining(trainingId: String) {}
             override fun saveStopwatchTime(time: Long) {
                 TODO("Not yet implemented")
             }
@@ -443,12 +425,13 @@ private fun TrainingLogScreenPreview() {
             }
 
         }
-        TrainingLogScreen(onNavIconClick = {},
+        TrainingLogScreen(
             trainingId = "",
             viewModel = viewModel,
             onError = {},
             onClickDelete = {},
             onBackPressed = {},
+            scaffoldManager = ScaffoldManager(),
             onClickEdit = {})
     }
 }

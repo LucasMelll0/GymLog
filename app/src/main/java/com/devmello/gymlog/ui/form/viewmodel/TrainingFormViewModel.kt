@@ -1,52 +1,105 @@
 package com.devmello.gymlog.ui.form.viewmodel
 
+
+import com.devmello.gymlog.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.devmello.gymlog.core.ui.LoadingManager
+import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.model.Exercise
 import com.devmello.gymlog.model.Training
 import com.devmello.gymlog.repository.TrainingRepository
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class TrainingFormViewModel(private val repository: TrainingRepository) : ViewModel() {
+interface TrainingFormViewModel {
+    val trainingTitle: String
+
+    val hasErrors: StateFlow<Boolean>
+
+    val nameHasError: Boolean
+
+    val exercises: List<Exercise>
+
+    val filters: List<String>
+
+    fun getTrainingById(trainingId: String)
+
+    fun setTrainingTitle(title: String)
+
+    fun addExercise(exercise: Exercise)
+
+    fun removeExercise(exercise: Exercise)
+
+    fun saveTraining()
+}
+
+class TrainingFormViewModelImpl(
+    private val repository: TrainingRepository,
+    private val loadingManager: LoadingManager,
+    private val messageManager: MessageManager
+) : TrainingFormViewModel,
+    ViewModel() {
 
     private val currentUser = Firebase.auth.currentUser
 
     private var _trainingId: String? by mutableStateOf(null)
 
+    private val _hasErrors = flow {
+        emit(nameHasError)
+    }
+
+    override val nameHasError: Boolean get() = trainingTitle.isEmpty()
+
+    override val hasErrors: StateFlow<Boolean>
+        get() = _hasErrors.stateIn(
+            initialValue = false,
+            scope = viewModelScope,
+            started = WhileSubscribed()
+        )
     private var _trainingTitle by mutableStateOf("")
-    val trainingTitle get() = _trainingTitle
+    override val trainingTitle get() = _trainingTitle
 
     private val _exercises = mutableStateListOf<Exercise>()
-    val exercises: List<Exercise> get() = _exercises
+    override val exercises: List<Exercise> get() = _exercises
 
     private val _filters = mutableStateListOf<String>()
-    val filters: List<String> get() = _filters
+    override val filters: List<String> get() = _filters
 
 
-    suspend fun getTrainingById(trainingId: String) {
+    override fun getTrainingById(trainingId: String) {
         _trainingId ?: run {
-            currentUser?.let {
-                repository.getById(trainingId, it.uid)?.let { training ->
-                    _trainingId = training.trainingId
-                    _trainingTitle = training.title
-                    _exercises.clear()
-                    _exercises.addAll(training.exercises)
-                    _filters.clear()
-                    _filters.addAll(training.filters)
+            loadingManager.show()
+            viewModelScope.launch {
+                currentUser?.let {
+                    repository.getById(trainingId, it.uid)?.let { training ->
+                        _trainingId = training.trainingId
+                        _trainingTitle = training.title
+                        _exercises.clear()
+                        _exercises.addAll(training.exercises)
+                        _filters.clear()
+                        _filters.addAll(training.filters)
+                    }
                 }
+                loadingManager.hide()
             }
         }
     }
 
-    fun setTrainingTitle(title: String) {
+    override fun setTrainingTitle(title: String) {
         _trainingTitle = title
     }
 
-    fun addExercise(exercise: Exercise) {
+    override fun addExercise(exercise: Exercise) {
         _exercises.add(exercise)
         exercise.filters.forEach {
             if (!filters.contains(it)) _filters.add(it)
@@ -54,7 +107,7 @@ class TrainingFormViewModel(private val repository: TrainingRepository) : ViewMo
 
     }
 
-    fun removeExercise(exercise: Exercise) {
+    override fun removeExercise(exercise: Exercise) {
         _exercises.find { it == exercise }?.let {
             _exercises.remove(it)
         }
@@ -63,13 +116,24 @@ class TrainingFormViewModel(private val repository: TrainingRepository) : ViewMo
         }
     }
 
-    suspend fun saveTraining(training: Training) {
-        currentUser?.let { currentUser ->
-            _trainingId?.let {
-                repository.save(training.copy(trainingId = it, userId = currentUser.uid))
-            } ?: run {
-                repository.save(training.copy(userId = currentUser.uid))
+    override fun saveTraining() {
+        loadingManager.show(textId = R.string.common_saving)
+        val training = Training(
+            title = trainingTitle,
+            filters = filters,
+            exercises = exercises
+        )
+        viewModelScope.launch {
+            currentUser?.let { currentUser ->
+                _trainingId?.let {
+                    repository.save(training.copy(trainingId = it, userId = currentUser.uid))
+                } ?: run {
+                    repository.save(training.copy(userId = currentUser.uid))
+                }
             }
+            loadingManager.hide()
+            messageManager.postMessage(textId = R.string.training_form_saved_with_success)
         }
+
     }
 }

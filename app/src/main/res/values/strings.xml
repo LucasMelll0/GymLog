@@ -72,6 +72,7 @@
 
     <!-- Training Form -->
     <string name="training_form_save_training">Salvar Treino</string>
+    <string name="training_form_saved_with_success">Treino salvo com sucesso!</string>
     <string name="training_form_top_bar_title">Novo Treino</string>
     <string name="training_form_dismiss_dialog_text">Ao confirmar você irá perder qualquer alteração feita…</string>
     <string name="training_form_training_type_filter_title">Tipo de Treino</string>

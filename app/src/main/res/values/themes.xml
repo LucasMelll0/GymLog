@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#121214</item>
 
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_logo_animated</item>
+
+        <item name="windowSplashScreenAnimationDuration">600</item>
+
+        <item name="postSplashScreenTheme">@style/Theme.GymLog</item>
+    </style>
     <style name="Theme.GymLog" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

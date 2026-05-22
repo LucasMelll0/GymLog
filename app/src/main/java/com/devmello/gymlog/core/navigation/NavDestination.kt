@@ -1,19 +1,16 @@
 package com.devmello.gymlog.core.navigation
 
-class NavDestination(
-    val route: String,
-    val destinationArgs: List<String>? = null,
-    val navMethod: NavMethod = NavMethod.SINGLE_TOP
-) {
-    val formatedDestination: String get() {
-        if(destinationArgs.isNullOrEmpty()) return route.trim()
-        val args = destinationArgs.joinToString(separator = "/") { it.trim() }
-        return "${route.trim()}/$args"
-    }
-}
+import androidx.navigation.NavOptions
+import com.devmello.gymlog.navigation.NavRoute
 
+class NavDestination(
+    val route: NavRoute,
+    val navOptions: NavOptions? = null,
+    val navMethod: NavMethod = NavMethod.SINGLE_TOP
+)
 
 enum class NavMethod {
     SINGLE_TOP,
-    INCLUSIVE
+    INCLUSIVE,
+    DEFAULT
 }

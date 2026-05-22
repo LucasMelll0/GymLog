@@ -1,86 +1,90 @@
 package com.devmello.gymlog.navigation
 
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.devmello.gymlog.R
+import com.devmello.gymlog.navigation.NavRoute.Home
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed interface NavRoute {
+    @Serializable
+    object Home : NavRoute
+
+    @Serializable
+    data class Form(val trainingId: String? = null) : NavRoute
+
+    @Serializable
+    data class Log(val trainingId: String? = null) : NavRoute
+
+    @Serializable
+    object Bmi : NavRoute
+
+    @Serializable
+    object Login : NavRoute
+
+    @Serializable
+    object Register : NavRoute
+
+    @Serializable
+    object Auth : NavRoute
+
+    @Serializable
+    object DropdownTimer : NavRoute
+
+    @Serializable
+    object Stopwatch : NavRoute
+
+    @Serializable
+    object UserProfile : NavRoute
+}
 
 interface Destination {
     val route: String
+    val navRoute: NavRoute
     val title: Int?
     val icon: Int?
+    val isSubscreen: Boolean
 }
 
-object Home : Destination {
+object HomeDestination : Destination {
     override val route: String = "home"
+    override val navRoute: NavRoute = Home
     override val title: Int = R.string.home_destination
     override val icon: Int = R.drawable.ic_home
+    override val isSubscreen: Boolean = false
 }
 
-object Form : Destination {
-    override val route: String = "form"
-    override val title: Int = R.string.form_destination
-    override val icon: Int? = null
-    const val TRAINING_ID_ARG = "training_id"
-    val routeWithArgs = "$route/{$TRAINING_ID_ARG}"
-    val arguments = listOf(navArgument(TRAINING_ID_ARG) {
-        type = NavType.StringType
-    })
-}
-
-object Log : Destination {
-    override val route: String = "training_log"
-    override val title: Int? = null
-    override val icon: Int? = null
-    const val TRAINING_ID_ARG = "training_id"
-    val routeWithArgs = "$route/{$TRAINING_ID_ARG}"
-    val arguments = listOf(navArgument(TRAINING_ID_ARG) {
-        type = NavType.StringType
-    })
-}
-
-object Bmi : Destination {
+object BmiDestination : Destination {
     override val route: String = "bmi_historic"
+    override val navRoute: NavRoute = NavRoute.Bmi
     override val title: Int = R.string.bmi_destination
     override val icon: Int = R.drawable.ic_weight
+    override val isSubscreen: Boolean = false
 }
 
-object Login : Destination {
-    override val route: String = "login"
-    override val title: Int? = null
-    override val icon: Int? = null
-}
-
-object Register : Destination {
-    override val route: String = "register"
-    override val title: Int? = null
-    override val icon: Int? = null
-}
-
-object Auth : Destination {
-    override val route: String = "auth"
-    override val title: Int? = null
-    override val icon: Int? = null
-}
-
-object DropdownTimer : Destination {
+object DropdownTimerDestination : Destination {
     override val route: String = "dropdown_timer"
+    override val navRoute: NavRoute = NavRoute.DropdownTimer
     override val title: Int = R.string.dropdown_timer_destination
     override val icon: Int = R.drawable.ic_hourglass
+    override val isSubscreen: Boolean = false
     val deepLinks = listOf(
-        navDeepLink { uriPattern = "gymlog://$route" }
+        navDeepLink<NavRoute.DropdownTimer>(basePath = "gymlog://${route}")
     )
 }
 
-object Stopwatch : Destination {
-    override val route: String get() = "stopwatch"
-    override val title: Int get() = R.string.stopwatch_destination
+object StopwatchDestination : Destination {
+    override val route: String = "stopwatch"
+    override val navRoute: NavRoute = NavRoute.Stopwatch
+    override val title: Int = R.string.stopwatch_destination
     override val icon: Int = R.drawable.ic_stopwatch
+    override val isSubscreen: Boolean = false
 }
 
-object UserProfile : Destination {
+object UserProfileDestination : Destination {
     override val route: String = "user_profile"
+    override val navRoute: NavRoute = NavRoute.UserProfile
     override val title: Int = R.string.user_profile_title
     override val icon: Int = R.drawable.ic_person
-
+    override val isSubscreen: Boolean = false
 }

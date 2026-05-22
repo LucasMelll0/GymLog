@@ -14,7 +14,7 @@ import androidx.core.net.toUri
 import com.devmello.gymlog.MainActivity
 import com.devmello.gymlog.R
 import com.devmello.gymlog.extensions.vibrate
-import com.devmello.gymlog.navigation.DropdownTimer
+import com.devmello.gymlog.navigation.DropdownTimerDestination
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -70,7 +70,7 @@ class DropdownTimerService : Service() {
         private fun createDropdownNotification(context: Context) {
             val clickIntent = Intent(
                 Intent.ACTION_VIEW,
-                "gymlog://${DropdownTimer.route}".toUri(),
+                "gymlog://${DropdownTimerDestination.route}".toUri(),
                 context,
                 MainActivity::class.java
             )

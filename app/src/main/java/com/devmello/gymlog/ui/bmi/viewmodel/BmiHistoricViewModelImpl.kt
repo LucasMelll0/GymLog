@@ -7,7 +7,7 @@ import com.devmello.gymlog.extensions.toUserData
 import com.devmello.gymlog.model.BmiInfo
 import com.devmello.gymlog.model.User
 import com.devmello.gymlog.repository.BmiInfoRepository
-import com.devmello.gymlog.utils.Resource
+import com.devmello.gymlog.utils.State
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.Flow
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.update
 
 interface BmiHistoricViewModel {
 
-    val userResource: Flow<Resource<User?>>
+    val userState: Flow<State<User?>>
     val user: Flow<User?>
     val currentUser: UserData?
     val getHistoric: Flow<List<BmiInfo>>
@@ -36,9 +36,9 @@ class BmiHistoricViewModelImpl(
 ) : BmiHistoricViewModel, ViewModel() {
 
 
-    private val _userResource: MutableStateFlow<Resource<User?>> =
-        MutableStateFlow(Resource.Loading)
-    override val userResource: Flow<Resource<User?>> = _userResource
+    private val _userState: MutableStateFlow<State<User?>> =
+        MutableStateFlow(State.Loading)
+    override val userState: Flow<State<User?>> = _userState
     private val _user: MutableStateFlow<User?> = MutableStateFlow(null)
     override val user: Flow<User?> = _user
     override val currentUser = Firebase.auth.currentUser?.toUserData()
@@ -46,7 +46,7 @@ class BmiHistoricViewModelImpl(
     override val getHistoric = currentUser?.let { bmiRepository.getAll(it.uid) } ?: emptyFlow()
 
     override fun setLoading() {
-        _userResource.value = Resource.Loading
+        _userState.value = State.Loading
     }
 
     override suspend fun saveUser(user: User) {
@@ -65,13 +65,13 @@ class BmiHistoricViewModelImpl(
     override fun setUser(user: User) = _user.update { user }
 
     override suspend fun getUser() {
-        if (_userResource.value !is Resource.Success) {
+        if (_userState.value !is State.Success) {
             currentUser?.let {
                 userRepository.getUser(it.uid).collect { user ->
-                    _userResource.value = Resource.Success(user)
+                    _userState.value = State.Success(user)
                 }
             } ?: run {
-                _userResource.value = Resource.Error("error on get user")
+                _userState.value = State.Error("error on get user")
             }
         }
     }

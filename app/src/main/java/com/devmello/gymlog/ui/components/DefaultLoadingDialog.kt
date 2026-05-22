@@ -1,5 +1,6 @@
 package com.devmello.gymlog.ui.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.BasicAlertDialog
@@ -12,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.DialogProperties
 import com.devmello.gymlog.R
@@ -19,7 +21,8 @@ import com.devmello.gymlog.ui.theme.GymLogTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoadingDialog(text: String? = null) {
+fun LoadingDialog(text: String? = null, @StringRes resourceStringId: Int? = null) {
+    val loadingText = text ?: resourceStringId?.let { stringResource(it) }
     BasicAlertDialog(
         onDismissRequest = {},
         modifier = Modifier,
@@ -27,7 +30,7 @@ fun LoadingDialog(text: String? = null) {
         content = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 CircularProgressIndicator(modifier = Modifier.size(dimensionResource(id = R.dimen.default_icon_size)))
-                text?.let {
+                loadingText?.let {
                     Text(
                         text = it,
                         style = MaterialTheme.typography.titleMedium,

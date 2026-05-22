@@ -4,7 +4,7 @@ import com.devmello.gymlog.core.model.Response
 import com.devmello.gymlog.core.model.repositories.AccountRepository
 import com.devmello.gymlog.extensions.capitalizeAllWords
 import com.devmello.gymlog.extensions.toUserData
-import com.devmello.gymlog.utils.Resource
+import com.devmello.gymlog.utils.State
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
@@ -114,7 +114,7 @@ class FirebaseUserClient(
             try {
                 val uri = photo.toUri()
                 return when (val resource = storageClient.savePhoto(uri, user.uid)) {
-                    is Resource.Success -> {
+                    is State.Success -> {
                         val downloadUri = resource.data
                         val profileUpdate = userProfileChangeRequest {
                             photoUri = downloadUri

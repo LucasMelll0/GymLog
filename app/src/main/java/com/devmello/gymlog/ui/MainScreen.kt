@@ -2,12 +2,10 @@ package com.devmello.gymlog.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeGestures
-import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
@@ -26,9 +24,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -36,14 +37,12 @@ import com.devmello.gymlog.R
 import com.devmello.gymlog.core.navigation.NavDestination
 import com.devmello.gymlog.core.navigation.NavMethod
 import com.devmello.gymlog.core.navigation.NavigationManager
-import com.devmello.gymlog.core.ui.MessageDuration
 import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.navigation.AppNavHost
-import com.devmello.gymlog.navigation.Auth
-import com.devmello.gymlog.navigation.Home
+import com.devmello.gymlog.navigation.HomeDestination
+import com.devmello.gymlog.navigation.NavRoute
 import com.devmello.gymlog.navigation.navigateInclusive
-import com.devmello.gymlog.navigation.navigateSingleTopTo
 import com.devmello.gymlog.navigation.viewmodel.MainViewModel
 import com.devmello.gymlog.navigation.viewmodel.MainViewModelImpl
 import com.devmello.gymlog.ui.auth.viewmodel.AuthViewModel
@@ -59,9 +58,12 @@ import org.koin.androidx.compose.koinViewModel
 fun MainScreen(
     scaffoldManager: ScaffoldManager,
     messageManager: MessageManager,
-    navigationManager: NavigationManager
+    navigationManager: NavigationManager,
 ) {
     val navController = rememberNavController()
+
+    // Context
+    val context = LocalContext.current
 
     // ViewModels
     val viewModel: MainViewModel = koinViewModel<MainViewModelImpl>()
@@ -83,21 +85,21 @@ fun MainScreen(
     // User
     val currentUserdata by authViewModel.currentUser.collectAsStateWithLifecycle()
 
-    LaunchedEffect(currentUserdata) {
-        currentUserdata?.let {
-            navigationManager.navigate(NavDestination(Home.route, navMethod = NavMethod.INCLUSIVE))
-        }
-    }
-
     // Route
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val canGoBack = navController.previousBackStackEntry != null
     val currentRoute = navBackStackEntry?.destination?.route
 
     LaunchedEffect(key1 = messages) {
         if (messages.isNotEmpty()) {
             val message = messages.first()
+            val messageText = message.text ?: message.textId?.let { context.getString(it) }
+            if (messageText == null) {
+                messageManager.removeMessage(message.id)
+                return@LaunchedEffect
+            }
             snackBarHostState.showSnackbar(
-                message.text,
+                messageText,
                 withDismissAction = true,
                 duration = message.duration.snackBarDuration
             )
@@ -115,13 +117,12 @@ fun MainScreen(
 
     AppNavigationDrawer(
         gesturesEnabled = config.drawerGesturesEnabled,
-        currentDestinationRoute = currentRoute ?: Home.route,
+        currentDestinationRoute = currentRoute ?: HomeDestination.route,
         drawerState = drawerState,
         onItemClick = {
-            if (currentRoute != it.route) {
-                scope.launch {
-                    navController.navigateSingleTopTo(it.route)
-                }
+            val routeObj = it.navRoute::class
+            if (navBackStackEntry?.destination?.hasRoute(routeObj) != true) {
+                navigationManager.navigate(route = it.navRoute, method = NavMethod.SINGLE_TOP)
             }
         },
         onClickExit = {
@@ -143,29 +144,41 @@ fun MainScreen(
                 authViewModel = authViewModel,
                 navController = navController
             )
-        }
-        Scaffold(
-            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-            topBar = {
-                if (config.showTopBar) {
-                    CenterAlignedTopAppBar(
-                        title = { Text(config.title) },
-                        navigationIcon = {
-                            IconButton(onClick = {
-                                scope.launch { drawerState.open() }
-                            }) {
-                                Icon(Icons.Default.Menu, contentDescription = null)
-                            }
-                        },
-                        actions = config.tobBarActions
-                    )
+            Scaffold(
+                snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+                topBar = {
+                    if (config.showTopBar) {
+                        CenterAlignedTopAppBar(
+                            title = { Text(config.title) },
+                            navigationIcon = {
+                                val icon =
+                                    if (canGoBack) Icons.AutoMirrored.Default.KeyboardArrowLeft else Icons.Default.Menu
+                                val description = stringResource(
+                                    if (canGoBack) R.string.common_go_to_back else R.string.common_open_navigation_drawer
+                                )
+                                IconButton(onClick = {
+                                    if (canGoBack) {
+                                        if (config.onNavigateBack()) {
+                                            navController.popBackStack()
+                                        }
+                                    } else {
+                                        scope.launch { drawerState.open() }
+                                    }
+                                }) {
+                                    Icon(icon, contentDescription = description)
+                                }
+
+                            },
+                            actions = config.tobBarActions
+                        )
+                    }
+                },
+                bottomBar = { if (config.showBottomBar) config.bottomBar },
+                floatingActionButton = config.fab,
+            ) { paddingValues ->
+                Box(modifier = Modifier.padding(paddingValues)) {
+                    AppNavHost(navController, scaffoldManager, navigationManager)
                 }
-            },
-            floatingActionButton = config.fab,
-            contentWindowInsets = WindowInsets.safeGestures
-        ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues)) {
-                AppNavHost(navController, scaffoldManager, navigationManager)
             }
         }
 
@@ -185,7 +198,7 @@ private fun ExitConfirmationDialog(
         onConfirm = {
             authViewModel.signOut()
             viewModel.setExitConfirmationDialogVisibility(false)
-            navController.navigateInclusive(Auth.route)
+            navController.navigateInclusive(NavRoute.Auth)
         }
     )
 }

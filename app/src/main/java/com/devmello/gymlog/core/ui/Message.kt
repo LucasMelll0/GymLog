@@ -4,7 +4,8 @@ import androidx.compose.material3.SnackbarDuration
 
 data class Message(
     val id: Long = System.currentTimeMillis(),
-    val text: String,
+    val text: String? = null,
+    val textId: Int? = null,
     val duration: MessageDuration = MessageDuration.SHORT
 )
 

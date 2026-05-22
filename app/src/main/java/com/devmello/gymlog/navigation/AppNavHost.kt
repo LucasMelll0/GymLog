@@ -9,7 +9,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.toRoute
 import com.devmello.gymlog.core.navigation.NavMethod
 import com.devmello.gymlog.core.navigation.NavigationManager
 import com.devmello.gymlog.core.ui.ScaffoldManager
@@ -36,20 +36,22 @@ fun AppNavHost(
     navigationManager: NavigationManager,
     modifier: Modifier = Modifier
 ) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
     val authViewModel: AuthViewModel = koinViewModel<AuthViewModelImpl>()
     val navigationQueue by navigationManager.destinations.collectAsStateWithLifecycle()
-
-    val startDestination = Auth.route
+    val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
+    val startDestination = if(currentUser != null) NavRoute.Home else NavRoute.Auth
 
     LaunchedEffect(navigationQueue) {
 
         if (navigationQueue.isNotEmpty()) {
             val destination = navigationQueue.first()
             when (destination.navMethod) {
-                NavMethod.SINGLE_TOP -> navController.navigateSingleTopTo(destination.formatedDestination)
-                NavMethod.INCLUSIVE -> navController.navigateInclusive(destination.formatedDestination)
+                NavMethod.SINGLE_TOP -> navController.navigateSingleTopTo(destination.route)
+                NavMethod.INCLUSIVE -> navController.navigateInclusive(destination.route)
+                NavMethod.DEFAULT -> navController.navigate(
+                    destination.route,
+                    navOptions = destination.navOptions
+                )
             }
             navigationManager.removeDestination(destination)
         }
@@ -60,13 +62,13 @@ fun AppNavHost(
         startDestination = startDestination,
         modifier = modifier
     ) {
-        composable(Login.route) {
+        composable<NavRoute.Login> {
             LoginScreen(
                 scaffoldManager = scaffoldManager,
                 onGoogleSignInClick = {
                     authViewModel.signInWithGoogle(alreadyRegistered = false)
                 },
-                onClickRegister = { navController.navigateInclusive(Register.route) },
+                onClickRegister = { navigationManager.navigate(route = NavRoute.Register) },
                 onConventionalSignInClick = { userCredentials ->
                     authViewModel.signInWithEmailAndPassword(userCredentials)
                 },
@@ -77,18 +79,18 @@ fun AppNavHost(
             )
         }
 
-        composable(Auth.route) {
+        composable<NavRoute.Auth> {
             AuthenticationScreen(
                 scaffoldManager = scaffoldManager,
-                onClickLogin = { navController.navigateSingleTopTo(Login.route) },
-                onClickRegister = { navController.navigateSingleTopTo(Register.route) }
+                onClickLogin = { navigationManager.navigate(route = NavRoute.Login) },
+                onClickRegister = { navigationManager.navigate(route = NavRoute.Register) }
             )
         }
 
-        composable(Register.route) {
+        composable<NavRoute.Register> {
             RegisterScreen(
                 scaffoldManager = scaffoldManager,
-                onClickLogin = { navController.navigateSingleTopTo(Login.route) },
+                onClickLogin = { navigationManager.navigate(route = NavRoute.Login) },
                 onGoogleSignInClick = {
                     authViewModel.signInWithGoogle(alreadyRegistered = false)
                 },
@@ -97,49 +99,41 @@ fun AppNavHost(
                 }
             )
         }
-        composable(route = Home.route) {
+        composable<NavRoute.Home> {
             HomeScreen(
                 scaffoldManager = scaffoldManager,
-                onButtonAddClick = { navController.navigateToTrainingForm(null) },
-                onItemClickListener = { navController.navigateToTrainingLog(it) },
-                onClickEdit = { navController.navigateToTrainingForm(it) }
+                onButtonAddClick = { navigationManager.navigate(NavRoute.Form()) },
+                onItemClickListener = { navigationManager.navigate(NavRoute.Log(it)) },
+                onClickEdit = { navigationManager.navigate(NavRoute.Form(it)) }
             )
         }
-        composable(
-            route = Form.routeWithArgs,
-            arguments = Form.arguments
-        ) { navBackStackEntry ->
-            val trainingId = navBackStackEntry.arguments?.getString(Form.TRAINING_ID_ARG)
+        composable<NavRoute.Form> { navBackStackEntry ->
+            val training: NavRoute.Form = navBackStackEntry.toRoute()
             TrainingFormScreen(
-                trainingId = trainingId,
+                trainingId = training.trainingId,
                 onSaveTraining = { navController.popBackStack() },
-                onDismissClick = { navController.popBackStack() })
+                scaffoldManager = scaffoldManager,
+                onCancel = { navController.popBackStack() }
+            )
         }
-        composable(
-            route = Log.routeWithArgs,
-            arguments = Log.arguments
-        ) { navBackStackEntry ->
-            val trainingId = navBackStackEntry.arguments?.getString(Log.TRAINING_ID_ARG)
-            trainingId?.let {
+        composable<NavRoute.Log> { navBackStackEntry ->
+            val log: NavRoute.Log = navBackStackEntry.toRoute()
+            log.trainingId?.let {
                 TrainingLogScreen(
+                    scaffoldManager = scaffoldManager,
                     onBackPressed = { navController.popBackStack() },
-                    onNavIconClick = { navController.popBackStack() }, // TODO Scaffold
                     onError = { navController.popBackStack() },
-                    trainingId = trainingId,
+                    trainingId = log.trainingId,
                     onClickDelete = { navController.popBackStack() },
                     onClickEdit = { trainingId ->
-                        navController.navigateToTrainingForm(
-                            trainingId
-                        )
+                        navigationManager.navigate(NavRoute.Form(trainingId))
                     }
                 )
             }
         }
-        composable(route = Bmi.route) {
-            if (currentRoute == Bmi.route) {
-                BackPressHandler {
-                    navController.navigateSingleTopTo(Home.route)
-                }
+        composable<NavRoute.Bmi> {
+            BackPressHandler {
+                navigationManager.navigate(NavRoute.Home)
             }
             BmiHistoricScreen(
                 onNavIconClick = {
@@ -149,22 +143,21 @@ fun AppNavHost(
                 onError = { navController.popBackStack() }
             )
         }
-        composable(
-            DropdownTimer.route,
-            deepLinks = DropdownTimer.deepLinks
+        composable<NavRoute.DropdownTimer>(
+            deepLinks = DropdownTimerDestination.deepLinks
         ) {
             DropdownTimerScreen(onNavIconClick = {
                 // drawerState.open() // TODO scaffold
 
             })
         }
-        composable(route = Stopwatch.route) {
+        composable<NavRoute.Stopwatch> {
             StopwatchScreen(onNavIconClick = {
                 // drawerState.open() // TODO scaffold
 
             })
         }
-        composable(route = UserProfile.route) {
+        composable<NavRoute.UserProfile> {
             UserProfileScreen(
                 onNavIconClick = {
                     //  drawerState.open() // TODO scaffold
@@ -174,7 +167,7 @@ fun AppNavHost(
                 },
                 onDeleteUser = {
                     authViewModel.resetState()
-                    navController.navigateInclusive(Auth.route)
+                    navigationManager.navigate(NavRoute.Auth, NavMethod.INCLUSIVE)
                 })
         }
     }
@@ -187,12 +180,14 @@ fun NavHostController.navigateSingleTopTo(route: String) = this.navigate(route) 
     restoreState = true
 }
 
-fun NavHostController.navigateToTrainingForm(trainingId: String?) =
-    this.navigateSingleTopTo("${Form.route}/$trainingId")
-
-private fun NavHostController.navigateToTrainingLog(trainingId: String) =
-    this.navigateSingleTopTo("${Log.route}/$trainingId")
-
+fun NavHostController.navigateSingleTopTo(route: NavRoute) = this.navigate(route) {
+    launchSingleTop = true
+    restoreState = true
+}
 internal fun NavHostController.navigateInclusive(route: String) = this.navigate(route) {
+    popUpTo(0)
+}
+
+internal fun NavHostController.navigateInclusive(route: NavRoute) = this.navigate(route) {
     popUpTo(0)
 }

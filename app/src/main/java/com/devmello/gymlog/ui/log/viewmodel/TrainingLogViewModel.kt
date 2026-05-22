@@ -1,32 +1,35 @@
 package com.devmello.gymlog.ui.log.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.devmello.gymlog.extensions.toUserData
 import com.devmello.gymlog.model.ExerciseMutableState
 import com.devmello.gymlog.model.Training
 import com.devmello.gymlog.repository.TrainingRepository
-import com.devmello.gymlog.utils.Resource
+import com.devmello.gymlog.utils.State
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 interface TrainingLogViewModel {
     val title: String
     val exercises: List<ExerciseMutableState>
     val filters: List<String>
-    val resource: Flow<Resource<Training>>
+    val state: Flow<State<Training>>
     val savedStopwatchTimes: List<Long>
     fun setLoading()
     suspend fun getTraining(id: String)
     fun updateExercise(exerciseId: String, isChecked: Boolean)
     fun resetExercises()
-    suspend fun removeTraining(trainingId: String)
-    suspend fun updateTraining(trainingId: String)
+    fun removeTraining(trainingId: String)
+    fun updateTraining(trainingId: String)
     fun saveStopwatchTime(time: Long)
     fun resetStopwatchTimes()
 }
@@ -43,20 +46,24 @@ class TrainingLogViewModelImpl(private val repository: TrainingRepository) : Tra
     override val exercises: List<ExerciseMutableState> get() = _exercises
     private val _filters = mutableStateListOf<String>()
     override val filters: List<String> get() = _filters
-
-    private val _resource: MutableStateFlow<Resource<Training>> = MutableStateFlow(Resource.Loading)
-    override val resource: Flow<Resource<Training>> = _resource
+    private val _state: MutableStateFlow<State<Training>> = MutableStateFlow(State.Loading)
+    override val state: Flow<State<Training>> = _state
     private val _savedStopwatchTimes = mutableStateListOf<Long>()
     override val savedStopwatchTimes: List<Long> get() = _savedStopwatchTimes
 
 
     override fun setLoading() {
-        _resource.value = Resource.Loading
+        _state.value = State.Loading
+    }
+
+    override fun onCleared() {
+        Log.i("TAG", "onCleared: aqui")
+        super.onCleared()
     }
 
     override suspend fun getTraining(id: String) {
-        if (_resource.value !is Resource.Success) {
-            _resource.value =
+        if (_state.value !is State.Success) {
+            _state.value =
                 try {
                     currentUser?.let {
                         repository.getById(id, it.uid)?.let { training ->
@@ -65,14 +72,14 @@ class TrainingLogViewModelImpl(private val repository: TrainingRepository) : Tra
                             _exercises.addAll(training.getExercisesWithMutableState())
                             _filters.clear()
                             _filters.addAll(training.filters)
-                            Resource.Success(training)
+                            State.Success(training)
                         } ?: run {
-                            Resource.Error("Error on get training: null pointer")
+                            State.Error("Error on get training: null pointer")
                         }
-                    } ?: Resource.Error("Error on get current user")
+                    } ?: State.Error("Error on get current user")
 
-                } catch (e: Exception) {
-                    Resource.Error("Error on get training")
+                } catch (_: Exception) {
+                    State.Error("Error on get training")
                 }
         }
     }
@@ -89,30 +96,37 @@ class TrainingLogViewModelImpl(private val repository: TrainingRepository) : Tra
         }
     }
 
-    override suspend fun removeTraining(trainingId: String) {
-        currentUser?.let {
-            repository.getById(trainingId, it.uid)?.let { training ->
-                this._resource.value = Resource.Loading
-                repository.disable(training)
+    override fun removeTraining(trainingId: String) {
+        viewModelScope.launch {
+            currentUser?.let {
+                repository.getById(trainingId, it.uid)?.let { training ->
+                    _state.value = State.Loading
+                    repository.disable(training)
+                }
             }
         }
     }
 
-    override suspend fun updateTraining(trainingId: String) {
-        currentUser?.let { currentUser ->
-            repository.getById(trainingId, currentUser.uid)?.let { training ->
-                this._resource.value = Resource.Loading
-                repository.save(
-                    training.copy(
-                        exercises = exercises.map { it.toExercise() },
-                        isSynchronized = false
+    override fun updateTraining(trainingId: String) {
+        viewModelScope.launch {
+            currentUser?.let { currentUser ->
+                repository.getById(trainingId, currentUser.uid)?.let { training ->
+                    _state.value = State.Loading
+                    repository.save(
+                        training.copy(
+                            exercises = exercises.map { it.toExercise() },
+                            isSynchronized = false
+                        )
                     )
-                )
+                }
             }
         }
+
     }
 
-    override fun saveStopwatchTime(time: Long) { _savedStopwatchTimes.add(time) }
+    override fun saveStopwatchTime(time: Long) {
+        _savedStopwatchTimes.add(time)
+    }
 
     override fun resetStopwatchTimes() = _savedStopwatchTimes.clear()
 

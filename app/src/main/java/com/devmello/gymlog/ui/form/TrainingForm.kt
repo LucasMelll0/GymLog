@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -23,11 +22,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -35,17 +32,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
@@ -63,84 +55,77 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devmello.gymlog.R
-import com.devmello.gymlog.data.AppDataBase_Impl
-import com.devmello.gymlog.data.firebase.FireStoreClient
+import com.devmello.gymlog.core.ui.ScaffoldConfig
+import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.model.Exercise
-import com.devmello.gymlog.model.Training
-import com.devmello.gymlog.repository.TrainingRepositoryImpl
 import com.devmello.gymlog.ui.components.DefaultAlertDialog
 import com.devmello.gymlog.ui.components.DefaultOutlinedTextField
 import com.devmello.gymlog.ui.components.DefaultTextButton
 import com.devmello.gymlog.ui.components.FilterChipList
-import com.devmello.gymlog.ui.components.LoadingDialog
 import com.devmello.gymlog.ui.form.viewmodel.TrainingFormViewModel
+import com.devmello.gymlog.ui.form.viewmodel.TrainingFormViewModelImpl
 import com.devmello.gymlog.ui.theme.GymLogTheme
 import com.devmello.gymlog.utils.BackPressHandler
 import com.devmello.gymlog.utils.TrainingTypes
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.StateFlow
 import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
 fun TrainingFormScreen(
     onSaveTraining: () -> Unit,
-    onDismissClick: () -> Unit,
+    onCancel: () -> Unit,
     modifier: Modifier = Modifier,
     trainingId: String? = null,
-    viewModel: TrainingFormViewModel = koinViewModel()
+    scaffoldManager: ScaffoldManager,
+    viewModel: TrainingFormViewModel = koinViewModel<TrainingFormViewModelImpl>()
 ) {
-
-    val scope = rememberCoroutineScope()
-    var isLoading by rememberSaveable { mutableStateOf(false) }
-    trainingId?.let {
-        LaunchedEffect(key1 = Unit) {
-            isLoading = true
-            viewModel.getTrainingById(trainingId)
-            isLoading = false
-        }
-    }
-
-
     var showDismissDialog: Boolean by rememberSaveable {
         mutableStateOf(false)
     }
-    BackPressHandler {
-        showDismissDialog = true
-    }
-    var nameHasError by remember { mutableStateOf(false) }
-    val snackBarHostState = remember { SnackbarHostState() }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        bottomBar = {
-            TrainingFormBottomBar(
-                onConfirm = {
-                    nameHasError = viewModel.trainingTitle.isEmpty()
-                    if (!nameHasError) {
-                        scope.launch {
-                            isLoading = true
-                            val training = Training(
-                                title = viewModel.trainingTitle,
-                                filters = viewModel.filters,
-                                exercises = viewModel.exercises
-                            )
+    val hasError by viewModel.hasErrors.collectAsStateWithLifecycle()
+    val nameHasError = viewModel.nameHasError
+
+
+    LaunchedEffect(Unit) {
+        scaffoldManager.updateConfig(
+            ScaffoldConfig(
+                onNavigateBack = {
+                    showDismissDialog = true
+                    false
+                },
+                showBottomBar = false,
+                fab = {
+                    TrainingFormFab(
+                        onConfirm = {
                             try {
-                                viewModel.saveTraining(training)
+                                viewModel.saveTraining()
                             } finally {
                                 onSaveTraining()
                             }
-                        }
-                    }
-                },
-                onNavIconClick = { showDismissDialog = true })
-        }) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (isLoading) LoadingDialog(text = stringResource(id = R.string.common_saving))
+                        },
+                        enabled = !hasError
+                    )
+                }
+            )
+        )
+    }
+    trainingId?.let {
+        LaunchedEffect(it) {
+            viewModel.getTrainingById(it)
         }
+    }
+
+
+
+    BackPressHandler {
+        showDismissDialog = true
+    }
+
+    Box {
         var showExerciseDialog: Boolean by rememberSaveable {
             mutableStateOf(false)
         }
@@ -149,7 +134,9 @@ fun TrainingFormScreen(
         if (showDismissDialog) {
             DismissTrainingDialog(
                 onDismissRequest = { showDismissDialog = false },
-                onConfirm = onDismissClick
+                onConfirm = {
+                    onCancel()
+                }
             )
         }
         val exerciseToEdit: Exercise? =
@@ -173,7 +160,6 @@ fun TrainingFormScreen(
             modifier = modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .padding(paddingValues)
         ) {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -256,10 +242,11 @@ fun ExerciseListForm(
                 key = { exercise -> exercise.exerciseId }
             ) { exercise ->
                 ExerciseItemForm(
-                    modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null, placementSpec = spring(
-                                stiffness = Spring.StiffnessMediumLow,
-                                visibilityThreshold = IntOffset.VisibilityThreshold
-                            )
+                    modifier = Modifier.animateItem(
+                        fadeInSpec = null, fadeOutSpec = null, placementSpec = spring(
+                            stiffness = Spring.StiffnessMediumLow,
+                            visibilityThreshold = IntOffset.VisibilityThreshold
+                        )
                     ),
                     exercise = exercise,
                     onClickRemove = onClickRemove,
@@ -359,36 +346,23 @@ private fun DismissTrainingDialog(
 }
 
 @Composable
-private fun TrainingFormBottomBar(
+private fun TrainingFormFab(
     onConfirm: () -> Unit,
-    onNavIconClick: () -> Unit,
-    modifier: Modifier = Modifier
+    enabled: Boolean = true,
 ) {
-    BottomAppBar(
-        modifier = modifier,
-        actions = {
-            IconButton(onClick = onNavIconClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(
-                        id = R.string.common_go_to_back
-                    )
-                )
-            }
-        }, floatingActionButton = {
-            FloatingActionButton(onClick = onConfirm) {
-                Icon(
-                    imageVector = Icons.Rounded.Check,
-                    contentDescription = stringResource(id = R.string.common_confirm)
-                )
-            }
-        })
+    if (enabled) FloatingActionButton(onClick = onConfirm) {
+        Icon(
+            imageVector = Icons.Rounded.Check,
+            contentDescription = stringResource(id = R.string.common_confirm)
+        )
+    }
 }
 
 @Preview
 @Composable
-private fun TrainingFormBottomBarPreview() {
+private fun TrainingFormFabPreview() {
     GymLogTheme {
-        TrainingFormBottomBar(onConfirm = {}, onNavIconClick = {})
+        TrainingFormFab(onConfirm = {})
     }
 }
 
@@ -405,18 +379,43 @@ private fun DismissTrainingDialogPreview() {
 @Composable
 private fun TrainingFormScreenPreview() {
     GymLogTheme {
-        val viewModelFactory = object : ViewModelProvider.NewInstanceFactory() {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val repositoryImpl =
-                    TrainingRepositoryImpl(AppDataBase_Impl().trainingDao(), FireStoreClient())
-                return TrainingFormViewModel(repositoryImpl) as T
+        val viewModel: TrainingFormViewModel = object : TrainingFormViewModel {
+            override val trainingTitle: String
+                get() = TODO("Not yet implemented")
+            override val hasErrors: StateFlow<Boolean>
+                get() = TODO("Not yet implemented")
+            override val nameHasError: Boolean
+                get() = TODO("Not yet implemented")
+            override val exercises: List<Exercise>
+                get() = TODO("Not yet implemented")
+            override val filters: List<String>
+                get() = TODO("Not yet implemented")
+
+            override fun getTrainingById(trainingId: String) {
+                TODO("Not yet implemented")
+            }
+
+            override fun setTrainingTitle(title: String) {
+                TODO("Not yet implemented")
+            }
+
+            override fun addExercise(exercise: Exercise) {
+                TODO("Not yet implemented")
+            }
+
+            override fun removeExercise(exercise: Exercise) {
+                TODO("Not yet implemented")
+            }
+
+            override fun saveTraining() {
+                TODO("Not yet implemented")
             }
         }
-        val viewModel: TrainingFormViewModel = viewModel(factory = viewModelFactory)
         TrainingFormScreen(
-            onDismissClick = {},
             onSaveTraining = {},
-            viewModel = viewModel
+            viewModel = viewModel,
+            onCancel = {},
+            scaffoldManager = ScaffoldManager()
         )
     }
 }

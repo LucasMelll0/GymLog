@@ -4,6 +4,7 @@ plugins {
     id 'com.google.devtools.ksp'
     id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.plugin.compose'
+    id 'org.jetbrains.kotlin.plugin.serialization'
 }
 
 android {
@@ -55,6 +56,8 @@ dependencies {
     def guava_version = "33.6.0-android"
     implementation "com.google.guava:guava:$guava_version"
 
+    // Splash screen
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     // DataStore
     implementation "androidx.datastore:datastore-preferences:1.0.0"
@@ -64,6 +67,9 @@ dependencies {
 
     // ImageLoader
     implementation"io.coil-kt:coil-compose:2.4.0"
+
+    // Serialization
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
 
     // FirebaseAuth
     def credentials_version = "1.2.2"

@@ -81,7 +81,7 @@ import com.devmello.gymlog.utils.BmiClassifier
 import com.devmello.gymlog.utils.BmiRating
 import com.devmello.gymlog.utils.Gender
 import com.devmello.gymlog.utils.Month
-import com.devmello.gymlog.utils.Resource
+import com.devmello.gymlog.utils.State
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
@@ -100,7 +100,7 @@ fun BmiHistoricScreen(
     val context = LocalContext.current
     var isLoading: Boolean by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val userResource by viewModel.userResource.collectAsStateWithLifecycle(Resource.Loading)
+    val userState by viewModel.userState.collectAsStateWithLifecycle(State.Loading)
     val user: User? by viewModel.user.collectAsStateWithLifecycle(null)
     var registerToDelete: BmiInfo? by remember { mutableStateOf(null) }
     var showUserCreatorDialog: Boolean by rememberSaveable { mutableStateOf(false) }
@@ -118,13 +118,13 @@ fun BmiHistoricScreen(
             isLoading = false
         }
     }
-    when (userResource) {
-        is Resource.Loading -> {
+    when (userState) {
+        is State.Loading -> {
             isLoading = true
         }
 
-        is Resource.Success -> {
-            (userResource as Resource.Success<User?>).data?.let {
+        is State.Success -> {
+            (userState as State.Success<User?>).data?.let {
                 viewModel.setUser(it)
                 isLoading = false
             } ?: run { showUserCreatorDialog = true }
@@ -473,9 +473,9 @@ private fun BmiHistoricEmptyListMessage(modifier: Modifier = Modifier) {
 private fun BmiHistoricScreenPreview() {
     GymLogTheme {
         val viewModel = object : BmiHistoricViewModel {
-            override val userResource: Flow<Resource<User?>> = flow {
+            override val userState: Flow<State<User?>> = flow {
                 emit(
-                    Resource.Success(
+                    State.Success(
                         User(
                             gender = Gender.Male,
                             height = 176,

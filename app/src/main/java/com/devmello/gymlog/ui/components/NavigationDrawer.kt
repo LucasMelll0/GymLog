@@ -44,12 +44,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.devmello.gymlog.R
 import com.devmello.gymlog.core.model.UserData
 import com.devmello.gymlog.extensions.capitalizeAllWords
-import com.devmello.gymlog.navigation.Bmi
+import com.devmello.gymlog.navigation.BmiDestination
 import com.devmello.gymlog.navigation.Destination
-import com.devmello.gymlog.navigation.DropdownTimer
-import com.devmello.gymlog.navigation.Home
-import com.devmello.gymlog.navigation.Stopwatch
-import com.devmello.gymlog.navigation.UserProfile
+import com.devmello.gymlog.navigation.DropdownTimerDestination
+import com.devmello.gymlog.navigation.HomeDestination
+import com.devmello.gymlog.navigation.StopwatchDestination
+import com.devmello.gymlog.navigation.UserProfileDestination
 import com.devmello.gymlog.ui.theme.GymLogTheme
 import java.util.Date
 
@@ -193,7 +193,10 @@ fun AppNavigationDrawer(
     onClickExit: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    val destinations = listOf(Home, Bmi, DropdownTimer, Stopwatch, UserProfile)
+    val destinations = listOf(
+        HomeDestination, BmiDestination, DropdownTimerDestination,
+        StopwatchDestination, UserProfileDestination
+    )
     ModalNavigationDrawer(
         gesturesEnabled = gesturesEnabled, drawerContent = {
             DrawerBody(
@@ -219,7 +222,7 @@ fun AppNavigationDrawer(
 fun AppNavigationDrawerPreview() {
     GymLogTheme {
         AppNavigationDrawer(
-            currentDestinationRoute = Home.route,
+            currentDestinationRoute = HomeDestination.route,
             onItemClick = {},
             drawerState = rememberDrawerState(initialValue = DrawerValue.Open),
             onClickExit = {},
