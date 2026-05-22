@@ -1,5 +1,6 @@
 package com.devmello.gymlog.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,6 +41,7 @@ import com.devmello.gymlog.core.navigation.NavMethod
 import com.devmello.gymlog.core.navigation.NavigationManager
 import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.core.ui.ScaffoldManager
+import com.devmello.gymlog.extensions.toNavRoute
 import com.devmello.gymlog.navigation.AppNavHost
 import com.devmello.gymlog.navigation.HomeDestination
 import com.devmello.gymlog.navigation.NavRoute
@@ -88,7 +91,7 @@ fun MainScreen(
     // Route
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val canGoBack = navController.previousBackStackEntry != null
-    val currentRoute = navBackStackEntry?.destination?.route
+    val currentRoute = navBackStackEntry?.destination
 
     LaunchedEffect(key1 = messages) {
         if (messages.isNotEmpty()) {
@@ -117,11 +120,11 @@ fun MainScreen(
 
     AppNavigationDrawer(
         gesturesEnabled = config.drawerGesturesEnabled,
-        currentDestinationRoute = currentRoute ?: HomeDestination.route,
+        currentDestinationRoute = navBackStackEntry?.toNavRoute() ?: NavRoute.Home,
         drawerState = drawerState,
         onItemClick = {
             val routeObj = it.navRoute::class
-            if (navBackStackEntry?.destination?.hasRoute(routeObj) != true) {
+            if (currentRoute?.hasRoute(routeObj) != true) {
                 navigationManager.navigate(route = it.navRoute, method = NavMethod.SINGLE_TOP)
             }
         },

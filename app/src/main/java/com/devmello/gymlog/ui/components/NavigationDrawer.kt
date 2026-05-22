@@ -2,26 +2,19 @@ package com.devmello.gymlog.ui.components
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ExitToApp
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -30,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
@@ -38,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,6 +41,7 @@ import com.devmello.gymlog.navigation.BmiDestination
 import com.devmello.gymlog.navigation.Destination
 import com.devmello.gymlog.navigation.DropdownTimerDestination
 import com.devmello.gymlog.navigation.HomeDestination
+import com.devmello.gymlog.navigation.NavRoute
 import com.devmello.gymlog.navigation.StopwatchDestination
 import com.devmello.gymlog.navigation.UserProfileDestination
 import com.devmello.gymlog.ui.theme.GymLogTheme
@@ -99,7 +91,7 @@ fun NavigationDrawerHeader(user: UserData?) {
 
 @Composable
 fun AppNavigationDrawer(
-    currentDestinationRoute: String,
+    currentDestinationRoute: NavRoute,
     onItemClick: (Destination) -> Unit,
     drawerState: DrawerState,
     gesturesEnabled: Boolean = true,
@@ -130,7 +122,7 @@ fun AppNavigationDrawer(
                                     Text(text = title)
                                 }
                             },
-                            selected = currentDestinationRoute == destination.route,
+                            selected = currentDestinationRoute.equals(destination.navRoute),
                             onClick = {
                                 onItemClick(destination)
                             }
@@ -173,7 +165,7 @@ fun AppNavigationDrawer(
 fun AppNavigationDrawerPreview() {
     GymLogTheme {
         AppNavigationDrawer(
-            currentDestinationRoute = HomeDestination.route,
+            currentDestinationRoute = HomeDestination.navRoute,
             onItemClick = {},
             drawerState = rememberDrawerState(initialValue = DrawerValue.Open),
             onClickExit = {},
