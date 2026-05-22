@@ -27,7 +27,9 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,134 +56,46 @@ import com.devmello.gymlog.ui.theme.GymLogTheme
 import java.util.Date
 
 @Composable
-fun DrawerBody(
-    items: List<Destination>,
-    modifier: Modifier = Modifier,
-    onItemClick: (Destination) -> Unit,
-    currentDestinationRoute: String,
-    onClickExit: () -> Unit,
-    user: UserData?
-) {
-    val bigCornerSize = dimensionResource(R.dimen.large_corner_size)
-    Column(
-        verticalArrangement = Arrangement.SpaceBetween,
-        modifier = modifier
-            .fillMaxHeight()
-            .clip(RoundedCornerShape(topEnd = bigCornerSize, bottomEnd = bigCornerSize))
-            .background(MaterialTheme.colorScheme.surface),
+fun NavigationDrawerHeader(user: UserData?) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
     ) {
+        DefaultAsyncImage(
+            data = user?.profilePicture,
+            diskCacheKey = "user_image_${Date().time}",
+            error = painterResource(id = R.drawable.ic_person),
+            contentDescription = stringResource(id = R.string.user_profile_photo_content_description),
+            modifier = Modifier
+                .size(dimensionResource(id = R.dimen.navigation_drawer_user_photo_size))
+                .background(MaterialTheme.colorScheme.surface)
+                .clip(CircleShape)
+                .weight(0.25f)
+        )
         Column(
-            modifier = Modifier
-                .padding(dimensionResource(id = R.dimen.default_padding))
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.weight(0.75f)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
-            ) {
-                DefaultAsyncImage(
-                    data = user?.profilePicture,
-                    diskCacheKey = "user_image_${Date().time}",
-                    error = painterResource(id = R.drawable.ic_person),
-                    contentDescription = stringResource(id = R.string.user_profile_photo_content_description),
-                    modifier = Modifier
-                        .size(dimensionResource(id = R.dimen.navigation_drawer_user_photo_size))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .clip(CircleShape)
-                        .weight(0.25f)
-                )
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    modifier = Modifier.weight(0.75f)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.app_name),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    user?.userName?.let { userName ->
-                        Text(
-                            text = stringResource(
-                                id = R.string.drawer_welcome_message,
-                                userName.capitalizeAllWords()
-                            ),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
-                    }
-                }
-            }
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-            Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
-            LazyColumn {
-                items(items) {
-                    val isCurrentDestination = it.route == currentDestinationRoute
-                    DrawerBodyItem(
-                        destination = it, onItemClick = onItemClick, isCurrentDestination
-                    )
-                }
-            }
-        }
-        // Exit Button
-        TextButton(
-            onClick = onClickExit,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = dimensionResource(id = R.dimen.default_padding)),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ExitToApp,
-                    contentDescription = null,
-                    modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.default_padding))
-                )
+            Text(
+                text = stringResource(id = R.string.app_name),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            user?.userName?.let { userName ->
                 Text(
-                    text = stringResource(id = R.string.drawer_exit_button),
-                    style = MaterialTheme.typography.titleMedium
+                    text = stringResource(
+                        id = R.string.drawer_welcome_message,
+                        userName.capitalizeAllWords()
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
+                Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
             }
         }
     }
-
 }
 
-
-@Composable
-fun DrawerBodyItem(
-    destination: Destination, onItemClick: (Destination) -> Unit, isCurrentDestination: Boolean
-) {
-    val containerColor =
-        if (isCurrentDestination) MaterialTheme.colorScheme.primary.copy(0.8f) else Color.Transparent
-    val contentColor =
-        if (isCurrentDestination) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-    Card(
-        modifier = Modifier
-            .padding(vertical = dimensionResource(id = R.dimen.default_padding))
-            .height(dimensionResource(id = R.dimen.default_drawer_item_height))
-            .fillMaxWidth()
-            .clickable { onItemClick(destination) }, colors = CardDefaults.cardColors(
-            containerColor = containerColor, contentColor = contentColor
-        ), shape = MaterialTheme.shapes.large
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()) {
-            destination.icon?.let {
-                Icon(
-                    painter = painterResource(id = it),
-                    contentDescription = null,
-                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding))
-                )
-            }
-            Text(text = destination.title?.let { stringResource(id = it) } ?: "",
-                style = MaterialTheme.typography.titleMedium,
-                color = contentColor,
-                modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)))
-        }
-    }
-}
 
 @Composable
 fun AppNavigationDrawer(
@@ -199,20 +113,57 @@ fun AppNavigationDrawer(
     )
     ModalNavigationDrawer(
         gesturesEnabled = gesturesEnabled, drawerContent = {
-            DrawerBody(
-                items = destinations,
-                onItemClick = onItemClick,
-                currentDestinationRoute = currentDestinationRoute,
-                onClickExit = onClickExit,
-                user = user
-            )
+            ModalDrawerSheet {
+                NavigationDrawerHeader(user)
+                HorizontalDivider()
+                LazyColumn {
+                    items(destinations) { destination ->
+                        NavigationDrawerItem(
+                            label = {
+                                val icon = destination.icon?.let { painterResource(it) }
+                                val title = destination.title?.let { stringResource(it) } ?: ""
+                                Row {
+                                    if (icon != null) Icon(
+                                        painter = icon,
+                                        contentDescription = null
+                                    )
+                                    Text(text = title)
+                                }
+                            },
+                            selected = currentDestinationRoute == destination.route,
+                            onClick = {
+                                onItemClick(destination)
+                            }
+                        )
+                    }
+                }
+                HorizontalDivider()
+                TextButton(
+                    onClick = onClickExit,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = dimensionResource(id = R.dimen.default_padding)),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ExitToApp,
+                            contentDescription = null,
+                            modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.default_padding))
+                        )
+                        Text(
+                            text = stringResource(id = R.string.drawer_exit_button),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+            }
         }, drawerState = drawerState, modifier = Modifier.fillMaxHeight()
     ) {
-        Scaffold { contentPadding ->
-            Box(modifier = Modifier.padding(contentPadding)) {
-                content()
-            }
-        }
+        content()
     }
 }
 
