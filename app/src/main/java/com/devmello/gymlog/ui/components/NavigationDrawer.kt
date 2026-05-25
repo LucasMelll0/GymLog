@@ -2,6 +2,7 @@ package com.devmello.gymlog.ui.components
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.devmello.gymlog.R
 import com.devmello.gymlog.core.model.UserData
@@ -48,10 +50,12 @@ import com.devmello.gymlog.ui.theme.GymLogTheme
 import java.util.Date
 
 @Composable
-fun NavigationDrawerHeader(user: UserData?) {
+fun NavigationDrawerHeader(user: UserData?, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding))
+        horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
+        modifier = Modifier.padding(vertical = dimensionResource(R.dimen.default_padding))
+            .clickable(true, onClick = onClick)
     ) {
         DefaultAsyncImage(
             data = user?.profilePicture,
@@ -70,7 +74,7 @@ fun NavigationDrawerHeader(user: UserData?) {
         ) {
             Text(
                 text = stringResource(id = R.string.app_name),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             user?.userName?.let { userName ->
@@ -79,11 +83,12 @@ fun NavigationDrawerHeader(user: UserData?) {
                         id = R.string.drawer_welcome_message,
                         userName.capitalizeAllWords()
                     ),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
             }
+
         }
     }
 }
@@ -101,12 +106,12 @@ fun AppNavigationDrawer(
 ) {
     val destinations = listOf(
         HomeDestination, BmiDestination, DropdownTimerDestination,
-        StopwatchDestination, UserProfileDestination
+        StopwatchDestination
     )
     ModalNavigationDrawer(
         gesturesEnabled = gesturesEnabled, drawerContent = {
             ModalDrawerSheet {
-                NavigationDrawerHeader(user)
+                NavigationDrawerHeader(user, onClick = { onItemClick(UserProfileDestination) })
                 HorizontalDivider()
                 LazyColumn {
                     items(destinations) { destination ->

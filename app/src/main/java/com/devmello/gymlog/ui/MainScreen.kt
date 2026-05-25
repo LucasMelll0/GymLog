@@ -1,6 +1,5 @@
 package com.devmello.gymlog.ui
 
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +20,6 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,19 +29,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.devmello.gymlog.R
-import com.devmello.gymlog.core.navigation.NavDestination
 import com.devmello.gymlog.core.navigation.NavMethod
 import com.devmello.gymlog.core.navigation.NavigationManager
 import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.extensions.toNavRoute
 import com.devmello.gymlog.navigation.AppNavHost
-import com.devmello.gymlog.navigation.HomeDestination
 import com.devmello.gymlog.navigation.NavRoute
 import com.devmello.gymlog.navigation.navigateInclusive
 import com.devmello.gymlog.navigation.viewmodel.MainViewModel
