@@ -160,7 +160,8 @@ val userProfileModule = module {
             trainingRepository = get(),
             bmiInfoRepository = get(),
             userRepository = get(),
-            userPreferencesRepository = get()
+            userPreferencesRepository = get(),
+            loadingManager = get()
         )
     }
 }

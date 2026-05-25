@@ -22,20 +22,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -59,14 +53,15 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devmello.gymlog.R
-import com.devmello.gymlog.core.model.Response
 import com.devmello.gymlog.core.model.UserData
+import com.devmello.gymlog.core.ui.MessageManager
+import com.devmello.gymlog.core.ui.ScaffoldConfig
+import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.extensions.capitalizeAllWords
 import com.devmello.gymlog.extensions.checkConnection
 import com.devmello.gymlog.ui.components.DefaultAsyncImage
 import com.devmello.gymlog.ui.components.DefaultPasswordTextField
 import com.devmello.gymlog.ui.components.DefaultTextField
-import com.devmello.gymlog.ui.components.LoadingDialog
 import com.devmello.gymlog.ui.theme.GymLogTheme
 import com.devmello.gymlog.ui.user.viewmodel.UserProfileViewModel
 import com.devmello.gymlog.ui.user.viewmodel.UserProfileViewModelImpl
@@ -77,160 +72,121 @@ import com.google.firebase.auth.EmailAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
 import java.util.Date
 import java.util.UUID
 
+@Suppress("AssignedValueIsNeverRead")
 @Composable
 fun UserProfileScreen(
+    scaffoldManager: ScaffoldManager,
+    modifier: Modifier = Modifier,
+    messageManager: MessageManager = get<MessageManager>(),
     viewModel: UserProfileViewModel = koinViewModel<UserProfileViewModelImpl>(),
-    onNavIconClick: () -> Unit,
     onInvalidUser: () -> Unit,
     onDeleteUser: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    var isLoading by rememberSaveable { mutableStateOf(false) }
-    val snackBarHostState = remember { SnackbarHostState() }
     val user by viewModel.user.collectAsStateWithLifecycle()
     LaunchedEffect(key1 = user) {
         user ?: onInvalidUser()
     }
+    // Initial Config
+    scaffoldManager.updateConfig(ScaffoldConfig())
     var selectedPhoto: Uri? by rememberSaveable { mutableStateOf(null) }
     val userPhotoUri = user?.profilePicture
+
+
+    // Dialogs & BottomSheet flags
     var showChangeUserPhotoDialog by rememberSaveable { mutableStateOf(false) }
     var showChangeUsernameBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showChangePasswordBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteAccountBottomSheet by rememberSaveable { mutableStateOf(false) }
+
     val isEmailAuthProvider = viewModel.userProvider == EmailAuthProvider.PROVIDER_ID
-    Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-        bottomBar = { UserProfileBottomBar(onNavIconClick = onNavIconClick) }) { paddingValues ->
-        if (isLoading) Box(modifier = Modifier.fillMaxSize()) {
-            LoadingDialog()
-        }
-        if (showChangeUserPhotoDialog) ChangeUserPhotoDialog(
-            photoUri = selectedPhoto,
-            onConfirm = {
-                scope.launch {
-                    context.checkConnection(onNotConnected = {
-                        showChangeUserPhotoDialog = false
-                        snackBarHostState.showSnackbar(
-                            message = context.getString(R.string.common_offline_message),
-                            withDismissAction = true
-                        )
-                    }) {
-                        selectedPhoto?.let {
-                            showChangeUserPhotoDialog = false
-                            isLoading = true
-                            viewModel.changeUserPhoto(it) {
-                                isLoading = false
-                                snackBarHostState.showSnackbar(
-                                    context.getString(R.string.user_profile_change_photo_error),
-                                    withDismissAction = true
-                                )
-                            }
-                            isLoading = false
-                        }
-                    }
-                }
-            },
-            onDismissRequest = { showChangeUserPhotoDialog = false })
-        if (showChangeUsernameBottomSheet) ChangeUsernameBottomSheet(onConfirm = {
-            showChangeUsernameBottomSheet = false
+
+    if (showChangeUserPhotoDialog) ChangeUserPhotoDialog(
+        photoUri = selectedPhoto,
+        onConfirm = {
             scope.launch {
                 context.checkConnection(onNotConnected = {
-                    snackBarHostState.showSnackbar(
-                        message = context.getString(R.string.common_offline_message),
-                        withDismissAction = true
-                    )
+                    showChangeUserPhotoDialog = false
+                    messageManager.postMessage(textId = R.string.common_offline_message)
                 }) {
-                    isLoading = true
-                    viewModel.changeUsername(it) {
-                        snackBarHostState.showSnackbar(
-                            message = context.getString(R.string.user_profile_change_username_error),
-                            withDismissAction = true
-                        )
-                    }
-                    isLoading = false
-                }
-            }
-        }, onDismissRequest = { showChangeUsernameBottomSheet = false })
-
-        if (showChangePasswordBottomSheet) ChangePasswordBottomSheet(
-            needPasswordToReauthenticate = isEmailAuthProvider,
-            onConfirm = { oldPassword, newPassword ->
-                showChangePasswordBottomSheet = false
-                scope.launch {
-                    context.checkConnection(onNotConnected = {
-                        snackBarHostState.showSnackbar(
-                            message = context.getString(R.string.common_offline_message),
-                            withDismissAction = true
-                        )
-                    }) {
-                        isLoading = true
-                        val response =
-                            viewModel.changePassword(oldPassword, newPassword)
-                        isLoading = false
-                        if (response is Response.Success) {
-                            snackBarHostState.showSnackbar(
-                                context.getString(R.string.user_profile_change_password_success_message),
-                                withDismissAction = true
-                            )
-                        } else {
-                            snackBarHostState.showSnackbar(
-                                context.getString(R.string.user_profile_change_password_error),
-                                withDismissAction = true
-                            )
+                    selectedPhoto?.let {
+                        showChangeUserPhotoDialog = false
+                        viewModel.changeUserPhoto(it) {
+                            messageManager.postMessage(textId = R.string.user_profile_change_photo_error)
                         }
                     }
                 }
+            }
+        },
+        onDismissRequest = { showChangeUserPhotoDialog = false })
+    if (showChangeUsernameBottomSheet) ChangeUsernameBottomSheet(onConfirm = {
+        showChangeUsernameBottomSheet = false
+        scope.launch {
+            context.checkConnection(onNotConnected = {
+                messageManager.postMessage(R.string.common_offline_message)
             }) {
-            showChangePasswordBottomSheet = false
+                viewModel.changeUsername(it) {
+                    messageManager.postMessage(R.string.user_profile_change_username_error)
+                }
+            }
         }
+    }, onDismissRequest = { showChangeUsernameBottomSheet = false })
 
-        if (showDeleteAccountBottomSheet) DeleteAccountBottomSheet(
-            needPasswordToReauthenticate = isEmailAuthProvider,
-            onConfirm = {
-                showDeleteAccountBottomSheet = false
-                scope.launch {
-                    isLoading = true
-                    val response = viewModel.deleteUser(it)
-                    if (response is Response.Success) {
-                        onDeleteUser()
-                    } else {
-                        snackBarHostState.showSnackbar(
-                            context.getString(R.string.user_profile_delete_user_error),
-                            withDismissAction = true
-                        )
-                    }
-                    isLoading = false
+    if (showChangePasswordBottomSheet) ChangePasswordBottomSheet(
+        needPasswordToReauthenticate = isEmailAuthProvider,
+        onConfirm = { oldPassword, newPassword ->
+            showChangePasswordBottomSheet = false
+            scope.launch {
+                context.checkConnection(onNotConnected = {
+                    messageManager.postMessage(textId = R.string.common_offline_message)
+                }) {
+                    viewModel.changePassword(
+                        oldPassword,
+                        newPassword,
+                        onSuccess = { messageManager.postMessage(textId = R.string.user_profile_change_password_success_message) },
+                        onFailed = { messageManager.postMessage(textId = R.string.user_profile_change_password_error) })
                 }
-            },
-            onDismissRequest = { showDeleteAccountBottomSheet = false })
-        UserProfileContent(
-            user = user,
-            userPhotoUri = userPhotoUri,
-            isEmailAuthProvider = isEmailAuthProvider,
-            onSelectPhoto = {
-                it?.let {
-                    selectedPhoto = it
-                    showChangeUserPhotoDialog = true
-                } ?: scope.launch {
-                    snackBarHostState.showSnackbar(
-                        context.getString(R.string.user_profile_photo_selection_error),
-                        withDismissAction = true
-                    )
-                }
-            },
-            onChangeUsernameClick = { showChangeUsernameBottomSheet = true },
-            onChangePasswordClick = { showChangePasswordBottomSheet = true },
-            onDeleteUserClick = { showDeleteAccountBottomSheet = true },
-            onInvalidUser = onInvalidUser,
-            context = context,
-            modifier = Modifier.padding(paddingValues)
-        )
+            }
+        }) {
+        showChangePasswordBottomSheet = false
     }
+
+    if (showDeleteAccountBottomSheet) DeleteAccountBottomSheet(
+        needPasswordToReauthenticate = isEmailAuthProvider,
+        onConfirm = {
+            showDeleteAccountBottomSheet = false
+            viewModel.deleteUser(
+                it,
+                onSuccess = onDeleteUser,
+                onFailed = { messageManager.postMessage(textId = R.string.user_profile_delete_user_error) })
+
+        },
+        onDismissRequest = { showDeleteAccountBottomSheet = false })
+    UserProfileContent(
+        user = user,
+        userPhotoUri = userPhotoUri,
+        isEmailAuthProvider = isEmailAuthProvider,
+        onSelectPhoto = { photo ->
+            photo?.let {
+                selectedPhoto = photo
+                showChangeUserPhotoDialog = true
+            } ?: run {
+                messageManager.postMessage(textId = R.string.user_profile_photo_selection_error)
+            }
+        },
+        onChangeUsernameClick = { showChangeUsernameBottomSheet = true },
+        onChangePasswordClick = { showChangePasswordBottomSheet = true },
+        onDeleteUserClick = { showDeleteAccountBottomSheet = true },
+        onInvalidUser = onInvalidUser,
+        context = context,
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -616,18 +572,6 @@ fun ChangeUserPhotoDialogPreview() {
     }
 }
 
-@Composable
-fun UserProfileBottomBar(onNavIconClick: () -> Unit, modifier: Modifier = Modifier) {
-    BottomAppBar(actions = {
-        IconButton(onClick = onNavIconClick) {
-            Icon(
-                imageVector = Icons.Rounded.Menu,
-                contentDescription = stringResource(id = R.string.common_open_navigation_drawer)
-            )
-        }
-    }, modifier = modifier)
-}
-
 @Preview(uiMode = UI_MODE_NIGHT_YES)
 @Preview
 @Composable
@@ -645,31 +589,32 @@ fun UserProfileScreenPreview() {
             override val userProvider: String?
                 get() = null
 
-            override suspend fun changeUsername(
-                username: String, onFailedListener: suspend () -> Unit
+            override fun changeUsername(username: String, onFailed: () -> Unit) {
+                TODO("Not yet implemented")
+            }
+
+            override fun changeUserPhoto(uri: Uri, onFailed: () -> Unit) {
+                TODO("Not yet implemented")
+            }
+
+            override fun changePassword(
+                oldPassword: String,
+                newPassword: String,
+                onSuccess: () -> Unit,
+                onFailed: () -> Unit
             ) {
                 TODO("Not yet implemented")
             }
 
-            override suspend fun changeUserPhoto(uri: Uri, onFailedListener: suspend () -> Unit) {
+            override fun deleteUser(password: String, onSuccess: () -> Unit, onFailed: () -> Unit) {
                 TODO("Not yet implemented")
             }
 
-            override suspend fun changePassword(
-                oldPassword: String, newPassword: String
-            ): Response<Nothing> {
-                TODO("Not yet implemented")
-            }
-
-            override suspend fun deleteUser(
-                password: String
-            ): Response<Nothing> {
-                TODO("Not yet implemented")
-            }
 
         }
         UserProfileScreen(
-            onNavIconClick = {},
+            scaffoldManager = ScaffoldManager(),
+            messageManager = MessageManager(),
             onInvalidUser = {},
             onDeleteUser = {},
             viewModel = viewModel

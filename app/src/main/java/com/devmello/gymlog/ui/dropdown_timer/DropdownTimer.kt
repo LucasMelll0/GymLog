@@ -13,30 +13,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.devmello.gymlog.R
+import com.devmello.gymlog.core.ui.ScaffoldConfig
+import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.ui.components.AppDropdownTimer
 import com.devmello.gymlog.ui.theme.GymLogTheme
 
 @Composable
-fun DropdownTimerScreen(onNavIconClick: () -> Unit) {
-    Scaffold(bottomBar = { DropdownTimerBottomBar(onNavIconClick = onNavIconClick) }) { paddingValues ->
-        AppDropdownTimer(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-        )
-    }
-}
-
-@Composable
-fun DropdownTimerBottomBar(onNavIconClick: () -> Unit) {
-    BottomAppBar(actions = {
-        IconButton(onClick = onNavIconClick) {
-            Icon(
-                imageVector = Icons.Rounded.Menu,
-                contentDescription = stringResource(id = R.string.common_open_navigation_drawer)
-            )
-        }
-    })
+fun DropdownTimerScreen(scaffoldManager: ScaffoldManager, modifier: Modifier = Modifier) {
+    scaffoldManager.updateConfig(ScaffoldConfig(showBottomBar = false))
+    AppDropdownTimer(
+        modifier = modifier
+            .fillMaxSize()
+    )
 }
 
 
@@ -44,6 +32,6 @@ fun DropdownTimerBottomBar(onNavIconClick: () -> Unit) {
 @Composable
 fun TimerScreenPreview() {
     GymLogTheme {
-        DropdownTimerScreen(onNavIconClick = {})
+        DropdownTimerScreen(scaffoldManager = ScaffoldManager())
     }
 }

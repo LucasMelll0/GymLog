@@ -39,7 +39,7 @@ fun AppNavHost(
     val authViewModel: AuthViewModel = koinViewModel<AuthViewModelImpl>()
     val navigationQueue by navigationManager.destinations.collectAsStateWithLifecycle()
     val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
-    val startDestination = if(currentUser != null) NavRoute.Home else NavRoute.Auth
+    val startDestination = if (currentUser != null) NavRoute.Home else NavRoute.Auth
 
     LaunchedEffect(navigationQueue) {
 
@@ -143,23 +143,15 @@ fun AppNavHost(
         composable<NavRoute.DropdownTimer>(
             deepLinks = DropdownTimerDestination.deepLinks
         ) {
-            DropdownTimerScreen(onNavIconClick = {
-                // drawerState.open() // TODO scaffold
-
-            })
+            DropdownTimerScreen(scaffoldManager = scaffoldManager)
         }
         composable<NavRoute.Stopwatch> {
-            StopwatchScreen(onNavIconClick = {
-                // drawerState.open() // TODO scaffold
-
-            })
+            StopwatchScreen(scaffoldManager = scaffoldManager)
         }
         composable<NavRoute.UserProfile> {
             UserProfileScreen(
-                onNavIconClick = {
-                    //  drawerState.open() // TODO scaffold
-
-                }, onInvalidUser = {
+                scaffoldManager = scaffoldManager,
+                onInvalidUser = {
                     navController.popBackStack()
                 },
                 onDeleteUser = {
@@ -181,6 +173,7 @@ fun NavHostController.navigateSingleTopTo(route: NavRoute) = this.navigate(route
     launchSingleTop = true
     restoreState = true
 }
+
 internal fun NavHostController.navigateInclusive(route: String) = this.navigate(route) {
     popUpTo(0)
 }

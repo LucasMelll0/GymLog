@@ -2,35 +2,41 @@ package com.devmello.gymlog.ui.user.viewmodel
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.devmello.gymlog.R
 import com.devmello.gymlog.core.model.Response
 import com.devmello.gymlog.core.model.UserData
 import com.devmello.gymlog.core.model.repositories.AccountRepository
 import com.devmello.gymlog.core.model.repositories.UserPreferencesRepository
 import com.devmello.gymlog.core.model.repositories.UserRepository
+import com.devmello.gymlog.core.ui.LoadingManager
+import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.repository.BmiInfoRepository
 import com.devmello.gymlog.repository.TrainingRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 
 interface UserProfileViewModel {
     val user: StateFlow<UserData?>
     val userProvider: String?
 
-    suspend fun changeUsername(username: String, onFailedListener: suspend () -> Unit = {})
+    fun changeUsername(username: String, onFailed: () -> Unit = {})
 
-    suspend fun changeUserPhoto(uri: Uri, onFailedListener: suspend () -> Unit = {})
+    fun changeUserPhoto(uri: Uri, onFailed: () -> Unit = {})
 
-    suspend fun changePassword(
-        oldPassword: String,
-        newPassword: String
-    ): Response<Unit>
+    fun changePassword(
+        oldPassword: String, newPassword: String,
+        onSuccess: () -> Unit,
+        onFailed: () -> Unit
+    )
 
-    suspend fun deleteUser(
-        password: String
-    ): Response<Unit>
+    fun deleteUser(
+        password: String, onSuccess: () -> Unit, onFailed: () -> Unit
+    )
 
 }
 
@@ -40,57 +46,83 @@ class UserProfileViewModelImpl(
     private val bmiInfoRepository: BmiInfoRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val userRepository: UserRepository,
-
-    ) : UserProfileViewModel, ViewModel() {
+    private val loadingManager: LoadingManager,
+) : UserProfileViewModel, ViewModel() {
 
     private val _user = MutableStateFlow(accountRepository.currentUser)
     override val user: StateFlow<UserData?> get() = _user
 
     override val userProvider = accountRepository.userProvider
 
-    override suspend fun changeUsername(
-        username: String,
-        onFailedListener: suspend () -> Unit
+    override fun changeUsername(
+        username: String, onFailed: () -> Unit
     ) {
-        val response = accountRepository.updateUsername(username)
-        if (response is Response.Success) reload() else onFailedListener()
+        loadingManager.show()
+        viewModelScope.launch {
+            val response = accountRepository.updateUsername(username)
+            loadingManager.hide()
+            if (response is Response.Success) reload() else onFailed()
+        }
+
     }
 
-    override suspend fun changeUserPhoto(
-        uri: Uri,
-        onFailedListener: suspend () -> Unit
+    override fun changeUserPhoto(
+        uri: Uri, onFailed: () -> Unit
     ) {
-        val response = accountRepository.updateProfilePicture(uri.toString())
-        if (response is Response.Success) reload() else onFailedListener()
+        loadingManager.show()
+        viewModelScope.launch {
+            val response = accountRepository.updateProfilePicture(uri.toString())
+            loadingManager.hide()
+            if (response is Response.Success) reload() else onFailed()
+        }
+
     }
 
-    private suspend fun reload() {
-        accountRepository.reloadUser()
-        _user.update { accountRepository.currentUser }
+    private fun reload() {
+        loadingManager.show()
+        viewModelScope.launch {
+            accountRepository.reloadUser()
+            _user.update { accountRepository.currentUser }
+            loadingManager.hide()
+        }
+
     }
 
-    override suspend fun changePassword(
-        oldPassword: String,
-        newPassword: String
-    ): Response<Unit> {
-        val googleIdToken = userPreferencesRepository.googleIdToken.firstOrNull()
-        return accountRepository.changePassword(
-            oldPassword = oldPassword.ifEmpty { null },
-            newPassword = newPassword,
-            googleIdToken = googleIdToken
-        )
+    override fun changePassword(
+        oldPassword: String, newPassword: String,
+        onSuccess: () -> Unit,
+        onFailed: () -> Unit
+    ) {
+        loadingManager.show()
+        viewModelScope.launch {
+            val googleIdToken = userPreferencesRepository.googleIdToken.firstOrNull()
+            val response = accountRepository.changePassword(
+                oldPassword = oldPassword.ifEmpty { null },
+                newPassword = newPassword,
+                googleIdToken = googleIdToken
+            )
+            loadingManager.hide()
+            if (response is Response.Success) onSuccess() else onFailed()
+
+
+        }
     }
 
 
-    override suspend fun deleteUser(
-        password: String
-    ): Response<Unit> {
-        val googleIdToken = userPreferencesRepository.googleIdToken.firstOrNull()
-        return user.value?.let {
-            trainingRepository.disableAll(it.uid)
-            bmiInfoRepository.disableAll(it.uid)
-            userRepository.delete(it.uid)
-            accountRepository.deleteAccount(password.ifEmpty { null }, googleIdToken)
-        } ?: Response.Error(message = "Invalid User")
+    override fun deleteUser(
+        password: String, onSuccess: () -> Unit, onFailed: () -> Unit
+    ) {
+        loadingManager.show()
+        viewModelScope.launch {
+            val googleIdToken = userPreferencesRepository.googleIdToken.firstOrNull()
+            val response = user.value?.let {
+                trainingRepository.disableAll(it.uid)
+                bmiInfoRepository.disableAll(it.uid)
+                userRepository.delete(it.uid)
+                accountRepository.deleteAccount(password.ifEmpty { null }, googleIdToken)
+            } ?: Response.Error(message = "Invalid User")
+            loadingManager.hide()
+            if (response is Response.Success) onSuccess() else onFailed()
+        }
     }
 }

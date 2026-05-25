@@ -19,6 +19,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModel
 import com.devmello.gymlog.R
+import com.devmello.gymlog.core.ui.ScaffoldConfig
+import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.ui.components.AppStopwatch
 import com.devmello.gymlog.ui.stopwatch.viewmodel.StopwatchViewModel
 import com.devmello.gymlog.ui.stopwatch.viewmodel.StopwatchViewModelImpl
@@ -27,36 +29,23 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun StopwatchScreen(
-    onNavIconClick: () -> Unit,
+    scaffoldManager: ScaffoldManager,
+    modifier: Modifier = Modifier,
     viewModel: StopwatchViewModel = koinViewModel<StopwatchViewModelImpl>()
 ) {
-    Scaffold(bottomBar = { StopwatchBottomBar(onNavIconClick = onNavIconClick) }) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-        ) {
-            AppStopwatch(
-                savedTimesList = viewModel.savedTimes,
-                onSaveTime = { viewModel.saveTime(it) },
-                onReset = { viewModel.reset() },
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
+    scaffoldManager.updateConfig(ScaffoldConfig(showBottomBar = false))
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        AppStopwatch(
+            savedTimesList = viewModel.savedTimes,
+            onSaveTime = { viewModel.saveTime(it) },
+            onReset = { viewModel.reset() },
+            modifier = Modifier.align(Alignment.Center)
+        )
     }
-}
-
-@Composable
-fun StopwatchBottomBar(onNavIconClick: () -> Unit) {
-    BottomAppBar(actions = {
-        IconButton(onClick = onNavIconClick) {
-            Icon(
-                imageVector = Icons.Rounded.Menu,
-                contentDescription = stringResource(id = R.string.common_open_navigation_drawer)
-            )
-        }
-    })
 }
 
 @Preview
@@ -75,6 +64,6 @@ fun StopwatchScreenPreview() {
 
             }
         }
-        StopwatchScreen(onNavIconClick = {}, viewModel = viewModel)
+        StopwatchScreen(viewModel = viewModel, scaffoldManager = ScaffoldManager())
     }
 }

@@ -78,34 +78,32 @@ fun HomeScreen(
     val focusRequester = remember { FocusRequester() }
     val trainings by viewModel.trainings.collectAsState(emptyList())
 
-    LaunchedEffect(Unit) {
-        scaffoldManager.updateConfig(
-            newConfig = ScaffoldConfig(
-                tobBarActions = {
-                    IconButton(onClick = { showSearchBar = !showSearchBar }) {
-                        Icon(
-                            imageVector = Icons.Rounded.Search,
-                            contentDescription = stringResource(id = R.string.home_button_search_content_description)
-                        )
-                    }
-                    IconButton(onClick = { showFiltersBottomSheet = !showFiltersBottomSheet }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_filter),
-                            contentDescription = stringResource(id = R.string.home_button_filter_content_description)
-                        )
-                    }
-                },
-                fab = {
-                    FloatingActionButton(onClick = onButtonAddClick) {
-                        Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = stringResource(id = R.string.home_button_add_content_description)
-                        )
-                    }
+    scaffoldManager.updateConfig(
+        newConfig = ScaffoldConfig(
+            tobBarActions = {
+                IconButton(onClick = { showSearchBar = !showSearchBar }) {
+                    Icon(
+                        imageVector = Icons.Rounded.Search,
+                        contentDescription = stringResource(id = R.string.home_button_search_content_description)
+                    )
                 }
-            )
+                IconButton(onClick = { showFiltersBottomSheet = !showFiltersBottomSheet }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_filter),
+                        contentDescription = stringResource(id = R.string.home_button_filter_content_description)
+                    )
+                }
+            },
+            fab = {
+                FloatingActionButton(onClick = onButtonAddClick) {
+                    Icon(
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = stringResource(id = R.string.home_button_add_content_description)
+                    )
+                }
+            }
         )
-    }
+    )
 
     LaunchedEffect(Unit) {  // TODO Tentar alguma forma de refatorar isso
         context.checkConnection {
