@@ -108,9 +108,9 @@ fun AppStopwatch(
             Button(onClick = {
                 val playPauseFunction =
                     {
-                        if (isRunning) StopwatchService.pause() else {
+                        if (isRunning) StopwatchService.pause(context) else {
                             if (currentTime == 0L) context.startService(stopwatchService)
-                            StopwatchService.start()
+                            StopwatchService.start(context)
                         }
                     }
                 notificationPermissionState?.let {
@@ -143,7 +143,7 @@ fun AppStopwatch(
             AnimatedVisibility(visible = !isRunning) {
                 OutlinedButton(
                     onClick = {
-                        StopwatchService.reset()
+                        StopwatchService.reset(context)
                         context.stopService(stopwatchService)
                         onReset()
                     },

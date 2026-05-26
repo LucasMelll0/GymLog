@@ -79,6 +79,9 @@ object StopwatchDestination : Destination {
     override val title: Int = R.string.stopwatch_destination
     override val icon: Int = R.drawable.ic_stopwatch
     override val isSubscreen: Boolean = false
+    val deepLinks = listOf(
+        navDeepLink<NavRoute.Stopwatch>(basePath = "gymlog://${route}")
+    )
 }
 
 object UserProfileDestination : Destination {

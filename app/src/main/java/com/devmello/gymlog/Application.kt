@@ -15,6 +15,7 @@ import com.devmello.gymlog.di.roomModule
 import com.devmello.gymlog.di.stopwatchModule
 import com.devmello.gymlog.di.userProfileModule
 import com.devmello.gymlog.services.DropdownTimerService
+import com.devmello.gymlog.services.StopwatchService
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -31,8 +32,17 @@ class Application : Application() {
         ).apply {
             description = getString(R.string.app_dropdown_timer_notification_description)
         }
+        val stopwatchNotificationChannel = NotificationChannel(
+            StopwatchService.NOTIFICATION_ID,
+            StopwatchService.NOTIFICATION_NAME,
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = getString(R.string.stopwatch_notification_description)
+        }
+
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(dropdownTimerNotificationChannel)
+        notificationManager.createNotificationChannel(stopwatchNotificationChannel)
 
         startKoin {
             androidLogger()

@@ -145,7 +145,9 @@ fun AppNavHost(
         ) {
             DropdownTimerScreen(scaffoldManager = scaffoldManager)
         }
-        composable<NavRoute.Stopwatch> {
+        composable<NavRoute.Stopwatch>(
+            deepLinks = StopwatchDestination.deepLinks
+        ) {
             StopwatchScreen(scaffoldManager = scaffoldManager)
         }
         composable<NavRoute.UserProfile> {
