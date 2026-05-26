@@ -109,7 +109,7 @@ val mainModule = module {
 
 val homeModule = module {
     viewModel {
-        HomeViewModelImpl(get())
+        HomeViewModelImpl(get(), get())
     }
 }
 
