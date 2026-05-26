@@ -93,9 +93,9 @@ fun TrainingLogScreen(
         viewModel.getTraining(trainingId)
     }
 
-    LaunchedEffect(Unit) {
-        scaffoldManager.updateConfig(
-            ScaffoldConfig(
+
+    scaffoldManager.updateConfig(
+        ScaffoldConfig(
             fab = {
                 FloatingActionButton(onClick = {
                     onClickEdit(trainingId)
@@ -107,26 +107,20 @@ fun TrainingLogScreen(
                     )
                 }
             },
+            tobBarActions = {
+                TrainingLogAppBarActions(
+                    onClickDelete = { showDeleteDialog = true },
+                    onClickDropdownTimer = { showTimerBottomSheet = true },
+                    onClickReset = { showResetDialog = true },
+                    onClickStopwatch = { showStopwatchBottomSheet = true })
+            },
             onNavigateBack = {
                 viewModel.updateTraining(trainingId)
                 true
             },
-            showBottomBar = true,
-            bottomBar = {
-                TrainingLogBottomAppBar(
-                    onClickDelete = { showDeleteDialog = true },
-                    onClickReset = { showResetDialog = true },
-                    onClickEdit = {
-                        onClickEdit(trainingId)
-                        viewModel.setLoading()
-                    },
-                    onClickTimer = { showTimerBottomSheet = true },
-                    onClickStopwatch = { showStopwatchBottomSheet = true }
-                )
-            }
-
-        ))
-    }
+            showBottomBar = false,
+        )
+    )
 
     val scope = rememberCoroutineScope()
 
@@ -168,9 +162,9 @@ fun TrainingLogScreen(
                     modifier = Modifier
                         .padding(vertical = dimensionResource(id = R.dimen.default_padding))
                 ) {
-                    val tips = stringArrayResource(id = R.array.training_tips).toList()
+
                     TipCard(
-                        tips = tips, modifier = Modifier.padding(
+                        modifier = Modifier.padding(
                             horizontal = dimensionResource(
                                 id = R.dimen.default_padding
                             )
@@ -205,6 +199,43 @@ fun TrainingLogScreen(
             onSaveTime = { viewModel.saveStopwatchTime(it) },
             onReset = { viewModel.resetStopwatchTimes() },
             onDismissRequest = { showStopwatchBottomSheet = false })
+    }
+}
+
+@Composable
+fun TrainingLogAppBarActions(
+    onClickStopwatch: () -> Unit,
+    onClickDropdownTimer: () -> Unit,
+    onClickReset: () -> Unit,
+    onClickDelete: () -> Unit,
+) {
+    IconButton(onClick = onClickDropdownTimer) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_hourglass),
+            contentDescription = stringResource(
+                id = R.string.common_timer
+            )
+        )
+    }
+    IconButton(onClick = onClickStopwatch) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_stopwatch),
+            contentDescription = stringResource(
+                id = R.string.common_stopwatch
+            )
+        )
+    }
+    IconButton(onClick = onClickReset) {
+        Icon(
+            imageVector = Icons.Rounded.Refresh,
+            contentDescription = stringResource(id = R.string.common_reset)
+        )
+    }
+    IconButton(onClick = onClickDelete) {
+        Icon(
+            imageVector = Icons.Rounded.Delete,
+            contentDescription = stringResource(id = R.string.common_delete)
+        )
     }
 }
 
@@ -263,8 +294,10 @@ private fun TrainingProgressBar(
     )
 }
 
+
 @Composable
-fun TipCard(tips: List<String>, modifier: Modifier = Modifier) {
+fun TipCard(modifier: Modifier = Modifier) {
+    val tip = stringArrayResource(id = R.array.training_tips).toList().random()
     Card(
         shape = MaterialTheme.shapes.large,
         modifier = modifier.fillMaxWidth(),
@@ -281,7 +314,7 @@ fun TipCard(tips: List<String>, modifier: Modifier = Modifier) {
                 contentDescription = "Tip",
             )
             Text(
-                text = tips.random(),
+                text = tip,
                 style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
             )
         }
@@ -340,54 +373,6 @@ private fun TrainingLogEmptyListMessage(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(dimensionResource(id = R.dimen.large_padding))
         )
     }
-}
-
-@Composable
-private fun TrainingLogBottomAppBar(
-    onClickDelete: () -> Unit,
-    onClickReset: () -> Unit,
-    onClickEdit: () -> Unit,
-    onClickTimer: () -> Unit,
-    onClickStopwatch: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    BottomAppBar(modifier = modifier, floatingActionButton = {
-        FloatingActionButton(onClick = onClickEdit) {
-            Icon(
-                imageVector = Icons.Rounded.Edit,
-                contentDescription = stringResource(id = R.string.common_edit)
-            )
-        }
-    }, actions = {
-        IconButton(onClick = onClickTimer) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_hourglass),
-                contentDescription = stringResource(
-                    id = R.string.common_timer
-                )
-            )
-        }
-        IconButton(onClick = onClickStopwatch) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_stopwatch),
-                contentDescription = stringResource(
-                    id = R.string.common_stopwatch
-                )
-            )
-        }
-        IconButton(onClick = onClickReset) {
-            Icon(
-                imageVector = Icons.Rounded.Refresh,
-                contentDescription = stringResource(id = R.string.common_reset)
-            )
-        }
-        IconButton(onClick = onClickDelete) {
-            Icon(
-                imageVector = Icons.Rounded.Delete,
-                contentDescription = stringResource(id = R.string.common_delete)
-            )
-        }
-    })
 }
 
 @Preview(uiMode = UI_MODE_NIGHT_YES)

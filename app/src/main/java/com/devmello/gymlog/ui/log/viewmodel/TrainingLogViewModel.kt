@@ -56,11 +56,6 @@ class TrainingLogViewModelImpl(private val repository: TrainingRepository) : Tra
         _state.value = State.Loading
     }
 
-    override fun onCleared() {
-        Log.i("TAG", "onCleared: aqui")
-        super.onCleared()
-    }
-
     override suspend fun getTraining(id: String) {
         if (_state.value !is State.Success) {
             _state.value =
