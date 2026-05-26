@@ -26,7 +26,6 @@ import com.devmello.gymlog.repository.UserRepositoryImpl
 import com.devmello.gymlog.ui.auth.viewmodel.AuthViewModelImpl
 import com.devmello.gymlog.ui.bmi.viewmodel.BmiCalculatorViewModel
 import com.devmello.gymlog.ui.bmi.viewmodel.BmiHistoricViewModelImpl
-import com.devmello.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.devmello.gymlog.ui.form.viewmodel.TrainingFormViewModelImpl
 import com.devmello.gymlog.ui.home.viewmodel.HomeViewModelImpl
 import com.devmello.gymlog.ui.log.viewmodel.TrainingLogViewModelImpl
@@ -109,7 +108,7 @@ val mainModule = module {
 
 val homeModule = module {
     viewModel {
-        HomeViewModelImpl(get())
+        HomeViewModelImpl(get(), get())
     }
 }
 

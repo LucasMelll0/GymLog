@@ -22,8 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,16 +44,15 @@ import com.devmello.gymlog.ui.home.components.DisposableFiltersList
 import com.devmello.gymlog.ui.home.components.FiltersBottomSheet
 import com.devmello.gymlog.ui.home.components.HomeEmptyListMessage
 import com.devmello.gymlog.ui.home.components.TrainingList
-import com.devmello.gymlog.ui.home.components.TrainingListShimmer
 import com.devmello.gymlog.ui.home.components.TrainingMenuBottomSheet
 import com.devmello.gymlog.ui.home.viewmodel.HomeViewModel
 import com.devmello.gymlog.ui.home.viewmodel.HomeViewModelImpl
 import com.devmello.gymlog.ui.theme.GymLogTheme
 import com.devmello.gymlog.utils.BackPressHandler
 import com.devmello.gymlog.utils.TrainingTypes
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -69,8 +66,6 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel<HomeViewModelImpl>()
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var isLoading by rememberSaveable { mutableStateOf(false) }
     var showFiltersBottomSheet by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
     var bottomSheetMenuTraining: Training? by remember { mutableStateOf(null) }
@@ -107,25 +102,19 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) {  // TODO Tentar alguma forma de refatorar isso
         context.checkConnection {
-            isLoading = true
             viewModel.sync()
-            isLoading = false
         }
     }
 
     Box(modifier = modifier) {
-        if (isLoading) TrainingListShimmer(Modifier.padding(dimensionResource(id = R.dimen.small_padding)))
-        if (trainings.isEmpty() && !isLoading) HomeEmptyListMessage()
+        if (trainings.isEmpty()) HomeEmptyListMessage()
         bottomSheetMenuTraining?.let {
             if (showTrainingDeleteDialog) DeleteTrainingDialog(
                 onConfirm = {
-                    scope.launch {
-                        isLoading = true
-                        viewModel.deleteTraining(it.trainingId)
+                    viewModel.deleteTraining(it.trainingId, onDeleted = {
                         bottomSheetMenuTraining = null
                         showTrainingDeleteDialog = false
-                        isLoading = false
-                    }
+                    })
                 },
                 onDismissRequest = { showTrainingDeleteDialog = false })
         }
@@ -224,7 +213,7 @@ private fun HomeScreenPreview() {
         val trainings = Mock.getTrainings()
         val viewModel = object : HomeViewModel, ViewModel() {
             private val _trainings: MutableStateFlow<List<Training>> = MutableStateFlow(trainings)
-            override val trainings: Flow<List<Training>> get() = _trainings
+            override val trainings: StateFlow<List<Training>> get() = _trainings.asStateFlow()
 
             private val _filters: MutableList<String> = remember { mutableStateListOf() }
             override val filters: List<String>
@@ -234,9 +223,9 @@ private fun HomeScreenPreview() {
                 if (!filters.contains(filter)) _filters.add(filter) else _filters.remove(filter)
             }
 
-            override suspend fun deleteTraining(trainingId: String) {}
+            override fun deleteTraining(trainingId: String, onDeleted: () -> Unit) {}
 
-            override suspend fun sync() {}
+            override fun sync() {}
         }
         HomeScreen(
             scaffoldManager = ScaffoldManager(),
