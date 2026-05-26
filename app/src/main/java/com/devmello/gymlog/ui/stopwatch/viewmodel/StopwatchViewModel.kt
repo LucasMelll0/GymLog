@@ -39,6 +39,4 @@ class StopwatchViewModelImpl : StopwatchViewModel,
         // but if called here, we should ensure it's cleared in the service too if that's the intention.
         // However, AppStopwatch calls StopwatchService.reset(context) directly.
     }
-
-
 }
