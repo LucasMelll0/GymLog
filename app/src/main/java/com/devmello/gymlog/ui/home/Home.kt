@@ -22,8 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,9 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devmello.gymlog.R
-import com.devmello.gymlog.core.ui.LoadingManager
 import com.devmello.gymlog.core.ui.ScaffoldConfig
 import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.data.Mock
@@ -48,21 +44,16 @@ import com.devmello.gymlog.ui.home.components.DisposableFiltersList
 import com.devmello.gymlog.ui.home.components.FiltersBottomSheet
 import com.devmello.gymlog.ui.home.components.HomeEmptyListMessage
 import com.devmello.gymlog.ui.home.components.TrainingList
-import com.devmello.gymlog.ui.home.components.TrainingListShimmer
 import com.devmello.gymlog.ui.home.components.TrainingMenuBottomSheet
 import com.devmello.gymlog.ui.home.viewmodel.HomeViewModel
 import com.devmello.gymlog.ui.home.viewmodel.HomeViewModelImpl
 import com.devmello.gymlog.ui.theme.GymLogTheme
 import com.devmello.gymlog.utils.BackPressHandler
 import com.devmello.gymlog.utils.TrainingTypes
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
-import org.koin.core.context.GlobalContext.get
 
 
 @Composable

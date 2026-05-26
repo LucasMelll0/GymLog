@@ -1,6 +1,5 @@
 package com.devmello.gymlog.ui.home.viewmodel
 
-import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,11 +9,9 @@ import com.devmello.gymlog.model.Training
 import com.devmello.gymlog.repository.TrainingRepository
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
 interface HomeViewModel {
