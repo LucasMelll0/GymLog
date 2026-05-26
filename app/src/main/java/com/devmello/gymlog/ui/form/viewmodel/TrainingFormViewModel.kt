@@ -40,7 +40,7 @@ interface TrainingFormViewModel {
 
     fun removeExercise(exercise: Exercise)
 
-    fun saveTraining()
+    fun saveTraining(onSuccess: () -> Unit)
 }
 
 class TrainingFormViewModelImpl(
@@ -116,7 +116,7 @@ class TrainingFormViewModelImpl(
         }
     }
 
-    override fun saveTraining() {
+    override fun saveTraining(onSuccess: () -> Unit) {
         loadingManager.show(textId = R.string.common_saving)
         val training = Training(
             title = trainingTitle,
@@ -130,9 +130,14 @@ class TrainingFormViewModelImpl(
                 } ?: run {
                     repository.save(training.copy(userId = currentUser.uid))
                 }
+            } ?: run {
+                loadingManager.hide()
+                messageManager.postMessage(textId = R.string.common_error_message)
+                return@launch
             }
             loadingManager.hide()
             messageManager.postMessage(textId = R.string.training_form_saved_with_success)
+            onSuccess()
         }
 
     }

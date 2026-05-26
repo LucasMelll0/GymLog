@@ -101,11 +101,9 @@ fun TrainingFormScreen(
                 fab = {
                     TrainingFormFab(
                         onConfirm = {
-                            try {
-                                viewModel.saveTraining()
-                            } finally {
+                            viewModel.saveTraining(onSuccess = {
                                 onSaveTraining()
-                            }
+                            })
                         },
                         enabled = !hasError
                     )
@@ -407,7 +405,7 @@ private fun TrainingFormScreenPreview() {
                 TODO("Not yet implemented")
             }
 
-            override fun saveTraining() {
+            override fun saveTraining(onSuccess: () -> Unit) {
                 TODO("Not yet implemented")
             }
         }
