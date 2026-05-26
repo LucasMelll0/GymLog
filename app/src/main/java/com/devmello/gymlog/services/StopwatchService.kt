@@ -51,6 +51,13 @@ class StopwatchService : Service() {
             }
         }
 
+        private val _savedTimes = MutableStateFlow<List<Long>>(emptyList())
+        val savedTimes: StateFlow<List<Long>> get() = _savedTimes
+
+        fun saveTime(time: Long) {
+            _savedTimes.update { it + time }
+        }
+
         fun start(context: Context) {
             stopWatch?.start() ?: run {
                 stopWatch = Stopwatch.createStarted()
@@ -69,6 +76,7 @@ class StopwatchService : Service() {
             stopWatch?.reset()
             _isRunning.update { false }
             _elapsedTime.value = 0L
+            _savedTimes.value = emptyList()
             val notificationManager = context.getSystemService(NotificationManager::class.java)
             notificationManager.cancel(NOTIFICATION_INT_ID)
         }
@@ -106,7 +114,7 @@ class StopwatchService : Service() {
                 )
                 .setContentText(
                     context.getString(
-                        R.string.stopwatch_notification_description
+                        R.string.stopwatch_back_from_notification
                     )
                 )
                 .setOngoing(_isRunning.value)

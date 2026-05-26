@@ -106,6 +106,7 @@
     <string name="stopwatch_face_time_format">%02d:%02d:%03d</string>
     <string name="stopwatch_to_mark">Marcar</string>
     <string name="stopwatch_notification_description">Mostra cronômetro</string>
+    <string name="stopwatch_back_from_notification">Voltar para o cronômetro</string>
     <string name="stopwatch_notification_title">Tempo corrido: %s</string>
 
     <!-- BmiCalculator -->
