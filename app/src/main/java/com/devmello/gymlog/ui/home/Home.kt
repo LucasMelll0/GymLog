@@ -16,7 +16,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -26,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -36,7 +34,6 @@ import com.devmello.gymlog.R
 import com.devmello.gymlog.core.ui.ScaffoldConfig
 import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.data.Mock
-import com.devmello.gymlog.extensions.checkConnection
 import com.devmello.gymlog.model.Training
 import com.devmello.gymlog.ui.components.DefaultAlertDialog
 import com.devmello.gymlog.ui.components.DefaultSearchBar
@@ -65,7 +62,6 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel<HomeViewModelImpl>()
 ) {
-    val context = LocalContext.current
     var showFiltersBottomSheet by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
     var bottomSheetMenuTraining: Training? by remember { mutableStateOf(null) }
@@ -100,11 +96,11 @@ fun HomeScreen(
         )
     )
 
-    LaunchedEffect(Unit) {  // TODO Tentar alguma forma de refatorar isso
-        context.checkConnection {
-            viewModel.sync()
-        }
-    }
+//    LaunchedEffect(Unit) {  // TODO Tentar alguma forma de refatorar isso
+//        context.checkConnection {
+//            viewModel.sync()
+//        }
+//    }
 
     Box(modifier = modifier) {
         if (trainings.isEmpty()) HomeEmptyListMessage()

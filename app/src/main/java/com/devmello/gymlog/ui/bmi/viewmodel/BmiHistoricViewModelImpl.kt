@@ -11,12 +11,15 @@ import com.devmello.gymlog.extensions.toUserData
 import com.devmello.gymlog.model.BmiInfo
 import com.devmello.gymlog.model.User
 import com.devmello.gymlog.repository.BmiInfoRepository
+import com.devmello.gymlog.services.NetworkMonitor
 import com.devmello.gymlog.utils.State
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -32,16 +35,16 @@ interface BmiHistoricViewModel {
     fun saveUser(user: User, onSuccess: () -> Unit)
     fun sync()
     fun getUser()
-    fun disableBmiInfoRegister(bmiInfo: BmiInfo)
+    fun disableBmiInfoRegister(bmiInfo: BmiInfo, onFinished: () -> Unit)
 }
 
 class BmiHistoricViewModelImpl(
     private val userRepository: UserRepository,
     private val bmiRepository: BmiInfoRepository,
-    private val loadingManager: LoadingManager
+    private val loadingManager: LoadingManager,
+    networkMonitor: NetworkMonitor,
 
     ) : BmiHistoricViewModel, ViewModel() {
-
 
     private val _userState: MutableStateFlow<State<User?>> =
         MutableStateFlow(State.Loading)
@@ -52,12 +55,20 @@ class BmiHistoricViewModelImpl(
 
     override val getHistoric = currentUser?.let { bmiRepository.getAll(it.uid) } ?: emptyFlow()
 
+    init {
+        val isConnected = networkMonitor.checkCurrentConnection()
+        if (isConnected) {
+            sync()
+        }
+        _user.value ?: getUser()
+    }
+
     override fun setLoading() {
         _userState.value = State.Loading
     }
 
     override fun saveUser(user: User, onSuccess: () -> Unit) {
-       loadingManager.show()
+        loadingManager.show()
         viewModelScope.launch {
             currentUser?.let {
                 userRepository.saveUser(user.copy(id = it.uid))
@@ -96,12 +107,16 @@ class BmiHistoricViewModelImpl(
         }
     }
 
-    override fun disableBmiInfoRegister(bmiInfo: BmiInfo) {
+    override fun disableBmiInfoRegister(bmiInfo: BmiInfo, onFinished: () -> Unit) {
+        loadingManager.show()
         viewModelScope.launch {
             try {
                 bmiRepository.disable(bmiInfo)
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                onFinished()
+                loadingManager.hide()
             }
         }
     }

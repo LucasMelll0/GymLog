@@ -63,7 +63,6 @@ class TrainingRepositoryImpl(private val dao: TrainingDao, private val cloudDbCl
             }
         }
         if (allLocal.isEmpty()) {
-            Log.i("TrainingRepository", "sync: $allCloud")
             allCloud?.forEach {
                 allDisabled.find { disabled -> disabled.trainingId == it.trainingId } ?: run {
                     dao.save(it)

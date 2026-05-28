@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devmello.gymlog.R
 import com.devmello.gymlog.core.ui.LoadingManager
+import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.model.Training
 import com.devmello.gymlog.repository.TrainingRepository
+import com.devmello.gymlog.services.NetworkMonitor
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +29,9 @@ interface HomeViewModel {
 
 class HomeViewModelImpl(
     private val repository: TrainingRepository,
-    private val loadingManager: LoadingManager
+    private val loadingManager: LoadingManager,
+    private val messageManager: MessageManager,
+    networkMonitor: NetworkMonitor
 ) : HomeViewModel, ViewModel() {
 
     private val currentUser = Firebase.auth.currentUser
@@ -41,8 +45,11 @@ class HomeViewModelImpl(
         loadingManager.show()
         currentUser?.let {
             getTrainings(it.uid)
-
         } ?: loadingManager.hide()
+        val isConnected = networkMonitor.checkCurrentConnection()
+        if (isConnected) {
+            sync()
+        }
     }
 
     private fun getTrainings(userId: String) {
@@ -50,9 +57,10 @@ class HomeViewModelImpl(
             repository.getAll(userId).collect { trainings ->
                 _trainings.value = trainings
             }
-            loadingManager.hide()
         }
+        loadingManager.hide()
     }
+
     private val _filters = mutableStateListOf<String>()
     override val filters: List<String> get() = _filters
 
@@ -79,12 +87,10 @@ class HomeViewModelImpl(
     }
 
     override fun sync() {
-        loadingManager.show(textId = R.string.common_synchronizing)
         viewModelScope.launch {
             currentUser?.let {
                 repository.sync(it.uid)
             }
-            loadingManager.hide()
         }
     }
 

@@ -23,6 +23,7 @@ import com.devmello.gymlog.repository.BmiInfoRepositoryImpl
 import com.devmello.gymlog.repository.TrainingRepository
 import com.devmello.gymlog.repository.TrainingRepositoryImpl
 import com.devmello.gymlog.repository.UserRepositoryImpl
+import com.devmello.gymlog.services.NetworkMonitor
 import com.devmello.gymlog.ui.auth.viewmodel.AuthViewModelImpl
 import com.devmello.gymlog.ui.bmi.viewmodel.BmiCalculatorViewModel
 import com.devmello.gymlog.ui.bmi.viewmodel.BmiHistoricViewModelImpl
@@ -104,11 +105,19 @@ val mainModule = module {
         MainViewModelImpl(get())
     }
 
+    single {
+        NetworkMonitor(androidContext())
+    }
 }
 
 val homeModule = module {
     viewModel {
-        HomeViewModelImpl(get(), get())
+        HomeViewModelImpl(
+            repository = get(),
+            loadingManager = get(),
+            messageManager = get(),
+            networkMonitor = get()
+        )
     }
 }
 
@@ -132,7 +141,8 @@ val bmiModule = module {
         BmiHistoricViewModelImpl(
             userRepository = get(),
             bmiRepository = get(),
-            loadingManager = get()
+            loadingManager = get(),
+            networkMonitor = get()
         )
     }
 }

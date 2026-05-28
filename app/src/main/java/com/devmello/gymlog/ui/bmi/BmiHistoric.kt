@@ -49,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -60,10 +59,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devmello.gymlog.R
 import com.devmello.gymlog.core.model.UserData
-import com.devmello.gymlog.core.ui.LoadingManager
 import com.devmello.gymlog.core.ui.ScaffoldConfig
 import com.devmello.gymlog.core.ui.ScaffoldManager
-import com.devmello.gymlog.extensions.checkConnection
 import com.devmello.gymlog.model.BmiInfo
 import com.devmello.gymlog.model.User
 import com.devmello.gymlog.ui.bmi.viewmodel.BmiHistoricViewModel
@@ -83,7 +80,6 @@ import com.devmello.gymlog.utils.State
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.util.Calendar
 import java.util.TimeZone
@@ -96,23 +92,12 @@ fun BmiHistoricScreen(
     modifier: Modifier = Modifier,
     viewModel: BmiHistoricViewModel = koinViewModel<BmiHistoricViewModelImpl>()
 ) {
-    val context = LocalContext.current
-    var isLoading: Boolean by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     val userState by viewModel.userState.collectAsStateWithLifecycle(State.Loading)
     val user: User? by viewModel.user.collectAsStateWithLifecycle(null)
     var registerToDelete: BmiInfo? by remember { mutableStateOf(null) }
     var showUserCreatorDialog: Boolean by rememberSaveable { mutableStateOf(false) }
     var showBmiCalculatorDialog: Boolean by rememberSaveable { mutableStateOf(false) }
     var showDeleteRegisterDialog: Boolean by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        context.checkConnection(onNotConnected = {
-            user ?: viewModel.getUser()
-        }) {
-            viewModel.sync()
-            user ?: viewModel.getUser()
-        }
-    }
 
     LaunchedEffect(Unit) {
         scaffoldManager.updateConfig(
@@ -145,12 +130,9 @@ fun BmiHistoricScreen(
             onDismissRequest = { showDeleteRegisterDialog = false },
             onConfirm = {
                 registerToDelete?.let {
-                    scope.launch {
-                        isLoading = true
-                        viewModel.disableBmiInfoRegister(it)
-                        isLoading = false
-                    }
-                    showDeleteRegisterDialog = false
+                    viewModel.disableBmiInfoRegister(it, onFinished = {
+                        showDeleteRegisterDialog = false
+                    })
                 }
             })
         if (showBmiCalculatorDialog && user != null) BmiCalculatorDialog(
@@ -171,7 +153,6 @@ fun BmiHistoricScreen(
                 }
             }, userToUpdate = user
         )
-        if (isLoading) LoadingDialog()
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -488,7 +469,7 @@ private fun BmiHistoricScreenPreview() {
                 TODO("Not yet implemented")
             }
 
-            override fun disableBmiInfoRegister(bmiInfo: BmiInfo) {
+            override fun disableBmiInfoRegister(bmiInfo: BmiInfo, onFinished: () -> Unit) {
                 TODO("Not yet implemented")
             }
         }

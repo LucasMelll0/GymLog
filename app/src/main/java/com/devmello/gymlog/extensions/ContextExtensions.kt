@@ -12,9 +12,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 
 val Context.datastore: DataStore<Preferences> by preferencesDataStore(name = "userInfo")
-suspend fun Context.checkConnection(
-    onNotConnected: suspend () -> Unit = {},
-    onConnected: suspend () -> Unit
+fun Context.checkConnection(
+    onNotConnected: () -> Unit = {},
+    onConnected: () -> Unit
 ) {
     val connectivityManager =
         getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

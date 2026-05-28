@@ -133,7 +133,7 @@ fun AppNavHost(
         }
         composable<NavRoute.Bmi> {
             BackPressHandler {
-                navigationManager.navigate(NavRoute.Home)
+                navigationManager.navigate(NavRoute.Home, NavMethod.INCLUSIVE)
             }
             BmiHistoricScreen(
                 onError = { navController.popBackStack() },
