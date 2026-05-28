@@ -13,6 +13,7 @@ import com.devmello.gymlog.core.ui.LoadingManager
 import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.repository.BmiInfoRepository
 import com.devmello.gymlog.repository.TrainingRepository
+import com.devmello.gymlog.services.NetworkMonitor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -47,6 +48,8 @@ class UserProfileViewModelImpl(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val userRepository: UserRepository,
     private val loadingManager: LoadingManager,
+    private val networkMonitor: NetworkMonitor,
+    private val messageManager: MessageManager
 ) : UserProfileViewModel, ViewModel() {
 
     private val _user = MutableStateFlow(accountRepository.currentUser)
@@ -57,6 +60,10 @@ class UserProfileViewModelImpl(
     override fun changeUsername(
         username: String, onFailed: () -> Unit
     ) {
+        if(!networkMonitor.isOnline) {
+            messageManager.postMessage(R.string.common_offline_message)
+            return
+        }
         loadingManager.show()
         viewModelScope.launch {
             val response = accountRepository.updateUsername(username)
@@ -69,6 +76,10 @@ class UserProfileViewModelImpl(
     override fun changeUserPhoto(
         uri: Uri, onFailed: () -> Unit
     ) {
+        if(!networkMonitor.isOnline) {
+            messageManager.postMessage(R.string.common_offline_message)
+            return
+        }
         loadingManager.show()
         viewModelScope.launch {
             val response = accountRepository.updateProfilePicture(uri.toString())
@@ -93,6 +104,10 @@ class UserProfileViewModelImpl(
         onSuccess: () -> Unit,
         onFailed: () -> Unit
     ) {
+        if(!networkMonitor.isOnline) {
+            messageManager.postMessage(R.string.common_offline_message)
+            return
+        }
         loadingManager.show()
         viewModelScope.launch {
             val googleIdToken = userPreferencesRepository.googleIdToken.firstOrNull()

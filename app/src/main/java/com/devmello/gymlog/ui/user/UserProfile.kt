@@ -7,6 +7,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,7 +38,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,7 +58,6 @@ import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.core.ui.ScaffoldConfig
 import com.devmello.gymlog.core.ui.ScaffoldManager
 import com.devmello.gymlog.extensions.capitalizeAllWords
-import com.devmello.gymlog.extensions.checkConnection
 import com.devmello.gymlog.ui.components.DefaultAsyncImage
 import com.devmello.gymlog.ui.components.DefaultPasswordTextField
 import com.devmello.gymlog.ui.components.DefaultTextField
@@ -71,7 +70,6 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.auth.EmailAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
 import java.util.Date
@@ -87,7 +85,6 @@ fun UserProfileScreen(
     onInvalidUser: () -> Unit,
     onDeleteUser: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val user by viewModel.user.collectAsStateWithLifecycle()
     LaunchedEffect(key1 = user) {
@@ -100,62 +97,32 @@ fun UserProfileScreen(
 
 
     // Dialogs & BottomSheet flags
-    var showChangeUserPhotoDialog by rememberSaveable { mutableStateOf(false) }
     var showChangeUsernameBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showChangePasswordBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteAccountBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     val isEmailAuthProvider = viewModel.userProvider == EmailAuthProvider.PROVIDER_ID
 
-    if (showChangeUserPhotoDialog) ChangeUserPhotoDialog(
-        photoUri = selectedPhoto,
-        onConfirm = {
-            scope.launch {
-                context.checkConnection(onNotConnected = {
-                    showChangeUserPhotoDialog = false
-                    messageManager.postMessage(textId = R.string.common_offline_message)
-                }) {
-                    selectedPhoto?.let {
-                        showChangeUserPhotoDialog = false
-                        viewModel.changeUserPhoto(it) {
-                            messageManager.postMessage(textId = R.string.user_profile_change_photo_error)
-                        }
-                    }
-                }
-            }
-        },
-        onDismissRequest = { showChangeUserPhotoDialog = false })
     if (showChangeUsernameBottomSheet) ChangeUsernameBottomSheet(onConfirm = {
         showChangeUsernameBottomSheet = false
-        scope.launch {
-            context.checkConnection(onNotConnected = {
-                messageManager.postMessage(R.string.common_offline_message)
-            }) {
-                viewModel.changeUsername(it) {
-                    messageManager.postMessage(R.string.user_profile_change_username_error)
-                }
-            }
+        viewModel.changeUsername(it) {
+            messageManager.postMessage(R.string.user_profile_change_username_error)
         }
+
+
     }, onDismissRequest = { showChangeUsernameBottomSheet = false })
 
     if (showChangePasswordBottomSheet) ChangePasswordBottomSheet(
         needPasswordToReauthenticate = isEmailAuthProvider,
         onConfirm = { oldPassword, newPassword ->
             showChangePasswordBottomSheet = false
-            scope.launch {
-                context.checkConnection(onNotConnected = {
-                    messageManager.postMessage(textId = R.string.common_offline_message)
-                }) {
-                    viewModel.changePassword(
-                        oldPassword,
-                        newPassword,
-                        onSuccess = { messageManager.postMessage(textId = R.string.user_profile_change_password_success_message) },
-                        onFailed = { messageManager.postMessage(textId = R.string.user_profile_change_password_error) })
-                }
-            }
-        }) {
-        showChangePasswordBottomSheet = false
-    }
+            viewModel.changePassword(
+                oldPassword,
+                newPassword,
+                onSuccess = { messageManager.postMessage(textId = R.string.user_profile_change_password_success_message) },
+                onFailed = { messageManager.postMessage(textId = R.string.user_profile_change_password_error) })
+        },
+        onDismissRequest = { showChangePasswordBottomSheet = false })
 
     if (showDeleteAccountBottomSheet) DeleteAccountBottomSheet(
         needPasswordToReauthenticate = isEmailAuthProvider,
@@ -175,7 +142,6 @@ fun UserProfileScreen(
         onSelectPhoto = { photo ->
             photo?.let {
                 selectedPhoto = photo
-                showChangeUserPhotoDialog = true
             } ?: run {
                 messageManager.postMessage(textId = R.string.user_profile_photo_selection_error)
             }
@@ -223,14 +189,19 @@ private fun UserProfileContent(
                     )
             ) {
                 if (context is Activity) {
-                    val galleryPermissionState =
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) rememberPermissionState(
-                            permission = Manifest.permission.READ_MEDIA_IMAGES
-                        ) else rememberPermissionState(permission = Manifest.permission.READ_EXTERNAL_STORAGE)
-                    val galleryLauncher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.GetContent(),
-                    ) { imageUri ->
-                        onSelectPhoto(imageUri)
+//                    val galleryPermissionState =
+//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) rememberPermissionState(
+//                            permission = Manifest.permission.READ_MEDIA_IMAGES
+//                        ) else rememberPermissionState(permission = Manifest.permission.READ_EXTERNAL_STORAGE)
+//                    val galleryLauncher = rememberLauncherForActivityResult(
+//                        contract = ActivityResultContracts.GetContent(),
+//                    ) { imageUri ->
+//                        onSelectPhoto(imageUri)
+//                    }
+                    val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+                        if(uri != null) {
+                            onSelectPhoto(uri)
+                        }
                     }
                     DefaultAsyncImage(
                         data = userPhotoUri,
@@ -240,11 +211,12 @@ private fun UserProfileContent(
                         modifier = Modifier
                             .fillMaxSize()
                             .clickable {
-                                galleryPermissionState.let {
-                                    if (!it.status.isGranted) it.launchPermissionRequest() else {
-                                        galleryLauncher.launch("image/*")
-                                    }
-                                }
+                                pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+//                                galleryPermissionState.let {
+//                                    if (!it.status.isGranted) it.launchPermissionRequest() else {
+//                                        galleryLauncher.launch("image/*")
+//                                    }
+//                                }
                             }
                     )
                 }

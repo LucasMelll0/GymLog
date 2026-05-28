@@ -35,6 +35,8 @@ class NetworkMonitor(context: Context) {
         }
     }
 
+    val isOnline: Boolean get() = checkCurrentConnection()
+
     fun checkCurrentConnection(): Boolean {
         val network = connectivityManager.activeNetwork
         val capabilities = connectivityManager.getNetworkCapabilities(network)

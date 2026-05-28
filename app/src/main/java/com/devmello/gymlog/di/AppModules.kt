@@ -170,7 +170,9 @@ val userProfileModule = module {
             bmiInfoRepository = get(),
             userRepository = get(),
             userPreferencesRepository = get(),
-            loadingManager = get()
+            loadingManager = get(),
+            messageManager = get(),
+            networkMonitor = get()
         )
     }
 }
