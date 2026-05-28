@@ -4,7 +4,6 @@ import com.devmello.gymlog.core.model.Response
 import com.devmello.gymlog.core.model.repositories.AccountRepository
 import com.devmello.gymlog.extensions.capitalizeAllWords
 import com.devmello.gymlog.extensions.toUserData
-import com.devmello.gymlog.utils.State
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
@@ -12,10 +11,8 @@ import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
-import androidx.core.net.toUri
 
 class FirebaseUserClient(
-    private val storageClient: StorageClient
 ) : AccountRepository {
 
     private val firebaseAuth = Firebase.auth
@@ -81,7 +78,6 @@ class FirebaseUserClient(
         return user?.let {
             try {
                 reAuthenticate(password, googleIdToken)
-                storageClient.deletePhoto(it.uid)
                 it.delete().await()
                 reloadUser()
                 Response.Success(data = null)
@@ -102,31 +98,6 @@ class FirebaseUserClient(
                     it.updateProfile(profileUpdate).await()
                 }
                 Response.Success(data = null)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Response.Error(message = e.message)
-            }
-        } ?: Response.Error(message = "Invalid user!")
-    }
-
-    override suspend fun updateProfilePicture(photo: String): Response<Nothing> {
-        return user?.let { user ->
-            try {
-                val uri = photo.toUri()
-                return when (val resource = storageClient.savePhoto(uri, user.uid)) {
-                    is State.Success -> {
-                        val downloadUri = resource.data
-                        val profileUpdate = userProfileChangeRequest {
-                            photoUri = downloadUri
-                        }
-                        user.updateProfile(profileUpdate).await()
-                        Response.Success(data = null)
-                    }
-
-                    else -> throw Exception("Error on upload image")
-                }
-
-
             } catch (e: Exception) {
                 e.printStackTrace()
                 Response.Error(message = e.message)

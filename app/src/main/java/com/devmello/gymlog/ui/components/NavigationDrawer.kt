@@ -54,20 +54,9 @@ fun NavigationDrawerHeader(user: UserData?, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.default_padding)),
-        modifier = Modifier.padding(vertical = dimensionResource(R.dimen.default_padding))
+        modifier = Modifier.padding(dimensionResource(R.dimen.default_padding))
             .clickable(true, onClick = onClick)
     ) {
-        DefaultAsyncImage(
-            data = user?.profilePicture,
-            diskCacheKey = "user_image_${Date().time}",
-            error = painterResource(id = R.drawable.ic_person),
-            contentDescription = stringResource(id = R.string.user_profile_photo_content_description),
-            modifier = Modifier
-                .size(dimensionResource(id = R.dimen.navigation_drawer_user_photo_size))
-                .background(MaterialTheme.colorScheme.surface)
-                .clip(CircleShape)
-                .weight(0.25f)
-        )
         Column(
             horizontalAlignment = Alignment.Start,
             modifier = Modifier.weight(0.75f)
@@ -127,7 +116,7 @@ fun AppNavigationDrawer(
                                     Text(text = title)
                                 }
                             },
-                            selected = currentDestinationRoute.equals(destination.navRoute),
+                            selected = currentDestinationRoute == destination.navRoute,
                             onClick = {
                                 onItemClick(destination)
                             }

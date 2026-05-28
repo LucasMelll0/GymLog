@@ -27,8 +27,6 @@ interface UserProfileViewModel {
 
     fun changeUsername(username: String, onFailed: () -> Unit = {})
 
-    fun changeUserPhoto(uri: Uri, onFailed: () -> Unit = {})
-
     fun changePassword(
         oldPassword: String, newPassword: String,
         onSuccess: () -> Unit,
@@ -67,22 +65,6 @@ class UserProfileViewModelImpl(
         loadingManager.show()
         viewModelScope.launch {
             val response = accountRepository.updateUsername(username)
-            loadingManager.hide()
-            if (response is Response.Success) reload() else onFailed()
-        }
-
-    }
-
-    override fun changeUserPhoto(
-        uri: Uri, onFailed: () -> Unit
-    ) {
-        if(!networkMonitor.isOnline) {
-            messageManager.postMessage(R.string.common_offline_message)
-            return
-        }
-        loadingManager.show()
-        viewModelScope.launch {
-            val response = accountRepository.updateProfilePicture(uri.toString())
             loadingManager.hide()
             if (response is Response.Success) reload() else onFailed()
         }

@@ -9,7 +9,6 @@ interface AccountRepository {
     val userProvider: String?
 
     suspend fun updateUsername(newName: String): Response<Unit>
-    suspend fun updateProfilePicture(photo: String): Response<Unit>
     suspend fun changePassword(
         oldPassword: String?,
         newPassword: String,

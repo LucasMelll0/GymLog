@@ -16,7 +16,6 @@ import com.devmello.gymlog.data.datastore.UserStore
 import com.devmello.gymlog.data.firebase.FireStoreClient
 import com.devmello.gymlog.data.firebase.FirebaseAuthRepository
 import com.devmello.gymlog.data.firebase.FirebaseUserClient
-import com.devmello.gymlog.data.firebase.StorageClient
 import com.devmello.gymlog.navigation.viewmodel.MainViewModelImpl
 import com.devmello.gymlog.repository.BmiInfoRepository
 import com.devmello.gymlog.repository.BmiInfoRepositoryImpl
@@ -63,10 +62,7 @@ val firebaseModule = module {
         FireStoreClient()
     }
     single<AccountRepository> {
-        FirebaseUserClient(get())
-    }
-    single {
-        StorageClient()
+        FirebaseUserClient()
     }
 }
 

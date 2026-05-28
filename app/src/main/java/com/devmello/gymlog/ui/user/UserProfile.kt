@@ -1,18 +1,8 @@
 package com.devmello.gymlog.ui.user
 
-import android.Manifest
-import android.app.Activity
-import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,12 +33,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,8 +53,6 @@ import com.devmello.gymlog.ui.theme.GymLogTheme
 import com.devmello.gymlog.ui.user.viewmodel.UserProfileViewModel
 import com.devmello.gymlog.ui.user.viewmodel.UserProfileViewModelImpl
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.auth.EmailAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -85,16 +71,12 @@ fun UserProfileScreen(
     onInvalidUser: () -> Unit,
     onDeleteUser: () -> Unit
 ) {
-    val context = LocalContext.current
     val user by viewModel.user.collectAsStateWithLifecycle()
     LaunchedEffect(key1 = user) {
         user ?: onInvalidUser()
     }
     // Initial Config
     scaffoldManager.updateConfig(ScaffoldConfig())
-    var selectedPhoto: Uri? by rememberSaveable { mutableStateOf(null) }
-    val userPhotoUri = user?.profilePicture
-
 
     // Dialogs & BottomSheet flags
     var showChangeUsernameBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -137,20 +119,11 @@ fun UserProfileScreen(
         onDismissRequest = { showDeleteAccountBottomSheet = false })
     UserProfileContent(
         user = user,
-        userPhotoUri = userPhotoUri,
         isEmailAuthProvider = isEmailAuthProvider,
-        onSelectPhoto = { photo ->
-            photo?.let {
-                selectedPhoto = photo
-            } ?: run {
-                messageManager.postMessage(textId = R.string.user_profile_photo_selection_error)
-            }
-        },
         onChangeUsernameClick = { showChangeUsernameBottomSheet = true },
         onChangePasswordClick = { showChangePasswordBottomSheet = true },
         onDeleteUserClick = { showDeleteAccountBottomSheet = true },
         onInvalidUser = onInvalidUser,
-        context = context,
         modifier = modifier
     )
 }
@@ -159,13 +132,10 @@ fun UserProfileScreen(
 @OptIn(ExperimentalPermissionsApi::class)
 private fun UserProfileContent(
     user: UserData?,
-    userPhotoUri: String?,
-    onSelectPhoto: (Uri?) -> Unit,
     onChangeUsernameClick: () -> Unit,
     onChangePasswordClick: () -> Unit,
     onDeleteUserClick: () -> Unit,
     onInvalidUser: () -> Unit,
-    context: Context,
     modifier: Modifier = Modifier,
     isEmailAuthProvider: Boolean
 ) {
@@ -177,50 +147,6 @@ private fun UserProfileContent(
         verticalArrangement = Arrangement.Center
     ) {
         user?.let { user ->
-            Box(
-                modifier = Modifier
-                    .size(dimensionResource(id = R.dimen.user_profile_photo_size))
-                    .padding(dimensionResource(id = R.dimen.large_padding))
-                    .clip(MaterialTheme.shapes.extraLarge)
-                    .border(
-                        1.dp,
-                        MaterialTheme.colorScheme.primary.copy(0.5f),
-                        MaterialTheme.shapes.extraLarge
-                    )
-            ) {
-                if (context is Activity) {
-//                    val galleryPermissionState =
-//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) rememberPermissionState(
-//                            permission = Manifest.permission.READ_MEDIA_IMAGES
-//                        ) else rememberPermissionState(permission = Manifest.permission.READ_EXTERNAL_STORAGE)
-//                    val galleryLauncher = rememberLauncherForActivityResult(
-//                        contract = ActivityResultContracts.GetContent(),
-//                    ) { imageUri ->
-//                        onSelectPhoto(imageUri)
-//                    }
-                    val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                        if(uri != null) {
-                            onSelectPhoto(uri)
-                        }
-                    }
-                    DefaultAsyncImage(
-                        data = userPhotoUri,
-                        diskCacheKey = "user_image_${Date().time}",
-                        error = painterResource(id = R.drawable.ic_person),
-                        contentDescription = stringResource(id = R.string.user_profile_photo_content_description),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clickable {
-                                pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-//                                galleryPermissionState.let {
-//                                    if (!it.status.isGranted) it.launchPermissionRequest() else {
-//                                        galleryLauncher.launch("image/*")
-//                                    }
-//                                }
-                            }
-                    )
-                }
-            }
             user.userName?.let {
                 Text(
                     text = it.capitalizeAllWords(),
@@ -562,10 +488,6 @@ fun UserProfileScreenPreview() {
                 get() = null
 
             override fun changeUsername(username: String, onFailed: () -> Unit) {
-                TODO("Not yet implemented")
-            }
-
-            override fun changeUserPhoto(uri: Uri, onFailed: () -> Unit) {
                 TODO("Not yet implemented")
             }
 
