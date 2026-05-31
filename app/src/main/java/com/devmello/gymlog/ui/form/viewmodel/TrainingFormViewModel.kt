@@ -8,6 +8,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.devmello.gymlog.core.model.Response
+import com.devmello.gymlog.core.model.repositories.AssistantRepository
 import com.devmello.gymlog.core.ui.LoadingManager
 import com.devmello.gymlog.core.ui.MessageManager
 import com.devmello.gymlog.model.Exercise
@@ -41,12 +43,15 @@ interface TrainingFormViewModel {
     fun removeExercise(exercise: Exercise)
 
     fun saveTraining(onSuccess: () -> Unit)
+
+    fun generateTrainingWithAI(query: String)
 }
 
 class TrainingFormViewModelImpl(
     private val repository: TrainingRepository,
     private val loadingManager: LoadingManager,
-    private val messageManager: MessageManager
+    private val messageManager: MessageManager,
+    private val assistantRepository: AssistantRepository
 ) : TrainingFormViewModel,
     ViewModel() {
 
@@ -140,5 +145,30 @@ class TrainingFormViewModelImpl(
             onSuccess()
         }
 
+    }
+
+    override fun generateTrainingWithAI(query: String) {
+        if (query.isBlank()) return
+        loadingManager.show()
+        viewModelScope.launch {
+            when (val response = assistantRepository.sendMessage(query)) {
+                is Response.Success -> {
+                    response.data?.exercises?.let { exercises ->
+                        _exercises.clear()
+                        _filters.clear()
+                        exercises.forEach { dto ->
+                            addExercise(dto.toDomain())
+                        }
+                    }
+                }
+
+                is Response.Error -> {
+                    response.message?.let {
+                        messageManager.postMessage(text = it)
+                    } ?: messageManager.postMessage(textId = R.string.common_error_message)
+                }
+            }
+            loadingManager.hide()
+        }
     }
 }

@@ -25,6 +25,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -64,6 +66,7 @@ import com.devmello.gymlog.ui.components.DefaultAlertDialog
 import com.devmello.gymlog.ui.components.DefaultOutlinedTextField
 import com.devmello.gymlog.ui.components.DefaultTextButton
 import com.devmello.gymlog.ui.components.FilterChipList
+import com.devmello.gymlog.ui.components.TextWithIcon
 import com.devmello.gymlog.ui.form.viewmodel.TrainingFormViewModel
 import com.devmello.gymlog.ui.form.viewmodel.TrainingFormViewModelImpl
 import com.devmello.gymlog.ui.theme.GymLogTheme
@@ -180,6 +183,8 @@ fun TrainingFormScreen(
                         charLimit = 50,
                     )
                     Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
+                    AiAssistantSection(onGenerate = { viewModel.generateTrainingWithAI(it) })
+                    Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
                     ExerciseListForm(
                         exercises = viewModel.exercises,
                         onClickAdd = { showExerciseDialog = true },
@@ -203,6 +208,54 @@ fun TrainingFormScreen(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun AiAssistantSection(
+    onGenerate: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var query by rememberSaveable { mutableStateOf("") }
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(dimensionResource(id = R.dimen.default_padding))
+    ) {
+        Column(
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding)),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Assistente de IA",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            DefaultOutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                label = { Text("O que você deseja treinar?") },
+                modifier = Modifier.fillMaxWidth(),
+                supportingText = "Ex: Treino de peito e tríceps focado em força"
+            )
+            Button(
+                onClick = { onGenerate(query) },
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth()
+            ) {
+                TextWithIcon(
+                    text = "Gerar Treino",
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Rounded.Star,
+                            contentDescription = null
+                        )
+                    }
+                )
             }
         }
     }
@@ -406,6 +459,10 @@ private fun TrainingFormScreenPreview() {
             }
 
             override fun saveTraining(onSuccess: () -> Unit) {
+                TODO("Not yet implemented")
+            }
+
+            override fun generateTrainingWithAI(query: String) {
                 TODO("Not yet implemented")
             }
         }

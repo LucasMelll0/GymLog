@@ -2,6 +2,7 @@ package com.devmello.gymlog.di
 
 import androidx.room.Room
 import com.devmello.gymlog.core.model.repositories.AccountRepository
+import com.devmello.gymlog.core.model.repositories.AssistantRepository
 import com.devmello.gymlog.core.model.repositories.AuthRepository
 import com.devmello.gymlog.core.model.repositories.UserPreferencesRepository
 import com.devmello.gymlog.core.model.repositories.UserRepository
@@ -19,6 +20,7 @@ import com.devmello.gymlog.data.firebase.FirebaseUserClient
 import com.devmello.gymlog.navigation.viewmodel.MainViewModelImpl
 import com.devmello.gymlog.repository.BmiInfoRepository
 import com.devmello.gymlog.repository.BmiInfoRepositoryImpl
+import com.devmello.gymlog.repository.FirebaseAssistantRepository
 import com.devmello.gymlog.repository.TrainingRepository
 import com.devmello.gymlog.repository.TrainingRepositoryImpl
 import com.devmello.gymlog.repository.UserRepositoryImpl
@@ -76,6 +78,9 @@ val repositoryModule = module {
     single<UserRepository> {
         UserRepositoryImpl(get(), get())
     }
+    single<AssistantRepository> {
+        FirebaseAssistantRepository()
+    }
 }
 
 val mainModule = module {
@@ -119,7 +124,7 @@ val homeModule = module {
 
 val formModule = module {
     viewModel {
-        TrainingFormViewModelImpl(get(), get(), get())
+        TrainingFormViewModelImpl(get(), get(), get(), get())
     }
 }
 
