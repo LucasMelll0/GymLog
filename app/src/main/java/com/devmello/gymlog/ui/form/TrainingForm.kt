@@ -34,6 +34,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +47,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -91,29 +93,32 @@ fun TrainingFormScreen(
 
     val hasError by viewModel.hasErrors.collectAsStateWithLifecycle()
     val nameHasError = viewModel.nameHasError
-
-
-    LaunchedEffect(Unit) {
-        scaffoldManager.updateConfig(
-            ScaffoldConfig(
-                onNavigateBack = {
-                    showDismissDialog = true
-                    false
-                },
-                showBottomBar = false,
-                fab = {
-                    TrainingFormFab(
-                        onConfirm = {
-                            viewModel.saveTraining(onSuccess = {
-                                onSaveTraining()
-                            })
-                        },
-                        enabled = !hasError
-                    )
-                }
-            )
-        )
+    var showAiAssistantSection by rememberSaveable {
+        mutableStateOf(false)
     }
+
+    scaffoldManager.updateConfig(
+        ScaffoldConfig(
+            onNavigateBack = {
+                showDismissDialog = true
+                false
+            },
+            showBottomBar = false,
+            fab = {
+                TrainingFormFab(
+                    onConfirm = {
+                        viewModel.saveTraining(onSuccess = {
+                            onSaveTraining()
+                        })
+                    },
+                    onClickToggleAiAssistantVisibility = {
+                        showAiAssistantSection = !showAiAssistantSection
+                    },
+                    enabled = !hasError
+                )
+            }
+        )
+    )
     trainingId?.let {
         LaunchedEffect(it) {
             viewModel.getTrainingById(it)
@@ -182,8 +187,10 @@ fun TrainingFormScreen(
                         errorMessage = stringResource(id = R.string.common_text_field_error_message),
                         charLimit = 50,
                     )
-                    Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
-                    AiAssistantSection(onGenerate = { viewModel.generateTrainingWithAI(it) })
+                    AnimatedVisibility(showAiAssistantSection) {
+                        Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
+                        AiAssistantSection(onGenerate = { viewModel.generateTrainingWithAI(it) })
+                    }
                     Spacer(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.default_padding)))
                     ExerciseListForm(
                         exercises = viewModel.exercises,
@@ -220,6 +227,7 @@ fun AiAssistantSection(
     modifier: Modifier = Modifier
 ) {
     var query by rememberSaveable { mutableStateOf("") }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -251,7 +259,7 @@ fun AiAssistantSection(
                     text = "Gerar Treino",
                     icon = {
                         Icon(
-                            imageVector = Icons.Rounded.Star,
+                            painter = painterResource(R.drawable.baseline_auto_awesome_24),
                             contentDescription = null
                         )
                     }
@@ -399,13 +407,22 @@ private fun DismissTrainingDialog(
 @Composable
 private fun TrainingFormFab(
     onConfirm: () -> Unit,
+    onClickToggleAiAssistantVisibility: () -> Unit = {},
     enabled: Boolean = true,
 ) {
-    if (enabled) FloatingActionButton(onClick = onConfirm) {
-        Icon(
-            imageVector = Icons.Rounded.Check,
-            contentDescription = stringResource(id = R.string.common_confirm)
-        )
+    Column() {
+        SmallFloatingActionButton(onClick = onClickToggleAiAssistantVisibility) {
+            Icon(
+                painter = painterResource(R.drawable.baseline_auto_awesome_24),
+                contentDescription = stringResource(R.string.create_with_ai_content_description)
+            )
+        }
+        if (enabled) FloatingActionButton(onClick = onConfirm) {
+            Icon(
+                imageVector = Icons.Rounded.Check,
+                contentDescription = stringResource(id = R.string.common_confirm)
+            )
+        }
     }
 }
 
@@ -481,7 +498,7 @@ private fun TrainingFormScreenPreview() {
 private fun ExerciseListFormPreview() {
     val list =
         List(2) {
-            val observations = if (it == 0) "Manter o peitoral sempre tensionado" else ""
+            val observations = if (it == 0) "Manter o peitoral always tensionado" else ""
             Exercise(
                 title = "Test $it",
                 repetitions = 10,
@@ -513,5 +530,13 @@ private fun ExerciseItemFormPreview() {
             )
             ExerciseItemForm(exercise = exercise, onClickRemove = {}, onClick = {})
         }
+    }
+}
+
+@Preview
+@Composable
+private fun AiAssistantSectionPreview() {
+    GymLogTheme {
+        AiAssistantSection(onGenerate = {})
     }
 }

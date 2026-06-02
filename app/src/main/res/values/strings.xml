@@ -197,4 +197,5 @@
     <string name="user_profile_change_photo_error">Ocorreu uma falha ao tentar mudar sua imagem!</string>
     <string name="get_credential_error_message">Ocorreu um erro na tentativa de buscar as credenciais</string>
     <string name="common_login_error_message">Ocorreu um erro na tentativa de login</string>
+    <string name="create_with_ai_content_description">criar com assistente de ia</string>
 </resources>
