@@ -293,7 +293,7 @@ fun ExerciseListForm(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 200.dp)
+                .heightIn(max = 500.dp)
                 .animateContentSize()
         ) {
             items(
@@ -349,12 +349,14 @@ fun ExerciseItemForm(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = exercise.title,
-                modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Column {
+            Column(
+                modifier = Modifier.weight (1f)
+            ) {
+                Text(
+                    text = exercise.title,
+                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.default_padding)),
+                    style = MaterialTheme.typography.titleMedium
+                )
                 Text(
                     text = stringResource(
                         R.string.exercise_repetions_place_holder,
@@ -363,28 +365,29 @@ fun ExerciseItemForm(
                     ),
                     style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
                 )
+                if (exercise.observations.isNotEmpty()) {
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Observações: ")
+                            }
+                            append(exercise.observations)
+                        },
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))
+                    )
+                }
             }
-            IconButton(onClick = { onClickRemove(exercise) }) {
+            IconButton(onClick = { onClickRemove(exercise) }, modifier = Modifier.weight(0.2f)) {
                 Icon(
                     Icons.Rounded.Close,
                     contentDescription = stringResource(id = R.string.delete_exercise_content_description)
                 )
             }
         }
-        if (exercise.observations.isNotEmpty()) {
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append("Observações: ")
-                    }
-                    append(exercise.observations)
-                },
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(dimensionResource(id = R.dimen.default_padding))
-            )
-        }
+
     }
 }
 
