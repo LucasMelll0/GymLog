@@ -198,4 +198,8 @@
     <string name="get_credential_error_message">Ocorreu um erro na tentativa de buscar as credenciais</string>
     <string name="common_login_error_message">Ocorreu um erro na tentativa de login</string>
     <string name="create_with_ai_content_description">criar com assistente de ia</string>
+    <string name="ai_assistant_section_title">Assistente de IA</string>
+    <string name="ai_assistant_section_field_label">O que você deseja treinar?</string>
+    <string name="ai_assistant_section_field_support_text">Ex: Treino de peito e tríceps focado em força</string>
+    <string name="ai_assistant_section_button_generate_text">Gerar Treino</string>
 </resources>

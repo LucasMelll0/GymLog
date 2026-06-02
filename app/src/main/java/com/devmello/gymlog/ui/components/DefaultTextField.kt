@@ -86,7 +86,6 @@ fun DefaultOutlinedTextField(
         label = label,
         keyboardOptions = keyboardOptions,
         modifier = modifier,
-
         )
 }
 
@@ -142,7 +141,7 @@ fun DefaultTextField(
             disabledIndicatorColor = Color.Transparent,
             errorIndicatorColor = Color.Transparent,
             cursorColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
+        ),
         keyboardOptions = keyboardOptions,
 
         )

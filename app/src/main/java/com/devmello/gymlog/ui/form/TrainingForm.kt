@@ -238,16 +238,16 @@ fun AiAssistantSection(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Assistente de IA",
+                text = stringResource(R.string.ai_assistant_section_title),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             DefaultOutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                label = { Text("O que você deseja treinar?") },
+                label = { Text(stringResource(R.string.ai_assistant_section_field_label)) },
                 modifier = Modifier.fillMaxWidth(),
-                supportingText = "Ex: Treino de peito e tríceps focado em força"
+                supportingText = stringResource(R.string.ai_assistant_section_field_support_text)
             )
             Button(
                 onClick = { onGenerate(query) },
@@ -256,7 +256,7 @@ fun AiAssistantSection(
                     .fillMaxWidth()
             ) {
                 TextWithIcon(
-                    text = "Gerar Treino",
+                    text = stringResource(R.string.ai_assistant_section_button_generate_text),
                     icon = {
                         Icon(
                             painter = painterResource(R.drawable.baseline_auto_awesome_24),
