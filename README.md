@@ -1,23 +1,20 @@
-<h1 align="center">GymLog</h1>
+<h1 style="text-align: center">GymLog</h1>
 
-<p align="center">
+<p style="text-align: center">  
   <a href="https://opensource.org/licenses/Apache-2.0"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"/></a>
-  <a href="https://android-arsenal.com/api?level=21"><img alt="API" src="https://img.shields.io/badge/API-26%2B-brightgreen.svg?style=flat"/></a>
+  <a href="https://android-arsenal.com/api?level=26"><img alt="API" src="https://img.shields.io/badge/API-26%2B-brightgreen.svg?style=flat"/></a>
   <br>
   <a href="https://www.linkedin.com/in/lucas-mello-a43887188/"><img alt="Linkedin" src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"/></a>
-  <a href="mailto:lucasmellorodrigues2012@gmail.com"><img alt="Gmail" src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white"/></a>
+  <a href="mailto:lucasmellorodrigues.dev@gmail.com"><img alt="Gmail" src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white"/></a>
 </p>
 
-<p align="center">  
+<p style="text-align: center">  
 
 🚀 Esse é um projeto de estudos para desenvolvimento Android nativo utilizando a ferramenta Jetpack Compose.
 
-💪 Aplicativo que gerência treinos de acadêmia, oferece também ferramentas como temporizador, cronômetro e calculadora imc com histórico.
+💪 Aplicativo que gerencia treinos de academia, oferece também ferramentas como assistente de IA para geração de treinos, temporizador, cronômetro e calculadora IMC com histórico.
 
 </p>
-
-## Download
- Faça o download da <a href="https://github.com/LucasMelll0/GymLog/blob/master/apk/GymLog.apk?raw=true">APK diretamente</a>. Você pode ver <a href="https://www.google.com/search?q=como+instalar+um+apk+no+android">aqui</a> como instalar uma APK no seu aparelho android.
 
 ## Tecnologias usadas e bibliotecas de código aberto
 
@@ -33,6 +30,7 @@
   - Firebase Auth: para autênticação de usuários.
   - Firebase Firestore: Para armazenamento de dados em nuvem.
   - Firebase Storage: Para armazenar imagem de perfil do usuário.
+  - Gemini AI: Para geração de treinos de forma automatizada usando inteligência artificial.
 
 - Arquitetura
   - MVVM (View - ViewModel - Model)
@@ -49,14 +47,17 @@
 </br></br>
 <img width="100%" src="screenshots/architecture.png"/>
 <br>
-<h2>Authenticação</h2>
+<h2>Autenticação</h2>
 <img width="50%" src="screenshots/welcome.png"><img width="50%" src="screenshots/login.png">
 <br>
 <h2>Home</h2>
 <img width="50%" src="screenshots/home.png">
 <br>
-<h2>Fomularios</h2>
+<h2>Formulários</h2>
 <img width="50%" src="screenshots/training_form.png"><img width="50%" src="screenshots/exercise_form.png">
+<br>
+<h2>Detalhes e Execução de Treino</h2>
+<img width="50%" src="screenshots/training_details.png">
 <br>
 <h2>Calculadora IMC</h2>
 <img width="50%" src="screenshots/bmi.png">
